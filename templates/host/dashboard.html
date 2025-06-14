@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "common/base.html" %}
 
 {% block title %}Dashboard - Otithi{% endblock %}
 
@@ -110,11 +110,10 @@
                 </div>
                 <div class="stat-content">
                     <h3>Total Earnings</h3>
-                    <p class="stat-value">৳{{ stats.total_earnings|number_format }}</p>
-                    <p class="stat-change {% if stats.earnings_growth > 0 %}text-success{% else %}text-danger{% endif %}">
-                        <i class="fas {% if stats.earnings_growth > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
-                        {{ stats.earnings_growth }}% this month
-                    </p>
+                    <div class="stat-value">{{ stats.total_earnings|currency }}</div>
+                    <div class="stat-change {% if stats.earnings_growth > 0 %}positive{% else %}negative{% endif %}">
+                        {{ stats.earnings_growth|round(1) }}%
+                    </div>
                 </div>
             </div>
         {% else %}
@@ -269,19 +268,23 @@
                     <span>Explore Stays</span>
                 </a>
             {% elif current_user.role == 'host' %}
-                <a href="{{ url_for('host_properties') }}" class="action-card">
+                <a href="{{ url_for('get_properties') }}" class="action-card">
                     <i class="fas fa-home"></i>
                     <span>My Properties</span>
                 </a>
-                <a href="{{ url_for('host_bookings') }}" class="action-card">
+                <a href="{{ url_for('my_bookings') }}" class="action-card">
                     <i class="fas fa-calendar-check"></i>
                     <span>Manage Bookings</span>
                 </a>
-                <a href="{{ url_for('host_earnings') }}" class="action-card">
+                <div class="action-card">
                     <i class="fas fa-money-bill-wave"></i>
-                    <span>View Earnings</span>
-                </a>
-                <a href="{{ url_for('host_reviews') }}" class="action-card">
+                    <span>Total Earnings</span>
+                    <div class="stat-value">{{ stats.total_earnings|currency }}</div>
+                    <div class="stat-change {% if stats.earnings_growth > 0 %}positive{% else %}negative{% endif %}">
+                        {{ stats.earnings_growth|round(1) }}%
+                    </div>
+                </div>
+                <a href="{{ url_for('get_property_reviews') }}" class="action-card">
                     <i class="fas fa-star"></i>
                     <span>View Reviews</span>
                 </a>
@@ -560,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'New Users',
                     data: {{ chart_data.user_growth_data|default([])|tojson }},
-                    borderColor: '#28a745',
+                    borderColor: '#006A4E',
                     tension: 0.1
                 }]
             },
@@ -620,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Earnings',
                     data: {{ chart_data.earnings_data|default([])|tojson }},
-                    borderColor: '#28a745',
+                    borderColor: '#006A4E',
                     tension: 0.1
                 }]
             },
@@ -660,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Spending',
                     data: {{ chart_data.spending_data|default([])|tojson }},
-                    borderColor: '#dc3545',
+                    borderColor: '#F42A41',
                     tension: 0.1
                 }]
             },

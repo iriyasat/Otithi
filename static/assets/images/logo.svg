@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="120" height="40" fill="none"/>
+    
+    <!-- Text "আতিথি" -->
+    <text x="10" y="28" font-family="Noto Sans Bengali, sans-serif" font-size="24" font-weight="700" fill="#006A4E">
+        আতিথি
+    </text>
+    
+    <!-- Decorative element -->
+    <path d="M100 20 C100 15, 105 15, 105 20 C105 25, 100 25, 100 20" 
+          fill="#F42A41" stroke="#F42A41" stroke-width="2"/>
+    
+    <!-- Small dot -->
+    <circle cx="110" cy="20" r="3" fill="#FFD700"/>
+</svg> 

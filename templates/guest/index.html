@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "common/base.html" %}
 
 {% block title %}Otithi - Your Home Away From Home{% endblock %}
 
@@ -48,11 +48,11 @@
             <div class="col-md-4">
                 <div class="property-card card h-100">
                     <div class="property-image-container">
-                        <img src="{{ property.images[0] if property.images else url_for('static', filename='assets/images/default-property.svg') }}" 
+                        <img src="{{ property.images[0].url if property.images and property.images[0] else url_for('static', filename='assets/images/default-property.svg') }}" 
                              class="property-image card-img-top" alt="{{ property.title }}">
                         <div class="property-rating">
                             <i class="fas fa-star text-warning"></i>
-                            <span>{{ property.rating|default('4.5') }}</span>
+                            <span>{{ property.average_rating|default(0)|round(1) }}</span>
                         </div>
                     </div>
                     <div class="card-body">
@@ -61,7 +61,7 @@
                             <i class="fas fa-map-marker-alt"></i> {{ property.location }}
                         </p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="property-price">৳{{ property.price_per_night }}/night</span>
+                            <span class="property-price">৳{{ property.price|default(0)|number_format }}/night</span>
                             <a href="{{ url_for('property_details', property_id=property.id) }}" class="btn btn-outline-primary">View Details</a>
                         </div>
                     </div>
@@ -170,9 +170,7 @@
 <style>
     .hero-section {
         margin-top: -76px;
-        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/assets/images/hero-bg.jpg');
-        background-size: cover;
-        background-position: center;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         height: 600px;
         display: flex;
         align-items: center;

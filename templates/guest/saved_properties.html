@@ -1,21 +1,21 @@
-{% extends "base.html" %}
+{% extends "common/base.html" %}
 
-{% block title %}My Bookings - Atithi{% endblock %}
+{% block title %}Saved Properties - Atithi{% endblock %}
 
 {% block content %}
 <div class="container mt-5 pt-5">
     <div class="row">
         <div class="col-12">
-            <h1 class="mb-4">My Bookings</h1>
+            <h1 class="mb-4">Saved Properties</h1>
             
-            {% if bookings %}
+            {% if saved_properties %}
                 <div class="row g-4">
-                    {% for booking in bookings %}
+                    {% for saved in saved_properties %}
                         <div class="col-md-6 col-lg-4">
                             <div class="card h-100">
-                                {% if booking.property.images %}
-                                    <img src="{{ url_for('static', filename=booking.property.images[0].image_path) }}" 
-                                         class="card-img-top" alt="{{ booking.property.name }}"
+                                {% if saved.property.images %}
+                                    <img src="{{ url_for('static', filename=saved.property.images[0].image_path) }}" 
+                                         class="card-img-top" alt="{{ saved.property.name }}"
                                          style="height: 200px; object-fit: cover;">
                                 {% else %}
                                     <img src="{{ url_for('static', filename='assets/images/default-property.jpg') }}" 
@@ -24,32 +24,30 @@
                                 {% endif %}
                                 
                                 <div class="card-body">
-                                    <h5 class="card-title">{{ booking.property.name }}</h5>
+                                    <h5 class="card-title">{{ saved.property.name }}</h5>
                                     <p class="card-text">
                                         <small class="text-muted">
-                                            <i class="fas fa-calendar"></i> {{ booking.check_in.strftime('%B %d, %Y') }} - {{ booking.check_out.strftime('%B %d, %Y') }}
+                                            <i class="fas fa-map-marker-alt"></i> {{ saved.property.location }}
                                         </small>
                                     </p>
                                     <p class="card-text">
-                                        <span class="badge {% if booking.status == 'active' %}bg-success{% elif booking.status == 'completed' %}bg-primary{% elif booking.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">
-                                            {{ booking.status|title }}
-                                        </span>
+                                        <strong>Price:</strong> ${{ "%.2f"|format(saved.property.price_per_night) }} per night
                                     </p>
                                     <p class="card-text">
-                                        <strong>Total Price:</strong> ${{ "%.2f"|format(booking.total_price) }}
+                                        <small class="text-muted">
+                                            Saved on {{ saved.created_at.strftime('%B %d, %Y') }}
+                                        </small>
                                     </p>
                                 </div>
                                 
                                 <div class="card-footer bg-transparent">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <a href="{{ url_for('property_details', property_id=booking.property.id) }}" class="btn btn-outline-primary btn-sm">
-                                            View Property
+                                        <a href="{{ url_for('property_details', property_id=saved.property.id) }}" class="btn btn-outline-primary btn-sm">
+                                            View Details
                                         </a>
-                                        {% if booking.status == 'active' %}
-                                            <button class="btn btn-outline-danger btn-sm" onclick="cancelBooking({{ booking.id }})">
-                                                Cancel Booking
-                                            </button>
-                                        {% endif %}
+                                        <button class="btn btn-outline-danger btn-sm" onclick="removeSavedProperty({{ saved.id }})">
+                                            Remove
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -58,7 +56,7 @@
                 </div>
             {% else %}
                 <div class="alert alert-info">
-                    You haven't made any bookings yet. 
+                    You haven't saved any properties yet. 
                     <a href="{{ url_for('browse_properties') }}" class="alert-link">Explore stays</a> to find your next stay.
                 </div>
             {% endif %}
@@ -69,10 +67,10 @@
 
 {% block extra_js %}
 <script>
-function cancelBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        fetch(`/api/bookings/${bookingId}/cancel`, {
-            method: 'POST',
+function removeSavedProperty(savedId) {
+    if (confirm('Are you sure you want to remove this property from your saved list?')) {
+        fetch(`/api/saved-properties/${savedId}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -82,12 +80,12 @@ function cancelBooking(bookingId) {
             if (data.status === 'success') {
                 window.location.reload();
             } else {
-                alert(data.message || 'An error occurred while cancelling the booking.');
+                alert(data.message || 'An error occurred while removing the property.');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while cancelling the booking.');
+            alert('An error occurred while removing the property.');
         });
     }
 }

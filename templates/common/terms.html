@@ -1,0 +1,105 @@
+{% extends "common/base.html" %}
+
+{% block title %}Terms and Conditions - Otithi{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center mb-4">Terms and Conditions</h1>
+            <p class="lead text-center mb-5">Please read these terms carefully before using our platform</p>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">1. Acceptance of Terms</h2>
+                    <p>By accessing and using Otithi's platform, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.</p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">2. User Accounts</h2>
+                    <p>To use certain features of our platform, you must create an account. You are responsible for:</p>
+                    <ul class="mb-0">
+                        <li>Maintaining the confidentiality of your account credentials</li>
+                        <li>All activities that occur under your account</li>
+                        <li>Providing accurate and complete information</li>
+                        <li>Updating your information as needed</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">3. Property Listings</h2>
+                    <p>Hosts are responsible for:</p>
+                    <ul class="mb-0">
+                        <li>Providing accurate property information</li>
+                        <li>Maintaining property standards</li>
+                        <li>Complying with local laws and regulations</li>
+                        <li>Honoring confirmed bookings</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">4. Booking and Payments</h2>
+                    <p>Our booking and payment terms include:</p>
+                    <ul class="mb-0">
+                        <li>Payment processing through secure channels</li>
+                        <li>Clear cancellation policies</li>
+                        <li>Refund procedures</li>
+                        <li>Service fee structure</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">5. User Conduct</h2>
+                    <p>Users must not:</p>
+                    <ul class="mb-0">
+                        <li>Violate any laws or regulations</li>
+                        <li>Infringe on others' rights</li>
+                        <li>Post false or misleading information</li>
+                        <li>Engage in fraudulent activities</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">6. Privacy and Data Protection</h2>
+                    <p>We collect and process personal data in accordance with our Privacy Policy. By using our platform, you consent to such processing.</p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">7. Intellectual Property</h2>
+                    <p>All content on our platform, including text, graphics, logos, and software, is the property of Otithi or its licensors and is protected by intellectual property laws.</p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h4 mb-4">8. Limitation of Liability</h2>
+                    <p>Otithi is not liable for:</p>
+                    <ul class="mb-0">
+                        <li>Indirect or consequential damages</li>
+                        <li>Loss of data or profits</li>
+                        <li>Service interruptions</li>
+                        <li>Third-party actions</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="mb-4">Last updated: June 15, 2024</p>
+                <a href="{{ url_for('contact') }}" class="btn btn-primary">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

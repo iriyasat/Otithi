@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "common/base.html" %}
 
 {% block title %}Explore Stays - Otithi{% endblock %}
 
@@ -83,7 +83,7 @@
                             class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
                         <button class="absolute top-4 right-4 p-2 bg-white/90 rounded-full shadow-sm hover:bg-white transition duration-300">
-                            <i class="far fa-heart text-gray-600 hover:text-primary-600"></i>
+                            <i class="far fa-heart text-gray-600 hover:text-secondary-color"></i>
                         </button>
                         <div class="absolute bottom-4 left-4">
                             <span class="px-3 py-1 bg-white/90 rounded-full text-sm font-medium text-gray-700">
@@ -96,7 +96,7 @@
                     <div class="p-6">
                         <div class="flex items-start justify-between mb-3">
                             <div>
-                                <h2 class="text-xl font-semibold text-gray-900 group-hover:text-primary-600 transition duration-300">
+                                <h2 class="text-xl font-semibold text-gray-900 group-hover:text-secondary-color transition duration-300">
                                     {{ property.title_en }}
                                 </h2>
                                 <p class="text-gray-500 text-sm mt-1">
@@ -106,7 +106,7 @@
                             </div>
                             <div class="flex items-center bg-primary-50 px-2 py-1 rounded-lg">
                                 <i class="fas fa-star text-yellow-400"></i>
-                                <span class="ml-1 text-sm font-medium text-primary-700">4.8</span>
+                                <span class="ml-1 text-sm font-medium text-secondary-color">4.8</span>
                             </div>
                         </div>
 
@@ -127,11 +127,11 @@
 
                         <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                             <div>
-                                <span class="text-2xl font-bold text-primary-600">৳{{ property.price_per_night }}</span>
+                                <span class="text-2xl font-bold text-secondary-color">৳{{ property.price_per_night }}</span>
                                 <span class="text-gray-500 text-sm">/night</span>
                             </div>
                             <a href="{{ url_for('property_details', property_id=property.id) }}" 
-                                class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition duration-300">
+                                class="px-4 py-2 bg-secondary-color text-white rounded-lg hover:bg-secondary-color/90 transition duration-300">
                                 View Details
                             </a>
                         </div>
@@ -148,7 +148,7 @@
                     <p class="text-gray-500 max-w-md mx-auto mb-6">
                         We couldn't find any properties matching your criteria. Try adjusting your filters or browse our featured properties.
                     </p>
-                    <button class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition duration-300">
+                    <button class="px-6 py-3 bg-secondary-color text-white rounded-lg hover:bg-secondary-color/90 transition duration-300">
                         Reset Filters
                     </button>
                 </div>

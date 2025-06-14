@@ -13,6 +13,7 @@ import json
 from payment_gateways import PaymentGateway
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
+import re
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -29,95 +30,86 @@ CORS(app)
 csrf = CSRFProtect(app)
 
 # Exempt API routes from CSRF protection
-@csrf.exempt
-@app.route('/api/login', methods=['GET', 'POST'])
-def api_login():
-    if request.method == 'GET':
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-        return render_template('login.html')
-
-    if current_user.is_authenticated:
-        return jsonify({
-            "status": "error",
-            "message": _("You are already logged in")
-        }), 400
-
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({
-                "status": "error",
-                "message": _("No data provided")
-            }), 400
-
-        email = data.get('email')
-        password = data.get('password')
-        
-        if not email or not password:
-            return jsonify({
-                "status": "error",
-                "message": _("Email and password are required")
-            }), 400
-
-        user = User.query.filter_by(email=email).first()
-        
-        if not user:
-            return jsonify({
-                "status": "error",
-                "message": _("Invalid email or password")
-            }), 401
-        
-        if not user.check_password(password):
-            return jsonify({
-                "status": "error",
-                "message": _("Invalid email or password")
-            }), 401
-            
-        if not user.is_active:
-            return jsonify({
-                "status": "error",
-                "message": _("Your account has been deactivated. Please contact support.")
-            }), 403
-            
-        login_user(user, remember=data.get('remember', False))
-        session['user_id'] = user.id
-        
-        # Redirect to the dashboard
-        redirect_url = url_for('dashboard')
-        
-        return jsonify({
-            "status": "success",
-            "message": _("Login successful"),
-            "redirect_url": redirect_url,
-            "user": {
-                "role": user.role,
-                "name": user.name,
-                "preferred_language": user.preferred_language
-            }
-        })
-        
-    except Exception as e:
-        app.logger.error(f"Login error: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": _("An error occurred during login. Please try again.")
-        }), 500
+# @csrf.exempt
+# @app.route('/api/login', methods=['GET', 'POST'])
+# def api_login():
+#     if request.method == 'GET':
+#         if current_user.is_authenticated:
+#             return redirect(url_for('dashboard'))
+#         return render_template('login.html')
+# 
+#     if current_user.is_authenticated:
+#         return jsonify({
+#             "status": "error",
+#             "message": _("You are already logged in")
+#         }), 400
+# 
+#     try:
+#         data = request.get_json()
+#         if not data:
+#             return jsonify({
+#                 "status": "error",
+#                 "message": _("No data provided")
+#             }), 400
+# 
+#         email = data.get('email')
+#         password = data.get('password')
+#         
+#         if not email or not password:
+#             return jsonify({
+#                 "status": "error",
+#                 "message": _("Email and password are required")
+#             }), 400
+# 
+#         user = User.query.filter_by(email=email).first()
+#         
+#         if not user:
+#             return jsonify({
+#                 "status": "error",
+#                 "message": _("Invalid email or password")
+#             }), 401
+#         
+#         if not user.check_password(password):
+#             return jsonify({
+#                 "status": "error",
+#                 "message": _("Invalid email or password")
+#             }), 401
+#             
+#         if not user.is_active:
+#             return jsonify({
+#                 "status": "error",
+#                 "message": _("Your account has been deactivated. Please contact support.")
+#             }), 403
+#             
+#         login_user(user, remember=data.get('remember', False))
+#         session['user_id'] = user.id
+#         
+#         # Redirect to the dashboard
+#         redirect_url = url_for('dashboard')
+#         
+#         return jsonify({
+#             "status": "success",
+#             "message": _("Login successful"),
+#             "redirect_url": redirect_url,
+#             "user": {
+#                 "role": user.role,
+#                 "name": user.name,
+#                 "preferred_language": user.preferred_language
+#             }
+#         })
+#         
+#     except Exception as e:
+#         app.logger.error(f"Login error: {str(e)}")
+#         return jsonify({
+#             "status": "error",
+#             "message": _("An error occurred during login. Please try again.")
+#         }), 500
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'GET':
-        if current_user.is_authenticated:
-            return redirect(url_for('dashboard'))
-        return render_template('login.html')
-
     if current_user.is_authenticated:
-        return jsonify({
-            "status": "error",
-            "message": _("You are already logged in")
-        }), 400
-
-    try:
+        return redirect(url_for(f'{current_user.role}_dashboard'))
+    if request.method == 'POST':
         data = request.get_json()
         if not data:
             return jsonify({
@@ -170,13 +162,7 @@ def login():
                 "preferred_language": user.preferred_language
             }
         })
-        
-    except Exception as e:
-        app.logger.error(f"Login error: {str(e)}")
-        return jsonify({
-            "status": "error",
-            "message": _("An error occurred during login. Please try again.")
-        }), 500
+    return render_template('guest/login.html')
 
 def get_locale():
     if current_user.is_authenticated:
@@ -231,7 +217,7 @@ def guest_required(f):
 # Main routes
 @app.route('/')
 def index():
-    featured_properties = Property.query.order_by(Property.created_at.desc()).limit(6).all()
+    featured_properties = Property.query.filter_by(is_featured=True).limit(6).all()
     testimonials = [
         {
             'user_name': 'John Doe',
@@ -252,132 +238,129 @@ def index():
             'comment': 'Very comfortable stay. The amenities were perfect for our needs.'
         }
     ]
-    return render_template('index.html', featured_properties=featured_properties, testimonials=testimonials)
+    return render_template('guest/index.html', featured_properties=featured_properties, testimonials=testimonials)
 
 @app.route('/browse')
 def browse_properties():
     properties = Property.query.order_by(Property.created_at.desc()).all()
-    return render_template('browse_properties.html', properties=properties)
+    return render_template('guest/browse_properties.html', properties=properties)
 
 @app.route('/registration')
 def registration_page():
     if current_user.is_authenticated:
         return redirect(url_for(f'{current_user.role}_dashboard'))
-    return render_template('registration.html')
+    return render_template('guest/registration.html')
 
 # Dashboard routes
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get statistics based on user role
-    if current_user.role == 'admin':
-        # Admin statistics
-        stats = {
-            'total_users': User.query.count(),
-            'total_properties': Property.query.count(),
-            'total_bookings': Booking.query.count(),
-            'total_revenue': db.session.query(db.func.sum(Booking.total_price)).scalar() or 0,
-            'user_growth': calculate_growth(User, 'created_at'),
-            'property_growth': calculate_growth(Property, 'created_at'),
-            'booking_growth': calculate_growth(Booking, 'created_at'),
-            'revenue_growth': calculate_revenue_growth()
-        }
-        # Get admin activities
-        activities = get_admin_activities()
-        
-        # Chart data for admin
-        chart_data = {
-            'user_growth_labels': get_last_12_months(),
-            'user_growth_data': get_monthly_stats(User, 'created_at'),
-            'booking_trends_labels': get_last_12_months(),
-            'booking_trends_data': get_monthly_stats(Booking, 'created_at')
-        }
-        
-    elif current_user.role == 'host':
-        # Get host's property IDs
-        property_ids = [p.id for p in Property.query.filter_by(host_id=current_user.id).all()]
-        
-        # Host statistics
-        stats = {
-            'total_properties': len(property_ids),
-            'active_bookings': Booking.query.filter(
-                Booking.property_id.in_(property_ids),
-                Booking.status == 'active'
-            ).count(),
-            'average_rating': db.session.query(db.func.avg(Review.rating))
-                .join(Property)
-                .filter(Property.host_id == current_user.id)
-                .scalar() or 0,
-            'total_earnings': db.session.query(db.func.sum(Booking.total_price))
-                .filter(Booking.property_id.in_(property_ids))
-                .scalar() or 0,
-            'property_growth': calculate_growth(Property, 'created_at', host_id=current_user.id),
-            'booking_growth': calculate_growth(Booking, 'created_at', property_ids=property_ids),
-            'rating_change': calculate_rating_change(current_user.id),
-            'earnings_growth': calculate_earnings_growth(property_ids)
-        }
-        # Get host activities
-        activities = get_host_activities(current_user.id)
-        
-        # Chart data for host
-        chart_data = {
-            'booking_trends_labels': get_last_12_months(),
-            'booking_trends_data': get_monthly_stats(Booking, 'created_at', property_ids=property_ids),
-            'earnings_labels': get_last_12_months(),
-            'earnings_data': get_monthly_earnings(property_ids)
-        }
-        
-    else:  # Guest role
-        # Guest statistics
-        stats = {
-            'total_bookings': Booking.query.filter_by(guest_id=current_user.id).count(),
-            'total_reviews': Review.query.filter_by(user_id=current_user.id).count(),
-            'total_spent': db.session.query(db.func.sum(Booking.total_price))
-                .filter_by(guest_id=current_user.id)
-                .scalar() or 0,
-            'saved_properties': SavedProperty.query.filter_by(user_id=current_user.id).count(),
-            'booking_growth': calculate_growth(Booking, 'created_at', guest_id=current_user.id),
-            'review_growth': calculate_growth(Review, 'created_at', user_id=current_user.id),
-            'spending_growth': calculate_spending_growth(current_user.id),
-            'saved_growth': calculate_growth(SavedProperty, 'created_at', user_id=current_user.id)
-        }
-        # Get guest activities
-        activities = get_guest_activities(current_user.id)
-        
-        # Chart data for guest
-        chart_data = {
-            'booking_history_labels': get_last_12_months(),
-            'booking_history_data': get_monthly_stats(Booking, 'created_at', guest_id=current_user.id),
-            'spending_labels': get_last_12_months(),
-            'spending_data': get_monthly_spending(current_user.id)
-        }
-    
-    return render_template('dashboard.html',
-                         stats=stats,
-                         activities=activities,
-                         chart_data=chart_data)
+    """Redirect to role-specific dashboard"""
+    return redirect(url_for(f'{current_user.role}_dashboard'))
 
-def calculate_growth(model, date_field, **filters):
-    """Calculate growth percentage for a model over the last month"""
-    now = datetime.utcnow()
-    month_ago = now - timedelta(days=30)
+@app.route('/guest/dashboard')
+@login_required
+@guest_required
+def guest_dashboard():
+    """Guest dashboard view"""
+    # Get user's bookings
+    bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
     
-    # Get current count
+    # Get user's saved properties
+    saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).all()
+    
+    return render_template('guest/dashboard.html', 
+                         bookings=bookings,
+                         saved_properties=saved_properties)
+
+@app.route('/host/dashboard')
+@login_required
+@host_required
+def host_dashboard():
+    """Host dashboard view"""
+    # Get host's properties
+    properties = Property.query.filter_by(host_id=current_user.id).all()
+    property_ids = [p.id for p in properties]
+    
+    # Calculate statistics
+    total_bookings = Booking.query.filter(Booking.property_id.in_(property_ids)).count()
+    total_revenue = db.session.query(db.func.sum(Booking.total_amount)).filter(
+        Booking.property_id.in_(property_ids),
+        Booking.status == 'confirmed'
+    ).scalar() or 0
+    
+    # Get recent bookings
+    recent_bookings = Booking.query.filter(
+        Booking.property_id.in_(property_ids)
+    ).order_by(Booking.created_at.desc()).limit(5).all()
+    
+    # Get recent reviews
+    recent_reviews = Review.query.filter(
+        Review.property_id.in_(property_ids)
+    ).order_by(Review.created_at.desc()).limit(5).all()
+    
+    return render_template('host/dashboard.html',
+                         properties=properties,
+                         total_bookings=total_bookings,
+                         total_revenue=total_revenue,
+                         recent_bookings=recent_bookings,
+                         recent_reviews=recent_reviews)
+
+@app.route('/admin/dashboard')
+@login_required
+@admin_required
+def admin_dashboard():
+    """Admin dashboard view"""
+    # Get total users
+    total_users = User.query.count()
+    total_properties = Property.query.count()
+    total_bookings = Booking.query.count()
+    
+    # Get recent activities
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    recent_properties = Property.query.order_by(Property.created_at.desc()).limit(5).all()
+    recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
+    
+    return render_template('admin/dashboard.html',
+                         total_users=total_users,
+                         total_properties=total_properties,
+                         total_bookings=total_bookings,
+                         recent_users=recent_users,
+                         recent_properties=recent_properties,
+                         recent_bookings=recent_bookings)
+
+def calculate_growth(model, field, property_ids=None):
+    """Calculate growth percentage for a given model and field"""
+    now = datetime.now(UTC)
+    last_month = now - timedelta(days=30)
+    
+    # Base query
     current_query = model.query
-    for field, value in filters.items():
-        current_query = current_query.filter(getattr(model, field) == value)
-    current_count = current_query.count()
+    last_month_query = model.query
     
-    # Get previous count
-    previous_query = model.query.filter(getattr(model, date_field) < month_ago)
-    for field, value in filters.items():
-        previous_query = previous_query.filter(getattr(model, field) == value)
-    previous_count = previous_query.count()
+    # Apply property filter if property_ids is provided
+    if property_ids is not None:
+        if model == Property:
+            current_query = current_query.filter(model.id.in_(property_ids))
+            last_month_query = last_month_query.filter(model.id.in_(property_ids))
+        elif model == Booking:
+            current_query = current_query.filter(model.property_id.in_(property_ids))
+            last_month_query = last_month_query.filter(model.property_id.in_(property_ids))
+        elif model == Review:
+            current_query = current_query.filter(model.property_id.in_(property_ids))
+            last_month_query = last_month_query.filter(model.property_id.in_(property_ids))
     
-    if previous_count == 0:
+    # Get current and last month counts
+    current_count = current_query.filter(getattr(model, field) >= last_month).count()
+    last_month_count = last_month_query.filter(
+        getattr(model, field) >= last_month - timedelta(days=30),
+        getattr(model, field) < last_month
+    ).count()
+    
+    # Calculate growth percentage
+    if last_month_count == 0:
         return 100 if current_count > 0 else 0
-    
-    return round(((current_count - previous_count) / previous_count) * 100, 1)
+    return ((current_count - last_month_count) / last_month_count) * 100
 
 def calculate_revenue_growth():
     """Calculate revenue growth percentage over the last month"""
@@ -396,32 +379,36 @@ def calculate_revenue_growth():
 
 def calculate_earnings_growth(property_ids):
     """Calculate earnings growth percentage for a host over the last month"""
-    now = datetime.utcnow()
-    month_ago = now - timedelta(days=30)
+    now = datetime.now(UTC)
+    last_month = now - timedelta(days=30)
     
+    # Get current and last month earnings
     current_earnings = db.session.query(db.func.sum(Booking.total_price))\
         .filter(Booking.property_id.in_(property_ids))\
+        .filter(Booking.created_at >= last_month)\
         .scalar() or 0
-    previous_earnings = db.session.query(db.func.sum(Booking.total_price))\
+    
+    last_month_earnings = db.session.query(db.func.sum(Booking.total_price))\
         .filter(Booking.property_id.in_(property_ids))\
-        .filter(Booking.created_at < month_ago)\
+        .filter(Booking.created_at >= last_month - timedelta(days=30))\
+        .filter(Booking.created_at < last_month)\
         .scalar() or 0
     
-    if previous_earnings == 0:
+    # Calculate growth percentage
+    if last_month_earnings == 0:
         return 100 if current_earnings > 0 else 0
-    
-    return round(((current_earnings - previous_earnings) / previous_earnings) * 100, 1)
+    return ((current_earnings - last_month_earnings) / last_month_earnings) * 100
 
-def calculate_spending_growth(user_id):
+def calculate_spending_growth():
     """Calculate spending growth percentage for a guest over the last month"""
     now = datetime.utcnow()
     month_ago = now - timedelta(days=30)
     
     current_spending = db.session.query(db.func.sum(Booking.total_price))\
-        .filter_by(guest_id=user_id)\
+        .filter_by(guest_id=current_user.id)\
         .scalar() or 0
     previous_spending = db.session.query(db.func.sum(Booking.total_price))\
-        .filter_by(guest_id=user_id)\
+        .filter_by(guest_id=current_user.id)\
         .filter(Booking.created_at < month_ago)\
         .scalar() or 0
     
@@ -430,19 +417,21 @@ def calculate_spending_growth(user_id):
     
     return round(((current_spending - previous_spending) / previous_spending) * 100, 1)
 
-def calculate_rating_change(host_id):
+def calculate_rating_change(property_ids):
     """Calculate rating change percentage for a host over the last month"""
     now = datetime.utcnow()
     month_ago = now - timedelta(days=30)
     
     current_rating = db.session.query(db.func.avg(Review.rating))\
         .join(Property)\
-        .filter(Property.host_id == host_id)\
+        .filter(Property.host_id == current_user.id)\
+        .filter(Property.id.in_(property_ids))\
         .scalar() or 0
     previous_rating = db.session.query(db.func.avg(Review.rating))\
         .join(Property)\
-        .filter(Property.host_id == host_id)\
+        .filter(Property.host_id == current_user.id)\
         .filter(Review.created_at < month_ago)\
+        .filter(Property.id.in_(property_ids))\
         .scalar() or 0
     
     if previous_rating == 0:
@@ -544,89 +533,102 @@ def get_guest_activities(user_id):
     return sorted(activities, key=lambda x: x['date'], reverse=True)[:10]
 
 # API routes
-@app.route('/api/register', methods=['GET', 'POST'])
+def validate_email_format(email):
+    """Validate email format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, email))
+
+def validate_password_strength(password):
+    """Validate password strength"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one number"
+    return True, "Password is strong"
+
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'GET':
-        if current_user.is_authenticated:
-            return redirect(url_for(f'{current_user.role}_dashboard'))
-        return render_template('registration.html')
-
+    """Handle user registration"""
     if current_user.is_authenticated:
-        return jsonify({
-            "status": "error",
-            "message": _("You are already logged in")
-        }), 400
+        return redirect(url_for(f'{current_user.role}_dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            # Handle both form data and JSON data
+            if request.is_json:
+                data = request.get_json()
+            else:
+                data = request.form.to_dict()
 
-    data = request.get_json()
-    
-    # Validate required fields
-    required_fields = ['email', 'password', 'name', 'userType']
-    for field in required_fields:
-        if not data.get(field):
-            return jsonify({
-                "status": "error",
-                "message": _(f"{field} is required")
-            }), 400
-    
-    # Check if email already exists
-    if User.query.filter_by(email=data.get('email')).first():
-        return jsonify({
-            "status": "error",
-            "message": _("Email already registered")
-        }), 400
-    
-    # Validate password
-    if len(data.get('password')) < 8:
-        return jsonify({
-            "status": "error",
-            "message": _("Password must be at least 8 characters long")
-        }), 400
-    
-    # Create user
-    user = User(
-        email=data.get('email'),
-        first_name=data.get('name'),
-        last_name=data.get('name'),
-        role=data.get('userType'),
-        preferred_language=data.get('preferred_language', 'en'),
-        is_active=True,
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC)
-    )
-    user.set_password(data.get('password'))
-    
-    try:
-        db.session.add(user)
-        db.session.commit()
-        
-        # Log the user in after successful registration
-        login_user(user)
-        session['user_id'] = user.id
-        
-        # Determine the redirect URL based on user role
-        if user.role == 'admin':
-            redirect_url = '/admin/dashboard'
-        elif user.role == 'host':
-            redirect_url = '/host-dashboard'
-        else:  # guest
-            redirect_url = '/guest-dashboard'
-        
-        return jsonify({
-            "status": "success",
-            "message": _("Registration successful"),
-            "redirect_url": redirect_url,
-            "user": {
-                "role": user.role,
-                "name": user.name,
-                "preferred_language": user.preferred_language
-            }
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({
-            "status": "error",
-            "message": _("An error occurred during registration")
-        }), 500
+            # Validate required fields
+            required_fields = ['name', 'email', 'password', 'confirm_password', 'role']
+            for field in required_fields:
+                if not data.get(field):
+                    if request.is_json:
+                        return jsonify({
+                            'status': 'error',
+                            'message': f'{field.replace("_", " ").title()} is required'
+                        }), 400
+                    flash(f'{field.replace("_", " ").title()} is required', 'error')
+                    return redirect(url_for('register'))
+
+            # Check if passwords match
+            if data['password'] != data['confirm_password']:
+                if request.is_json:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Passwords do not match'
+                    }), 400
+                flash('Passwords do not match', 'error')
+                return redirect(url_for('register'))
+
+            # Check if email already exists
+            if User.query.filter_by(email=data['email']).first():
+                if request.is_json:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Email already registered'
+                    }), 400
+                flash('Email already registered', 'error')
+                return redirect(url_for('register'))
+
+            # Create new user
+            new_user = User(
+                name=data['name'],
+                email=data['email'],
+                role=data['role']
+            )
+            new_user.set_password(data['password'])
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            if request.is_json:
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Registration successful',
+                    'redirect_url': url_for('login')
+                })
+            
+            flash('Registration successful! Please login.', 'success')
+            return redirect(url_for('login'))
+
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Registration error: {str(e)}")
+            if request.is_json:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'An error occurred during registration'
+                }), 500
+            flash('An error occurred during registration', 'error')
+            return redirect(url_for('register'))
+
+    return render_template('guest/register.html')
 
 @app.route('/api/logout')
 @login_required
@@ -1190,40 +1192,19 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-@app.route('/guest/dashboard')
-@login_required
-@guest_required
-def guest_dashboard():
-    total_bookings = Booking.query.filter_by(user_id=current_user.id).count()
-    saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).count()
-    total_reviews = Review.query.filter_by(user_id=current_user.id).count()
-    total_spent = db.session.query(db.func.sum(Booking.total_price)).filter_by(
-        user_id=current_user.id,
-        status='completed'
-    ).scalar() or 0
-
-    recent_activities = get_guest_activities(current_user.id)
-    
-    return render_template('dashboard.html',
-                         total_bookings=total_bookings,
-                         saved_properties=saved_properties,
-                         total_reviews=total_reviews,
-                         total_spent=total_spent,
-                         recent_activities=recent_activities)
-
 @app.route('/guest/bookings')
 @login_required
 @guest_required
 def my_bookings():
     bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
-    return render_template('my_bookings.html', bookings=bookings)
+    return render_template('guest/my_bookings.html', bookings=bookings)
 
 @app.route('/guest/saved-properties')
 @login_required
 @guest_required
 def saved_properties():
     saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).order_by(SavedProperty.created_at.desc()).all()
-    return render_template('saved_properties.html', saved_properties=saved_properties)
+    return render_template('guest/saved_properties.html', saved_properties=saved_properties)
 
 # Custom template filters
 @app.template_filter('number_format')
@@ -1235,6 +1216,13 @@ def number_format(value):
         return f'৳{value:,.2f}'
     except (ValueError, TypeError):
         return '৳0'
+
+@app.template_filter('currency')
+def currency_filter(value):
+    """Format value as currency"""
+    if value is None:
+        return '৳0'
+    return f'৳{value:,.2f}'
 
 # Cultural Experiences Routes
 @app.route('/api/properties/<int:property_id>/experiences', methods=['GET'])
@@ -1457,26 +1445,26 @@ def get_property_verifications(property_id):
 @app.route('/properties/<int:property_id>')
 def property_details(property_id):
     property = Property.query.get_or_404(property_id)
-    return render_template('properties/details/property_details.html', property=property)
+    return render_template('host/properties/details/property_details.html', property=property)
 
 @app.route('/properties/<int:property_id>/experiences')
 def property_experiences(property_id):
     property = Property.query.get_or_404(property_id)
-    return render_template('properties/experiences/cultural_experiences.html', property=property)
+    return render_template('host/properties/experiences/cultural_experiences.html', property=property)
 
 @app.route('/properties/<int:property_id>/meals')
 def property_meals(property_id):
     property = Property.query.get_or_404(property_id)
-    return render_template('properties/meals/meal_options.html', property=property)
+    return render_template('host/properties/meals/meal_options.html', property=property)
 
 @app.route('/properties/<int:property_id>/transport')
 def property_transport(property_id):
     property = Property.query.get_or_404(property_id)
-    return render_template('properties/transport/transport_options.html', property=property)
+    return render_template('host/properties/transport/transport_options.html', property=property)
 
 @app.route('/festivals')
 def festivals():
-    return render_template('festivals/index.html')
+    return render_template('host/festivals/index.html')
 
 def get_last_12_months():
     """Get labels for the last 12 months"""
@@ -1487,7 +1475,7 @@ def get_last_12_months():
         months.append(month.strftime('%b %Y'))
     return months
 
-def get_monthly_stats(model, date_field, **filters):
+def get_monthly_stats(model, field, property_ids=None):
     """Get monthly statistics for a model"""
     now = datetime.now(UTC)
     stats = []
@@ -1497,14 +1485,21 @@ def get_monthly_stats(model, date_field, **filters):
         end_date = now - timedelta(days=30*i)
         
         query = model.query.filter(
-            getattr(model, date_field) >= start_date,
-            getattr(model, date_field) < end_date
+            getattr(model, field) >= start_date,
+            getattr(model, field) < end_date
         )
         
-        for field, value in filters.items():
-            query = query.filter(getattr(model, field) == value)
-            
-        stats.append(query.count())
+        # Apply property filter if provided
+        if property_ids is not None:
+            if model == Property:
+                query = query.filter(model.id.in_(property_ids))
+            elif model == Booking:
+                query = query.filter(model.property_id.in_(property_ids))
+            elif model == Review:
+                query = query.filter(model.property_id.in_(property_ids))
+        
+        count = query.count()
+        stats.append(count)
     
     return stats
 
@@ -1527,7 +1522,7 @@ def get_monthly_earnings(property_ids):
     
     return earnings
 
-def get_monthly_spending(user_id):
+def get_monthly_spending():
     """Get monthly spending for a guest"""
     now = datetime.now(UTC)
     spending = []
@@ -1537,7 +1532,7 @@ def get_monthly_spending(user_id):
         end_date = now - timedelta(days=30*i)
         
         monthly_spending = db.session.query(db.func.sum(Booking.total_price))\
-            .filter_by(guest_id=user_id)\
+            .filter_by(user_id=current_user.id)\
             .filter(Booking.created_at >= start_date)\
             .filter(Booking.created_at < end_date)\
             .scalar() or 0
@@ -1546,18 +1541,156 @@ def get_monthly_spending(user_id):
     
     return spending
 
-if __name__ == '__main__':
+def cleanup_duplicate_admins():
+    """Remove duplicate admin accounts, keeping only the first one"""
+    admins = User.query.filter_by(role='admin').all()
+    if len(admins) > 1:
+        # Sort by creation date to keep the oldest admin
+        admins.sort(key=lambda x: x.created_at)
+        # Keep the first admin, delete the rest
+        for admin in admins[1:]:
+            db.session.delete(admin)
+        db.session.commit()
+        print(f"Removed {len(admins)-1} duplicate admin accounts")
+
+# Call the cleanup function when the app starts
+with app.app_context():
+    cleanup_duplicate_admins()
+
+@app.route('/api/users/<int:user_id>', methods=['PUT'])
+@login_required
+def update_user(user_id):
+    """Update user information"""
+    if not current_user.is_admin and current_user.id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+    
+    try:
+        if 'email' in data:
+            if not validate_email_format(data['email']):
+                return jsonify({'error': 'Invalid email format'}), 400
+            if User.query.filter(User.email == data['email'], User.id != user_id).first():
+                return jsonify({'error': 'Email already in use'}), 400
+            user.email = data['email']
+        
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'preferred_language' in data:
+            user.preferred_language = data['preferred_language']
+        
+        if 'password' in data:
+            is_strong, message = validate_password_strength(data['password'])
+            if not is_strong:
+                return jsonify({'error': message}), 400
+            user.set_password(data['password'])
+        
+        user.updated_at = datetime.now(UTC)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'User updated successfully',
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role,
+                'preferred_language': user.preferred_language
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/users/<int:user_id>', methods=['DELETE'])
+@login_required
+def delete_user(user_id):
+    """Delete a user account"""
+    if not current_user.is_admin and current_user.id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    user = User.query.get_or_404(user_id)
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({'message': 'User deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+def init_db():
+    """Initialize the database with default data"""
     with app.app_context():
-        # Create admin user if not exists
-        admin = User.query.filter_by(email='admin@othiti.com').first()
-        if not admin:
-            admin = User(
-                email='admin@othiti.com',
-                first_name='Admin',
-                last_name='User',
-                role='admin'
-            )
-            admin.set_password('admin123')  # Change this in production!
-            db.session.add(admin)
+        # Create all tables
+        db.create_all()
+        
+        # Check if any users exist
+        if User.query.first() is None:
+            # Create default users only if no users exist
+            users = [
+                User(
+                    email='admin@otithi.com',
+                    first_name='Admin',
+                    last_name='User',
+                    role='admin',
+                    preferred_language='en'
+                ),
+                User(
+                    email='host@otithi.com',
+                    first_name='Host',
+                    last_name='User',
+                    role='host',
+                    preferred_language='en'
+                ),
+                User(
+                    email='guest@otithi.com',
+                    first_name='Guest',
+                    last_name='User',
+                    role='guest',
+                    preferred_language='en'
+                )
+            ]
+            
+            # Set passwords
+            users[0].set_password('admin123')
+            users[1].set_password('host123')
+            users[2].set_password('guest123')
+            
+            # Add users to database
+            for user in users:
+                db.session.add(user)
             db.session.commit()
+            print("Default users created successfully!")
+
+# Initialize database when app starts
+with app.app_context():
+    init_db()
+
+@app.route('/about')
+def about():
+    return render_template('common/about.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('common/contact.html')
+
+@app.route('/faq')
+def faq():
+    return render_template('common/faq.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('common/terms.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('common/privacy.html')
+
+if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -85,8 +85,8 @@ function initializeAdminCharts() {
                 datasets: [{
                     label: 'New Users',
                     data: [10, 15, 20, 25, 30, 35],
-                    borderColor: '#0ea5e9',
-                    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                    borderColor: '#006A4E',
+                    backgroundColor: '#006A4E',
                     tension: 0.4,
                     fill: true
                 }]
@@ -145,7 +145,7 @@ function initializeHostCharts() {
                 datasets: [{
                     label: 'Earnings',
                     data: [5000, 8000, 12000, 15000, 18000, 20000],
-                    backgroundColor: '#f59e0b'
+                    backgroundColor: '#F42A41'
                 }]
             },
             options: {
@@ -177,8 +177,8 @@ function initializeGuestCharts() {
                 datasets: [{
                     label: 'Bookings',
                     data: [2, 3, 4, 5, 6, 7],
-                    borderColor: '#0ea5e9',
-                    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                    borderColor: '#006A4E',
+                    backgroundColor: '#006A4E',
                     tension: 0.4,
                     fill: true
                 }]
@@ -197,7 +197,7 @@ function initializeGuestCharts() {
                 datasets: [{
                     label: 'Spending',
                     data: [2000, 3000, 4000, 5000, 6000, 7000],
-                    backgroundColor: '#ef4444'
+                    backgroundColor: '#FFD700'
                 }]
             },
             options: {

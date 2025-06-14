@@ -55,6 +55,7 @@ class Property(db.Model):
     amenities = db.Column(db.JSON, nullable=False, default=list)
     cultural_features = db.Column(db.JSON, nullable=False, default=list)
     safety_features = db.Column(db.JSON, nullable=False, default=list)
+    is_featured = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 

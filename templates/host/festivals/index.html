@@ -1,0 +1,380 @@
+{% extends "common/base.html" %}
+
+{% block title %}{{ _('Festival Seasons') }}{% endblock %}
+
+{% block content %}
+<div class="festivals-page">
+    <div class="container">
+        <h1 class="page-title">Festivals & Events</h1>
+        
+        <!-- Search and Filter -->
+        <div class="search-filter">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search festivals...">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="filters">
+                <select id="monthFilter" class="form-select">
+                    <option value="">All Months</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select id="regionFilter" class="form-select">
+                    <option value="">All Regions</option>
+                    {% for region in regions %}
+                    <option value="{{ region }}">{{ region }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Featured Festival -->
+        {% if featured_festival %}
+        <div class="featured-festival">
+            <div class="featured-image">
+                <img src="{{ featured_festival.image_url }}" alt="{{ featured_festival.title_en }}">
+                <div class="featured-overlay">
+                    <div class="featured-content">
+                        <h2>{{ featured_festival.title_en if g.get('lang') == 'en' else featured_festival.title_bn }}</h2>
+                        <p class="date">
+                            <i class="fas fa-calendar"></i>
+                            {{ featured_festival.start_date.strftime('%B %d') }} - {{ featured_festival.end_date.strftime('%B %d, %Y') }}
+                        </p>
+                        <p class="location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ featured_festival.location_en if g.get('lang') == 'en' else featured_festival.location_bn }}
+                        </p>
+                        <a href="{{ url_for('festival_details', festival_id=featured_festival.id) }}" class="btn btn-primary">
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Upcoming Festivals -->
+        <section class="upcoming-festivals">
+            <h2 class="section-title">Upcoming Festivals</h2>
+            <div class="festivals-grid">
+                {% for festival in upcoming_festivals %}
+                <div class="festival-card">
+                    <div class="festival-image">
+                        <img src="{{ festival.image_url }}" alt="{{ festival.title_en }}">
+                        <div class="festival-date">
+                            <span class="month">{{ festival.start_date.strftime('%b') }}</span>
+                            <span class="day">{{ festival.start_date.strftime('%d') }}</span>
+                        </div>
+                    </div>
+                    <div class="festival-content">
+                        <h3>{{ festival.title_en if g.get('lang') == 'en' else festival.title_bn }}</h3>
+                        <p class="description">{{ festival.description_en if g.get('lang') == 'en' else festival.description_bn }}</p>
+                        <div class="festival-meta">
+                            <span class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ festival.location_en if g.get('lang') == 'en' else festival.location_bn }}
+                            </span>
+                            <span class="duration">
+                                <i class="fas fa-clock"></i>
+                                {{ festival.duration }} days
+                            </span>
+                        </div>
+                        <a href="{{ url_for('festival_details', festival_id=festival.id) }}" class="btn btn-outline-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- All Festivals -->
+        <section class="all-festivals">
+            <h2 class="section-title">All Festivals</h2>
+            <div class="festivals-grid">
+                {% for festival in festivals %}
+                <div class="festival-card" data-month="{{ festival.start_date.month }}" data-region="{{ festival.region }}">
+                    <div class="festival-image">
+                        <img src="{{ festival.image_url }}" alt="{{ festival.title_en }}">
+                        <div class="festival-date">
+                            <span class="month">{{ festival.start_date.strftime('%b') }}</span>
+                            <span class="day">{{ festival.start_date.strftime('%d') }}</span>
+                        </div>
+                    </div>
+                    <div class="festival-content">
+                        <h3>{{ festival.title_en if g.get('lang') == 'en' else festival.title_bn }}</h3>
+                        <p class="description">{{ festival.description_en if g.get('lang') == 'en' else festival.description_bn }}</p>
+                        <div class="festival-meta">
+                            <span class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ festival.location_en if g.get('lang') == 'en' else festival.location_bn }}
+                            </span>
+                            <span class="duration">
+                                <i class="fas fa-clock"></i>
+                                {{ festival.duration }} days
+                            </span>
+                        </div>
+                        <a href="{{ url_for('festival_details', festival_id=festival.id) }}" class="btn btn-outline-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .festivals-page {
+        padding: 2rem 0;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .search-filter {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        flex: 1;
+        min-width: 300px;
+        position: relative;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        padding-right: 2.5rem;
+        border: 1px solid var(--bs-gray-300);
+        border-radius: 8px;
+    }
+
+    .search-box i {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--bs-gray-500);
+    }
+
+    .filters {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .filters select {
+        min-width: 150px;
+    }
+
+    .featured-festival {
+        margin-bottom: 3rem;
+    }
+
+    .featured-image {
+        position: relative;
+        height: 400px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .featured-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .featured-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.3));
+        display: flex;
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .featured-content {
+        color: white;
+        max-width: 600px;
+    }
+
+    .featured-content h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .featured-content p {
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .festivals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .festival-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+
+    .festival-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .festival-image {
+        height: 200px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .festival-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .festival-date {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--bs-primary);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 60px;
+    }
+
+    .festival-date .month {
+        display: block;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+    }
+
+    .festival-date .day {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .festival-content {
+        padding: 1.5rem;
+    }
+
+    .festival-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .description {
+        color: var(--bs-gray-600);
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .festival-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .festival-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--bs-gray-700);
+        font-size: 0.875rem;
+    }
+
+    .festival-meta i {
+        color: var(--bs-primary);
+    }
+
+    @media (max-width: 768px) {
+        .featured-image {
+            height: 300px;
+        }
+
+        .featured-content h2 {
+            font-size: 1.5rem;
+        }
+
+        .festivals-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const monthFilter = document.getElementById('monthFilter');
+    const regionFilter = document.getElementById('regionFilter');
+    const festivalCards = document.querySelectorAll('.festival-card');
+
+    function filterFestivals() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedMonth = monthFilter.value;
+        const selectedRegion = regionFilter.value;
+
+        festivalCards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+            const description = card.querySelector('.description').textContent.toLowerCase();
+            const month = card.dataset.month;
+            const region = card.dataset.region;
+
+            const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
+            const matchesMonth = !selectedMonth || month === selectedMonth;
+            const matchesRegion = !selectedRegion || region === selectedRegion;
+
+            card.style.display = matchesSearch && matchesMonth && matchesRegion ? 'block' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterFestivals);
+    monthFilter.addEventListener('change', filterFestivals);
+    regionFilter.addEventListener('change', filterFestivals);
+});
+</script>
+{% endblock %} 

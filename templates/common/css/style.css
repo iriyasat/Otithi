@@ -1,0 +1,288 @@
+:root {
+    /* Bangladesh-inspired color palette */
+    --primary-color: #006A4E;  /* Deep green from Bangladesh flag */
+    --secondary-color: #F42A41;  /* Red from Bangladesh flag */
+    --accent-color: #FFD700;  /* Gold for prosperity */
+    --light-color: #FFFFFF;  /* White from Bangladesh flag */
+    --dark-color: #1A1A1A;
+    --gray-100: #F8F9FA;
+    --gray-200: #E9ECEF;
+    --gray-300: #DEE2E6;
+    --gray-400: #CED4DA;
+    --gray-500: #ADB5BD;
+    --gray-600: #6C757D;
+    --gray-700: #495057;
+    --gray-800: #343A40;
+    --gray-900: #212529;
+    --success-color: #006A4E;  /* Using green for success */
+    --warning-color: #FFD700;  /* Using gold for warning */
+    --danger-color: #F42A41;   /* Using red for danger */
+    --info-color: #006A4E;     /* Using green for info */
+    --light-bg: #F8F9FA;
+    --dark-bg: #343A40;
+}
+
+/* Base styles */
+body {
+    font-family: 'Hind Siliguri', sans-serif;
+    line-height: 1.6;
+    color: var(--gray-800);
+    background-color: var(--light-bg);
+}
+
+/* Navigation */
+.navbar {
+    background-color: var(--light-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    color: var(--primary-color) !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.nav-link {
+    color: var(--gray-700) !important;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #005A3E;
+    border-color: #005A3E;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-secondary:hover {
+    background-color: #E41A30;
+    border-color: #E41A30;
+}
+
+.btn-accent {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--dark-color);
+}
+
+.btn-accent:hover {
+    background-color: #E6C200;
+    border-color: #E6C200;
+    color: var(--dark-color);
+}
+
+/* Property Cards */
+.property-card {
+    background: var(--light-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.property-card .card-title {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.property-card .price {
+    color: var(--secondary-color);
+    font-weight: 700;
+}
+
+/* Testimonial Cards */
+.testimonial-card {
+    background: var(--light-color);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-top: 4px solid var(--accent-color);
+}
+
+.testimonial-card .rating {
+    color: var(--accent-color);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    padding: 3rem 0;
+}
+
+.footer a {
+    color: var(--light-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer a:hover {
+    color: var(--accent-color);
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(rgba(0, 106, 78, 0.8), rgba(244, 42, 65, 0.8)), url('../assets/images/hero-bg.jpg');
+    color: var(--light-color);
+    padding: 6rem 0;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+/* Search Bar */
+.search-bar {
+    background: var(--light-color);
+    border-radius: 50px;
+    padding: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.search-bar input {
+    border: none;
+    padding: 0.75rem 1.5rem;
+}
+
+.search-bar .btn {
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .property-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .testimonial-card {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Cultural Elements */
+.cultural-badge {
+    background-color: var(--accent-color);
+    color: var(--dark-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.cultural-feature {
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* Chart Colors */
+.chart-primary {
+    color: var(--primary-color);
+    background-color: var(--primary-color);
+}
+
+.chart-secondary {
+    color: var(--secondary-color);
+    background-color: var(--secondary-color);
+}
+
+.chart-accent {
+    color: var(--accent-color);
+    background-color: var(--accent-color);
+}
+
+/* Loading Animations */
+.loading-spinner {
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+}
+
+/* Focus States */
+.focus-ring {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 106, 78, 0.25);
+}
+
+/* Selection */
+::selection {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+} 
