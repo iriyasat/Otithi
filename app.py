@@ -174,7 +174,7 @@ def login():
         session['user_id'] = user.id
         
         # Determine the redirect URL based on user role
-        redirect_url = '/admin/dashboard' if user.role == 'admin' else f'/{user.role}-dashboard'
+        redirect_url = '/admin/dashboard' if user.role == 'admin' else f'/{user.role}/dashboard'
         
         return jsonify({
             "status": "success",

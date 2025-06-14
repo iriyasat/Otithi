@@ -7,6 +7,78 @@
     <title>My Bookings - Atithi</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading i {
+            font-size: 2rem;
+            color: #007bff;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .booking-actions button {
+            margin: 0.25rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .booking-actions button.primary {
+            background: #007bff;
+            color: white;
+        }
+        .booking-actions button.danger {
+            background: #dc3545;
+            color: white;
+        }
+        .booking-actions button:hover {
+            opacity: 0.9;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard">
@@ -20,7 +92,7 @@
             </div>
             <ul class="nav-menu">
                 <li>
-                    <a href="/guest-dashboard">
+                    <a href="/guest/dashboard">
                         <i class="fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
@@ -52,12 +124,12 @@
             <div class="dashboard-topbar">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search bookings...">
+                    <input type="text" id="searchBookings" placeholder="Search bookings...">
                 </div>
                 <div class="user-menu">
-                    <div class="notifications">
+                    <div class="notifications" id="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="notification-badge">2</span>
+                        <span class="notification-badge">0</span>
                     </div>
                     <div class="profile">
                         <img src="{{ current_user.profile_picture or '/static/assets/images/default-avatar.svg' }}" alt="Profile">
@@ -74,84 +146,143 @@
                 <!-- Active Bookings -->
                 <div class="dashboard-section">
                     <h2>Active Bookings</h2>
-                    <div class="booking-grid">
-                        {% for booking in active_bookings %}
-                        <div class="booking-card">
-                            <div class="booking-image">
-                                <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
-                            </div>
-                            <div class="booking-info">
-                                <h3>{{ booking.property.title_en }}</h3>
-                                <p>{{ booking.property.location_en }}</p>
-                                <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
-                                <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
-                                <p class="price">৳{{ booking.total_price }}</p>
-                                <span class="status {{ booking.status }}">{{ booking.status }}</span>
-                                <div class="booking-actions">
-                                    <button onclick="viewBookingDetails({{ booking.id }})">View Details</button>
-                                    <button onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                    <div class="booking-grid" id="activeBookings">
+                        {% if active_bookings %}
+                            {% for booking in active_bookings %}
+                            <div class="booking-card">
+                                <div class="booking-image">
+                                    <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
+                                </div>
+                                <div class="booking-info">
+                                    <h3>{{ booking.property.title_en }}</h3>
+                                    <p>{{ booking.property.location_en }}</p>
+                                    <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
+                                    <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
+                                    <p class="price">৳{{ booking.total_price }}</p>
+                                    <span class="status {{ booking.status }}">{{ booking.status }}</span>
+                                    <div class="booking-actions">
+                                        <button class="primary" onclick="viewBookingDetails({{ booking.id }})">View Details</button>
+                                        <button class="danger" onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <h3>No Active Bookings</h3>
+                                <p>You don't have any active bookings at the moment.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <!-- Upcoming Bookings -->
                 <div class="dashboard-section">
                     <h2>Upcoming Bookings</h2>
-                    <div class="booking-grid">
-                        {% for booking in upcoming_bookings %}
-                        <div class="booking-card">
-                            <div class="booking-image">
-                                <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
-                            </div>
-                            <div class="booking-info">
-                                <h3>{{ booking.property.title_en }}</h3>
-                                <p>{{ booking.property.location_en }}</p>
-                                <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
-                                <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
-                                <p class="price">৳{{ booking.total_price }}</p>
-                                <span class="status {{ booking.status }}">{{ booking.status }}</span>
-                                <div class="booking-actions">
-                                    <button onclick="viewBookingDetails({{ booking.id }})">View Details</button>
-                                    <button onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                    <div class="booking-grid" id="upcomingBookings">
+                        {% if upcoming_bookings %}
+                            {% for booking in upcoming_bookings %}
+                            <div class="booking-card">
+                                <div class="booking-image">
+                                    <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
+                                </div>
+                                <div class="booking-info">
+                                    <h3>{{ booking.property.title_en }}</h3>
+                                    <p>{{ booking.property.location_en }}</p>
+                                    <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
+                                    <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
+                                    <p class="price">৳{{ booking.total_price }}</p>
+                                    <span class="status {{ booking.status }}">{{ booking.status }}</span>
+                                    <div class="booking-actions">
+                                        <button class="primary" onclick="viewBookingDetails({{ booking.id }})">View Details</button>
+                                        <button class="danger" onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-plus"></i>
+                                <h3>No Upcoming Bookings</h3>
+                                <p>You don't have any upcoming bookings.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
                 <!-- Past Bookings -->
                 <div class="dashboard-section">
                     <h2>Past Bookings</h2>
-                    <div class="booking-grid">
-                        {% for booking in past_bookings %}
-                        <div class="booking-card">
-                            <div class="booking-image">
-                                <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
-                            </div>
-                            <div class="booking-info">
-                                <h3>{{ booking.property.title_en }}</h3>
-                                <p>{{ booking.property.location_en }}</p>
-                                <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
-                                <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
-                                <p class="price">৳{{ booking.total_price }}</p>
-                                <span class="status {{ booking.status }}">{{ booking.status }}</span>
-                                <div class="booking-actions">
-                                    <button onclick="viewBookingDetails({{ booking.id }})">View Details</button>
-                                    {% if not booking.review %}
-                                    <button onclick="leaveReview({{ booking.id }})">Leave Review</button>
-                                    {% endif %}
+                    <div class="booking-grid" id="pastBookings">
+                        {% if past_bookings %}
+                            {% for booking in past_bookings %}
+                            <div class="booking-card">
+                                <div class="booking-image">
+                                    <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
+                                </div>
+                                <div class="booking-info">
+                                    <h3>{{ booking.property.title_en }}</h3>
+                                    <p>{{ booking.property.location_en }}</p>
+                                    <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
+                                    <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
+                                    <p class="price">৳{{ booking.total_price }}</p>
+                                    <span class="status {{ booking.status }}">{{ booking.status }}</span>
+                                    <div class="booking-actions">
+                                        <button class="primary" onclick="viewBookingDetails({{ booking.id }})">View Details</button>
+                                        {% if not booking.review %}
+                                        <button class="primary" onclick="leaveReview({{ booking.id }})">Leave Review</button>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-history"></i>
+                                <h3>No Past Bookings</h3>
+                                <p>You haven't made any bookings yet.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="bookingDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('bookingDetailsModal')">&times;</span>
+            <h2>Booking Details</h2>
+            <div id="bookingDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('reviewModal')">&times;</span>
+            <h2>Leave a Review</h2>
+            <form id="reviewForm" onsubmit="submitReview(event)">
+                <input type="hidden" id="bookingId" name="bookingId">
+                <div class="form-group">
+                    <label for="rating">Rating</label>
+                    <div class="rating">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comment</label>
+                    <textarea id="comment" name="comment" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="primary">Submit Review</button>
+            </form>
+        </div>
     </div>
 
     <script src="/static/js/scripts.js"></script>
@@ -174,6 +305,143 @@
                 dashboardNav.classList.remove('show');
             }
         });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchBookings');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const bookingCards = document.querySelectorAll('.booking-card');
+                
+                bookingCards.forEach(card => {
+                    const title = card.querySelector('h3').textContent.toLowerCase();
+                    const location = card.querySelector('p').textContent.toLowerCase();
+                    if (title.includes(searchTerm) || location.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Booking actions
+        async function viewBookingDetails(bookingId) {
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}`);
+                const booking = await response.json();
+                
+                const content = document.getElementById('bookingDetailsContent');
+                content.innerHTML = `
+                    <div class="booking-details">
+                        <h3>${booking.property.title_en}</h3>
+                        <p><strong>Location:</strong> ${booking.property.location_en}</p>
+                        <p><strong>Check-in:</strong> ${new Date(booking.check_in).toLocaleDateString()}</p>
+                        <p><strong>Check-out:</strong> ${new Date(booking.check_out).toLocaleDateString()}</p>
+                        <p><strong>Total Price:</strong> ৳${booking.total_price}</p>
+                        <p><strong>Status:</strong> <span class="status ${booking.status}">${booking.status}</span></p>
+                        <p><strong>Booking ID:</strong> ${booking.id}</p>
+                    </div>
+                `;
+                
+                openModal('bookingDetailsModal');
+            } catch (error) {
+                console.error('Error fetching booking details:', error);
+                alert('Failed to load booking details. Please try again.');
+            }
+        }
+
+        async function cancelBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Failed to cancel booking. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error canceling booking:', error);
+                alert('Failed to cancel booking. Please try again.');
+            }
+        }
+
+        function leaveReview(bookingId) {
+            document.getElementById('bookingId').value = bookingId;
+            openModal('reviewModal');
+        }
+
+        async function submitReview(event) {
+            event.preventDefault();
+            
+            const bookingId = document.getElementById('bookingId').value;
+            const rating = document.querySelector('.rating .fas.fa-star.active').dataset.rating;
+            const comment = document.getElementById('comment').value;
+
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/review`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ rating, comment })
+                });
+
+                if (response.ok) {
+                    closeModal('reviewModal');
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Failed to submit review. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                alert('Failed to submit review. Please try again.');
+            }
+        }
+
+        // Star rating functionality
+        const stars = document.querySelectorAll('.rating .fa-star');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = star.dataset.rating;
+                stars.forEach(s => {
+                    if (s.dataset.rating <= rating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
     </script>
 </body>
 </html> 
