@@ -1,6 +1,6 @@
-# Atithi - Hotel Booking Management System
+# Othiti - Hotel Booking Management System
 
-Atithi is a comprehensive hotel booking management system built with Python Flask, designed to streamline the process of hotel bookings and management. The system provides separate interfaces for guests, hosts, and administrators, each with their specific functionalities.
+Othiti is a comprehensive hotel booking management system built with Python Flask, designed to streamline the process of hotel bookings and management. The system provides separate interfaces for guests, hosts, and administrators, each with their specific functionalities.
 
 ## Features
 

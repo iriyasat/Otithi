@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Meal Options') }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">{{ _('Meal Options') }}</h2>
+            
+            {% if current_user.is_authenticated and current_user.role == 'host' %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ _('Add New Meal Option') }}</h5>
+                    <form id="mealForm" class="mt-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name_en">{{ _('Name (English)') }}</label>
+                                    <input type="text" class="form-control" id="name_en" name="name_en" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name_bn">{{ _('Name (Bangla)') }}</label>
+                                    <input type="text" class="form-control" id="name_bn" name="name_bn" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="description_en">{{ _('Description (English)') }}</label>
+                                    <textarea class="form-control" id="description_en" name="description_en" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="description_bn">{{ _('Description (Bangla)') }}</label>
+                                    <textarea class="form-control" id="description_bn" name="description_bn" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="price">{{ _('Price (BDT)') }}</label>
+                                    <input type="number" class="form-control" id="price" name="price" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="meal_type">{{ _('Meal Type') }}</label>
+                                    <select class="form-control" id="meal_type" name="meal_type" required>
+                                        <option value="breakfast">{{ _('Breakfast') }}</option>
+                                        <option value="lunch">{{ _('Lunch') }}</option>
+                                        <option value="dinner">{{ _('Dinner') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>{{ _('Dietary Information') }}</label>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="vegetarian" name="dietary_info[]" value="vegetarian">
+                                        <label class="form-check-label" for="vegetarian">{{ _('Vegetarian') }}</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="halal" name="dietary_info[]" value="halal">
+                                        <label class="form-check-label" for="halal">{{ _('Halal') }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary mt-3">{{ _('Add Meal Option') }}</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="row" id="mealsList">
+                <!-- Meals will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const propertyId = new URLSearchParams(window.location.search).get('property_id');
+    
+    // Load meals
+    function loadMeals() {
+        fetch(`/api/properties/${propertyId}/meals`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const mealsList = document.getElementById('mealsList');
+                    mealsList.innerHTML = data.meals.map(meal => `
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">${meal.name_en}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">${meal.name_bn}</h6>
+                                    <p class="card-text">${meal.description_en || ''}</p>
+                                    <p class="card-text">${meal.description_bn || ''}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="h5 mb-0">৳${meal.price}</span>
+                                        <span class="badge bg-primary">${meal.meal_type}</span>
+                                    </div>
+                                    <div class="mt-3">
+                                        ${meal.dietary_info ? Object.entries(meal.dietary_info).map(([key, value]) => 
+                                            value ? `<span class="badge bg-info me-1">${key}</span>` : ''
+                                        ).join('') : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    
+    // Handle form submission
+    const mealForm = document.getElementById('mealForm');
+    if (mealForm) {
+        mealForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const dietaryInfo = {};
+            document.querySelectorAll('input[name="dietary_info[]"]:checked').forEach(checkbox => {
+                dietaryInfo[checkbox.value] = true;
+            });
+            
+            const formData = {
+                name_en: document.getElementById('name_en').value,
+                name_bn: document.getElementById('name_bn').value,
+                description_en: document.getElementById('description_en').value,
+                description_bn: document.getElementById('description_bn').value,
+                price: parseFloat(document.getElementById('price').value),
+                meal_type: document.getElementById('meal_type').value,
+                dietary_info: dietaryInfo
+            };
+            
+            fetch(`/api/properties/${propertyId}/meals`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    mealForm.reset();
+                    loadMeals();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    }
+    
+    // Initial load
+    loadMeals();
+});
+</script>
+{% endblock %} 

@@ -195,7 +195,7 @@ stripe.api_key = app.config['STRIPE_SECRET_KEY']
 # Initialize payment gateway
 payment_gateway = PaymentGateway()
 
-from models import User, Property, Booking, SavedProperty, Review, PropertyImage
+from models import User, Property, Booking, SavedProperty, Review, PropertyImage, CulturalExperience, MealOption, TransportOption, FestivalSeason, CommunityVerification
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -231,7 +231,7 @@ def guest_required(f):
 # Main routes
 @app.route('/')
 def index():
-    featured_properties = Property.query.filter_by(is_available=True).order_by(Property.created_at.desc()).limit(6).all()
+    featured_properties = Property.query.order_by(Property.created_at.desc()).limit(6).all()
     testimonials = [
         {
             'user_name': 'John Doe',
@@ -256,7 +256,7 @@ def index():
 
 @app.route('/browse')
 def browse_properties():
-    properties = Property.query.filter_by(is_available=True).order_by(Property.created_at.desc()).all()
+    properties = Property.query.order_by(Property.created_at.desc()).all()
     return render_template('browse_properties.html', properties=properties)
 
 @app.route('/registration')
@@ -279,7 +279,7 @@ def dashboard():
             'total_users': User.query.count(),
             'total_properties': Property.query.count(),
             'total_bookings': Booking.query.count(),
-            'total_revenue': db.session.query(db.func.sum(Booking.total_amount)).scalar() or 0
+            'total_revenue': db.session.query(db.func.sum(Booking.total_price)).scalar() or 0
         }
         # Get admin activities
         activities = get_admin_activities()
@@ -298,7 +298,7 @@ def dashboard():
             'average_rating': db.session.query(db.func.avg(Review.rating))
                 .filter(Review.property_id.in_(property_ids))
                 .scalar() or 0,
-            'total_earnings': db.session.query(db.func.sum(Booking.total_amount))
+            'total_earnings': db.session.query(db.func.sum(Booking.total_price))
                 .filter(Booking.property_id.in_(property_ids))
                 .scalar() or 0
         }
@@ -310,7 +310,7 @@ def dashboard():
         stats = {
             'total_bookings': Booking.query.filter_by(guest_id=current_user.id).count(),
             'total_reviews': Review.query.filter_by(user_id=current_user.id).count(),
-            'total_spent': db.session.query(db.func.sum(Booking.total_amount))
+            'total_spent': db.session.query(db.func.sum(Booking.total_price))
                 .filter_by(guest_id=current_user.id)
                 .scalar() or 0,
             'saved_properties': SavedProperty.query.filter_by(user_id=current_user.id).count()
@@ -523,7 +523,7 @@ def get_properties():
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     
-    query = Property.query.filter_by(is_available=True)
+    query = Property.query
     
     if search:
         query = query.filter(
@@ -550,12 +550,12 @@ def get_properties():
             "title": p.title_en if g.get('lang') == 'en' else p.title_bn,
             "description": p.description_en if g.get('lang') == 'en' else p.description_bn,
             "location": p.location_en if g.get('lang') == 'en' else p.location_bn,
-            "city": p.city,
+            "city": getattr(p, 'city', ''),
             "price_per_night": p.price_per_night,
-            "currency": p.currency,
+            "currency": getattr(p, 'currency', 'BDT'),
             "max_guests": p.max_guests,
-            "bedrooms": p.bedrooms,
-            "bathrooms": p.bathrooms,
+            "bedrooms": getattr(p, 'bedrooms', None),
+            "bathrooms": getattr(p, 'bathrooms', None),
             "property_type": p.property_type,
             "amenities": p.amenities,
             "images": [img.image_url for img in p.images],
@@ -794,7 +794,7 @@ def admin_bookings():
             "check_in": b.check_in_date.strftime('%Y-%m-%d'),
             "check_out": b.check_out_date.strftime('%Y-%m-%d'),
             "status": b.status,
-            "total_amount": b.total_amount
+            "total_price": b.total_price
         } for b in bookings]
     })
 
@@ -1062,7 +1062,7 @@ def guest_dashboard():
     total_bookings = Booking.query.filter_by(user_id=current_user.id).count()
     saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).count()
     total_reviews = Review.query.filter_by(user_id=current_user.id).count()
-    total_spent = db.session.query(db.func.sum(Booking.total_amount)).filter_by(
+    total_spent = db.session.query(db.func.sum(Booking.total_price)).filter_by(
         user_id=current_user.id,
         status='completed'
     ).scalar() or 0
@@ -1101,13 +1101,255 @@ def number_format(value):
     except (ValueError, TypeError):
         return '৳0'
 
+# Cultural Experiences Routes
+@app.route('/api/properties/<int:property_id>/experiences', methods=['GET'])
+def get_property_experiences(property_id):
+    try:
+        experiences = CulturalExperience.query.filter_by(property_id=property_id).all()
+        return jsonify({
+            "status": "success",
+            "experiences": [{
+                "id": exp.id,
+                "title_en": exp.title_en,
+                "title_bn": exp.title_bn,
+                "description_en": exp.description_en,
+                "description_bn": exp.description_bn,
+                "price": exp.price,
+                "duration": exp.duration,
+                "max_participants": exp.max_participants,
+                "is_available": exp.is_available
+            } for exp in experiences]
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/properties/<int:property_id>/experiences', methods=['POST'])
+@login_required
+@host_required
+def create_property_experience(property_id):
+    try:
+        property = Property.query.get_or_404(property_id)
+        if property.host_id != current_user.id:
+            return jsonify({"status": "error", "message": _("Unauthorized")}), 403
+
+        data = request.get_json()
+        experience = CulturalExperience(
+            property_id=property_id,
+            title_en=data['title_en'],
+            title_bn=data['title_bn'],
+            description_en=data['description_en'],
+            description_bn=data['description_bn'],
+            price=data['price'],
+            duration=data.get('duration'),
+            max_participants=data.get('max_participants'),
+            is_available=True
+        )
+        db.session.add(experience)
+        db.session.commit()
+        return jsonify({"status": "success", "message": _("Experience created successfully")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Meal Options Routes
+@app.route('/api/properties/<int:property_id>/meals', methods=['GET'])
+def get_property_meals(property_id):
+    try:
+        meals = MealOption.query.filter_by(property_id=property_id).all()
+        return jsonify({
+            "status": "success",
+            "meals": [{
+                "id": meal.id,
+                "name_en": meal.name_en,
+                "name_bn": meal.name_bn,
+                "description_en": meal.description_en,
+                "description_bn": meal.description_bn,
+                "price": meal.price,
+                "meal_type": meal.meal_type,
+                "dietary_info": meal.dietary_info
+            } for meal in meals]
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/properties/<int:property_id>/meals', methods=['POST'])
+@login_required
+@host_required
+def create_property_meal(property_id):
+    try:
+        property = Property.query.get_or_404(property_id)
+        if property.host_id != current_user.id:
+            return jsonify({"status": "error", "message": _("Unauthorized")}), 403
+
+        data = request.get_json()
+        meal = MealOption(
+            property_id=property_id,
+            name_en=data['name_en'],
+            name_bn=data['name_bn'],
+            description_en=data.get('description_en'),
+            description_bn=data.get('description_bn'),
+            price=data['price'],
+            meal_type=data['meal_type'],
+            dietary_info=data.get('dietary_info', {})
+        )
+        db.session.add(meal)
+        db.session.commit()
+        return jsonify({"status": "success", "message": _("Meal option created successfully")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Transport Options Routes
+@app.route('/api/properties/<int:property_id>/transport', methods=['GET'])
+def get_property_transport(property_id):
+    try:
+        transport_options = TransportOption.query.filter_by(property_id=property_id).all()
+        return jsonify({
+            "status": "success",
+            "transport_options": [{
+                "id": opt.id,
+                "type": opt.type,
+                "description_en": opt.description_en,
+                "description_bn": opt.description_bn,
+                "price": opt.price,
+                "is_available": opt.is_available
+            } for opt in transport_options]
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/properties/<int:property_id>/transport', methods=['POST'])
+@login_required
+@host_required
+def create_property_transport(property_id):
+    try:
+        property = Property.query.get_or_404(property_id)
+        if property.host_id != current_user.id:
+            return jsonify({"status": "error", "message": _("Unauthorized")}), 403
+
+        data = request.get_json()
+        transport = TransportOption(
+            property_id=property_id,
+            type=data['type'],
+            description_en=data.get('description_en'),
+            description_bn=data.get('description_bn'),
+            price=data['price'],
+            is_available=True
+        )
+        db.session.add(transport)
+        db.session.commit()
+        return jsonify({"status": "success", "message": _("Transport option created successfully")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Festival Seasons Routes
+@app.route('/api/festivals', methods=['GET'])
+def get_festivals():
+    try:
+        festivals = FestivalSeason.query.all()
+        return jsonify({
+            "status": "success",
+            "festivals": [{
+                "id": fest.id,
+                "name_en": fest.name_en,
+                "name_bn": fest.name_bn,
+                "start_date": fest.start_date.isoformat(),
+                "end_date": fest.end_date.isoformat(),
+                "description_en": fest.description_en,
+                "description_bn": fest.description_bn,
+                "region": fest.region
+            } for fest in festivals]
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/festivals', methods=['POST'])
+@login_required
+@admin_required
+def create_festival():
+    try:
+        data = request.get_json()
+        festival = FestivalSeason(
+            name_en=data['name_en'],
+            name_bn=data['name_bn'],
+            start_date=datetime.strptime(data['start_date'], '%Y-%m-%d').date(),
+            end_date=datetime.strptime(data['end_date'], '%Y-%m-%d').date(),
+            description_en=data.get('description_en'),
+            description_bn=data.get('description_bn'),
+            region=data.get('region', 'all')
+        )
+        db.session.add(festival)
+        db.session.commit()
+        return jsonify({"status": "success", "message": _("Festival season created successfully")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# Community Verification Routes
+@app.route('/api/properties/<int:property_id>/verify', methods=['POST'])
+@login_required
+def create_verification(property_id):
+    try:
+        data = request.get_json()
+        verification = CommunityVerification(
+            property_id=property_id,
+            verifier_id=current_user.id,
+            verification_type=data['verification_type'],
+            status='pending',
+            comments=data.get('comments')
+        )
+        db.session.add(verification)
+        db.session.commit()
+        return jsonify({"status": "success", "message": _("Verification request submitted successfully")})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/properties/<int:property_id>/verifications', methods=['GET'])
+def get_property_verifications(property_id):
+    try:
+        verifications = CommunityVerification.query.filter_by(property_id=property_id).all()
+        return jsonify({
+            "status": "success",
+            "verifications": [{
+                "id": ver.id,
+                "verifier_id": ver.verifier_id,
+                "verification_type": ver.verification_type,
+                "status": ver.status,
+                "comments": ver.comments,
+                "created_at": ver.created_at.isoformat()
+            } for ver in verifications]
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/properties/<int:property_id>')
+def property_details(property_id):
+    property = Property.query.get_or_404(property_id)
+    return render_template('properties/details/property_details.html', property=property)
+
+@app.route('/properties/<int:property_id>/experiences')
+def property_experiences(property_id):
+    property = Property.query.get_or_404(property_id)
+    return render_template('properties/experiences/cultural_experiences.html', property=property)
+
+@app.route('/properties/<int:property_id>/meals')
+def property_meals(property_id):
+    property = Property.query.get_or_404(property_id)
+    return render_template('properties/meals/meal_options.html', property=property)
+
+@app.route('/properties/<int:property_id>/transport')
+def property_transport(property_id):
+    property = Property.query.get_or_404(property_id)
+    return render_template('properties/transport/transport_options.html', property=property)
+
+@app.route('/festivals')
+def festivals():
+    return render_template('festivals/index.html')
+
 if __name__ == '__main__':
     with app.app_context():
         # Create admin user if not exists
-        admin = User.query.filter_by(email='admin@atithi.com').first()
+        admin = User.query.filter_by(email='admin@othiti.com').first()
         if not admin:
             admin = User(
-                email='admin@atithi.com',
+                email='admin@othiti.com',
                 name='Admin',
                 role='admin'
             )
