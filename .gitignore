@@ -1,0 +1,40 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache directories
+/cache/
+/temp/
+
+# Build files
+/dist/
+/build/
+
+# XAMPP specific
+/xampp/ 

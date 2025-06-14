@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>My Bookings - Atithi</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Navigation -->
+        <nav class="dashboard-nav">
+            <div class="nav-header">
+                <h2>আতিথি Atithi</h2>
+                <button class="nav-toggle" id="navToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <ul class="nav-menu">
+                <li>
+                    <a href="/guest-dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="/my-bookings">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>My Bookings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span>Wishlist</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Top Bar -->
+            <div class="dashboard-topbar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search bookings...">
+                </div>
+                <div class="user-menu">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">2</span>
+                    </div>
+                    <div class="profile">
+                        <img src="{{ current_user.profile_picture or '/static/assets/images/default-avatar.svg' }}" alt="Profile">
+                        <span>{{ current_user.name }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <h1>My Bookings</h1>
+                
+                <!-- Active Bookings -->
+                <div class="dashboard-section">
+                    <h2>Active Bookings</h2>
+                    <div class="booking-grid">
+                        {% for booking in active_bookings %}
+                        <div class="booking-card">
+                            <div class="booking-image">
+                                <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
+                            </div>
+                            <div class="booking-info">
+                                <h3>{{ booking.property.title_en }}</h3>
+                                <p>{{ booking.property.location_en }}</p>
+                                <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
+                                <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
+                                <p class="price">৳{{ booking.total_price }}</p>
+                                <span class="status {{ booking.status }}">{{ booking.status }}</span>
+                                <div class="booking-actions">
+                                    <button onclick="viewBookingDetails({{ booking.id }})">View Details</button>
+                                    <button onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Upcoming Bookings -->
+                <div class="dashboard-section">
+                    <h2>Upcoming Bookings</h2>
+                    <div class="booking-grid">
+                        {% for booking in upcoming_bookings %}
+                        <div class="booking-card">
+                            <div class="booking-image">
+                                <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
+                            </div>
+                            <div class="booking-info">
+                                <h3>{{ booking.property.title_en }}</h3>
+                                <p>{{ booking.property.location_en }}</p>
+                                <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
+                                <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
+                                <p class="price">৳{{ booking.total_price }}</p>
+                                <span class="status {{ booking.status }}">{{ booking.status }}</span>
+                                <div class="booking-actions">
+                                    <button onclick="viewBookingDetails({{ booking.id }})">View Details</button>
+                                    <button onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Past Bookings -->
+                <div class="dashboard-section">
+                    <h2>Past Bookings</h2>
+                    <div class="booking-grid">
+                        {% for booking in past_bookings %}
+                        <div class="booking-card">
+                            <div class="booking-image">
+                                <img src="{{ booking.property.images[0].image_url if booking.property.images else '/static/assets/images/default-property.svg' }}" alt="{{ booking.property.title_en }}">
+                            </div>
+                            <div class="booking-info">
+                                <h3>{{ booking.property.title_en }}</h3>
+                                <p>{{ booking.property.location_en }}</p>
+                                <p>Check-in: {{ booking.check_in.strftime('%Y-%m-%d') }}</p>
+                                <p>Check-out: {{ booking.check_out.strftime('%Y-%m-%d') }}</p>
+                                <p class="price">৳{{ booking.total_price }}</p>
+                                <span class="status {{ booking.status }}">{{ booking.status }}</span>
+                                <div class="booking-actions">
+                                    <button onclick="viewBookingDetails({{ booking.id }})">View Details</button>
+                                    {% if not booking.review %}
+                                    <button onclick="leaveReview({{ booking.id }})">Leave Review</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/scripts.js"></script>
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('navToggle');
+        const dashboardNav = document.querySelector('.dashboard-nav');
+        
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                dashboardNav.classList.toggle('show');
+            });
+        }
+
+        // Close mobile nav when clicking outside
+        document.addEventListener('click', (event) => {
+            if (window.innerWidth <= 1024 && 
+                !event.target.closest('.dashboard-nav') && 
+                !event.target.closest('.nav-toggle')) {
+                dashboardNav.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html> 

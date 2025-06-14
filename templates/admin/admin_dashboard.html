@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Atithi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="user-admin">
+    <div class="dashboard">
+        <!-- Sidebar Navigation -->
+        <nav class="dashboard-nav">
+            <div class="nav-header">
+                <h2>Admin Panel</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="active">
+                    <a href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fas fa-users"></i>
+                        Users
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fas fa-home"></i>
+                        Properties
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fas fa-calendar-check"></i>
+                        Bookings
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fas fa-star"></i>
+                        Reviews
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Top Bar -->
+            <div class="dashboard-topbar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="user-menu">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="profile">
+                        <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Admin">
+                        <span>{{ current_user.name }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Users</h3>
+                            <p>{{ total_users }}</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Properties</h3>
+                            <p>{{ total_properties }}</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Active Bookings</h3>
+                            <p>{{ active_bookings }}</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Reviews</h3>
+                            <p>{{ total_reviews }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Section -->
+                <div class="dashboard-section">
+                    <h2>Recent Activity</h2>
+                    <div class="activity-list">
+                        {% for activity in recent_activities %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas {{ activity.icon }}"></i>
+                            </div>
+                            <div class="activity-info">
+                                <p>{{ activity.description }}</p>
+                                <small>{{ activity.timestamp }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Latest Bookings Section -->
+                <div class="dashboard-section">
+                    <h2>Latest Bookings</h2>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Guest</th>
+                                    <th>Property</th>
+                                    <th>Check-in</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in latest_bookings %}
+                                <tr>
+                                    <td>#{{ booking.id }}</td>
+                                    <td>{{ booking.guest.name }}</td>
+                                    <td>{{ booking.property.title }}</td>
+                                    <td>{{ booking.check_in_date }}</td>
+                                    <td>
+                                        <span class="status-badge {{ booking.status }}">
+                                            {{ booking.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function handleLogout() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = '/';
+                }
+            });
+        }
+
+        // Mobile Navigation Toggle
+        document.querySelector('.hamburger').addEventListener('click', function() {
+            document.querySelector('.dashboard-nav').classList.toggle('show');
+        });
+    </script>
+</body>
+</html> 
