@@ -8,43 +8,44 @@ def init_db():
         db.create_all()
         
         # Check if admin user exists
-        admin = User.query.filter_by(email='admin@atithi.com').first()
+        admin = User.query.filter_by(email='admin@otithi.com').first()
         if not admin:
             # Create admin user
             admin = User(
-                email='admin@atithi.com',
-                password=generate_password_hash('admin123'),
+                email='admin@otithi.com',
                 first_name='Admin',
                 last_name='User',
-                role='admin',
-                preferred_language='en'
+                role='admin'
             )
+            admin.set_password('admin123')
             db.session.add(admin)
+            db.session.commit()
             
             # Create a test host
-            host = User(
-                email='host@atithi.com',
-                password=generate_password_hash('host123'),
-                first_name='Test',
-                last_name='Host',
-                role='host',
-                preferred_language='en'
-            )
-            db.session.add(host)
+            host = User.query.filter_by(email='host@otithi.com').first()
+            if not host:
+                host = User(
+                    email='host@otithi.com',
+                    first_name='Host',
+                    last_name='User',
+                    role='host'
+                )
+                host.set_password('host123')
+                db.session.add(host)
+                db.session.commit()
             
             # Create a test guest
-            guest = User(
-                email='guest@atithi.com',
-                password=generate_password_hash('guest123'),
-                first_name='Test',
-                last_name='Guest',
-                role='guest',
-                preferred_language='en'
-            )
-            db.session.add(guest)
-            
-            # Commit the users
-            db.session.commit()
+            guest = User.query.filter_by(email='guest@otithi.com').first()
+            if not guest:
+                guest = User(
+                    email='guest@otithi.com',
+                    first_name='Guest',
+                    last_name='User',
+                    role='guest'
+                )
+                guest.set_password('guest123')
+                db.session.add(guest)
+                db.session.commit()
             
             # Create a sample property
             property = Property(

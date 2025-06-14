@@ -14,6 +14,52 @@ const commonOptions = {
     }
 };
 
+// Navigation functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Navbar scroll effect
+    const navbar = document.querySelector('.navbar');
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Active link highlighting
+    const currentLocation = location.pathname;
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentLocation) {
+            link.classList.add('active');
+        }
+    });
+
+    // Initialize charts
+    initializeCharts();
+});
+
+// Logout functionality
+function handleLogout(event) {
+    event.preventDefault();
+    fetch('/api/logout', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.href = data.redirect_url;
+        } else {
+            alert(data.message || 'An error occurred during logout.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during logout.');
+    });
+}
+
 // Initialize charts based on user role
 function initializeCharts() {
     const userRole = document.body.dataset.userRole;
@@ -169,9 +215,4 @@ function initializeGuestCharts() {
             }
         });
     }
-}
-
-// Initialize charts when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initializeCharts();
-}); 
+} 

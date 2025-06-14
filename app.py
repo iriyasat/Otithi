@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config, db
 import os
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from flask_migrate import Migrate
 import stripe
 import json
@@ -270,40 +270,62 @@ def registration_page():
 @login_required
 def dashboard():
     # Get statistics based on user role
-    stats = {}
-    activities = []
-    
     if current_user.role == 'admin':
         # Admin statistics
         stats = {
             'total_users': User.query.count(),
             'total_properties': Property.query.count(),
             'total_bookings': Booking.query.count(),
-            'total_revenue': db.session.query(db.func.sum(Booking.total_price)).scalar() or 0
+            'total_revenue': db.session.query(db.func.sum(Booking.total_price)).scalar() or 0,
+            'user_growth': calculate_growth(User, 'created_at'),
+            'property_growth': calculate_growth(Property, 'created_at'),
+            'booking_growth': calculate_growth(Booking, 'created_at'),
+            'revenue_growth': calculate_revenue_growth()
         }
         # Get admin activities
         activities = get_admin_activities()
         
-    elif current_user.role == 'host':
-        # Host statistics
-        host_properties = Property.query.filter_by(host_id=current_user.id).all()
-        property_ids = [p.id for p in host_properties]
+        # Chart data for admin
+        chart_data = {
+            'user_growth_labels': get_last_12_months(),
+            'user_growth_data': get_monthly_stats(User, 'created_at'),
+            'booking_trends_labels': get_last_12_months(),
+            'booking_trends_data': get_monthly_stats(Booking, 'created_at')
+        }
         
+    elif current_user.role == 'host':
+        # Get host's property IDs
+        property_ids = [p.id for p in Property.query.filter_by(host_id=current_user.id).all()]
+        
+        # Host statistics
         stats = {
-            'total_properties': len(host_properties),
+            'total_properties': len(property_ids),
             'active_bookings': Booking.query.filter(
                 Booking.property_id.in_(property_ids),
-                Booking.status == 'confirmed'
+                Booking.status == 'active'
             ).count(),
             'average_rating': db.session.query(db.func.avg(Review.rating))
-                .filter(Review.property_id.in_(property_ids))
+                .join(Property)
+                .filter(Property.host_id == current_user.id)
                 .scalar() or 0,
             'total_earnings': db.session.query(db.func.sum(Booking.total_price))
                 .filter(Booking.property_id.in_(property_ids))
-                .scalar() or 0
+                .scalar() or 0,
+            'property_growth': calculate_growth(Property, 'created_at', host_id=current_user.id),
+            'booking_growth': calculate_growth(Booking, 'created_at', property_ids=property_ids),
+            'rating_change': calculate_rating_change(current_user.id),
+            'earnings_growth': calculate_earnings_growth(property_ids)
         }
         # Get host activities
         activities = get_host_activities(current_user.id)
+        
+        # Chart data for host
+        chart_data = {
+            'booking_trends_labels': get_last_12_months(),
+            'booking_trends_data': get_monthly_stats(Booking, 'created_at', property_ids=property_ids),
+            'earnings_labels': get_last_12_months(),
+            'earnings_data': get_monthly_earnings(property_ids)
+        }
         
     else:  # Guest role
         # Guest statistics
@@ -313,14 +335,120 @@ def dashboard():
             'total_spent': db.session.query(db.func.sum(Booking.total_price))
                 .filter_by(guest_id=current_user.id)
                 .scalar() or 0,
-            'saved_properties': SavedProperty.query.filter_by(user_id=current_user.id).count()
+            'saved_properties': SavedProperty.query.filter_by(user_id=current_user.id).count(),
+            'booking_growth': calculate_growth(Booking, 'created_at', guest_id=current_user.id),
+            'review_growth': calculate_growth(Review, 'created_at', user_id=current_user.id),
+            'spending_growth': calculate_spending_growth(current_user.id),
+            'saved_growth': calculate_growth(SavedProperty, 'created_at', user_id=current_user.id)
         }
         # Get guest activities
         activities = get_guest_activities(current_user.id)
+        
+        # Chart data for guest
+        chart_data = {
+            'booking_history_labels': get_last_12_months(),
+            'booking_history_data': get_monthly_stats(Booking, 'created_at', guest_id=current_user.id),
+            'spending_labels': get_last_12_months(),
+            'spending_data': get_monthly_spending(current_user.id)
+        }
     
     return render_template('dashboard.html',
                          stats=stats,
-                         activities=activities)
+                         activities=activities,
+                         chart_data=chart_data)
+
+def calculate_growth(model, date_field, **filters):
+    """Calculate growth percentage for a model over the last month"""
+    now = datetime.utcnow()
+    month_ago = now - timedelta(days=30)
+    
+    # Get current count
+    current_query = model.query
+    for field, value in filters.items():
+        current_query = current_query.filter(getattr(model, field) == value)
+    current_count = current_query.count()
+    
+    # Get previous count
+    previous_query = model.query.filter(getattr(model, date_field) < month_ago)
+    for field, value in filters.items():
+        previous_query = previous_query.filter(getattr(model, field) == value)
+    previous_count = previous_query.count()
+    
+    if previous_count == 0:
+        return 100 if current_count > 0 else 0
+    
+    return round(((current_count - previous_count) / previous_count) * 100, 1)
+
+def calculate_revenue_growth():
+    """Calculate revenue growth percentage over the last month"""
+    now = datetime.utcnow()
+    month_ago = now - timedelta(days=30)
+    
+    current_revenue = db.session.query(db.func.sum(Booking.total_price)).scalar() or 0
+    previous_revenue = db.session.query(db.func.sum(Booking.total_price))\
+        .filter(Booking.created_at < month_ago)\
+        .scalar() or 0
+    
+    if previous_revenue == 0:
+        return 100 if current_revenue > 0 else 0
+    
+    return round(((current_revenue - previous_revenue) / previous_revenue) * 100, 1)
+
+def calculate_earnings_growth(property_ids):
+    """Calculate earnings growth percentage for a host over the last month"""
+    now = datetime.utcnow()
+    month_ago = now - timedelta(days=30)
+    
+    current_earnings = db.session.query(db.func.sum(Booking.total_price))\
+        .filter(Booking.property_id.in_(property_ids))\
+        .scalar() or 0
+    previous_earnings = db.session.query(db.func.sum(Booking.total_price))\
+        .filter(Booking.property_id.in_(property_ids))\
+        .filter(Booking.created_at < month_ago)\
+        .scalar() or 0
+    
+    if previous_earnings == 0:
+        return 100 if current_earnings > 0 else 0
+    
+    return round(((current_earnings - previous_earnings) / previous_earnings) * 100, 1)
+
+def calculate_spending_growth(user_id):
+    """Calculate spending growth percentage for a guest over the last month"""
+    now = datetime.utcnow()
+    month_ago = now - timedelta(days=30)
+    
+    current_spending = db.session.query(db.func.sum(Booking.total_price))\
+        .filter_by(guest_id=user_id)\
+        .scalar() or 0
+    previous_spending = db.session.query(db.func.sum(Booking.total_price))\
+        .filter_by(guest_id=user_id)\
+        .filter(Booking.created_at < month_ago)\
+        .scalar() or 0
+    
+    if previous_spending == 0:
+        return 100 if current_spending > 0 else 0
+    
+    return round(((current_spending - previous_spending) / previous_spending) * 100, 1)
+
+def calculate_rating_change(host_id):
+    """Calculate rating change percentage for a host over the last month"""
+    now = datetime.utcnow()
+    month_ago = now - timedelta(days=30)
+    
+    current_rating = db.session.query(db.func.avg(Review.rating))\
+        .join(Property)\
+        .filter(Property.host_id == host_id)\
+        .scalar() or 0
+    previous_rating = db.session.query(db.func.avg(Review.rating))\
+        .join(Property)\
+        .filter(Property.host_id == host_id)\
+        .filter(Review.created_at < month_ago)\
+        .scalar() or 0
+    
+    if previous_rating == 0:
+        return 100 if current_rating > 0 else 0
+    
+    return round(((current_rating - previous_rating) / previous_rating) * 100, 1)
 
 def get_admin_activities():
     activities = []
@@ -457,10 +585,13 @@ def register():
     # Create user
     user = User(
         email=data.get('email'),
-        name=data.get('name'),
+        first_name=data.get('name'),
+        last_name=data.get('name'),
         role=data.get('userType'),
         preferred_language=data.get('preferred_language', 'en'),
-        is_active=True
+        is_active=True,
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     user.set_password(data.get('password'))
     
@@ -755,13 +886,15 @@ def check_admin():
 def admin_properties():
     properties = Property.query.all()
     return jsonify({
-        "properties": [{
+        "status": "success",
+        "data": [{
             "id": p.id,
-            "title": p.title,
-            "location": p.location,
-            "price_per_night": p.price_per_night,
-            "user_id": p.host_id,
-            "status": p.status
+            "title": p.title_en,
+            "location": p.location_en,
+            "host": p.host.name,
+            "price": p.price_per_night,
+            "status": "Active" if p.verifications else "Pending",
+            "created_at": p.created_at.strftime('%Y-%m-%d %H:%M')
         } for p in properties]
     })
 
@@ -908,7 +1041,9 @@ def create_property_review(property_id):
         user_id=current_user.id,
         rating=data.get('rating'),
         comment_en=data.get('comment_en'),
-        comment_bn=data.get('comment_bn')
+        comment_bn=data.get('comment_bn'),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC)
     )
     
     try:
@@ -1343,6 +1478,74 @@ def property_transport(property_id):
 def festivals():
     return render_template('festivals/index.html')
 
+def get_last_12_months():
+    """Get labels for the last 12 months"""
+    now = datetime.now(UTC)
+    months = []
+    for i in range(11, -1, -1):
+        month = now - timedelta(days=30*i)
+        months.append(month.strftime('%b %Y'))
+    return months
+
+def get_monthly_stats(model, date_field, **filters):
+    """Get monthly statistics for a model"""
+    now = datetime.now(UTC)
+    stats = []
+    
+    for i in range(11, -1, -1):
+        start_date = now - timedelta(days=30*(i+1))
+        end_date = now - timedelta(days=30*i)
+        
+        query = model.query.filter(
+            getattr(model, date_field) >= start_date,
+            getattr(model, date_field) < end_date
+        )
+        
+        for field, value in filters.items():
+            query = query.filter(getattr(model, field) == value)
+            
+        stats.append(query.count())
+    
+    return stats
+
+def get_monthly_earnings(property_ids):
+    """Get monthly earnings for a host"""
+    now = datetime.now(UTC)
+    earnings = []
+    
+    for i in range(11, -1, -1):
+        start_date = now - timedelta(days=30*(i+1))
+        end_date = now - timedelta(days=30*i)
+        
+        monthly_earnings = db.session.query(db.func.sum(Booking.total_price))\
+            .filter(Booking.property_id.in_(property_ids))\
+            .filter(Booking.created_at >= start_date)\
+            .filter(Booking.created_at < end_date)\
+            .scalar() or 0
+            
+        earnings.append(float(monthly_earnings))
+    
+    return earnings
+
+def get_monthly_spending(user_id):
+    """Get monthly spending for a guest"""
+    now = datetime.now(UTC)
+    spending = []
+    
+    for i in range(11, -1, -1):
+        start_date = now - timedelta(days=30*(i+1))
+        end_date = now - timedelta(days=30*i)
+        
+        monthly_spending = db.session.query(db.func.sum(Booking.total_price))\
+            .filter_by(guest_id=user_id)\
+            .filter(Booking.created_at >= start_date)\
+            .filter(Booking.created_at < end_date)\
+            .scalar() or 0
+            
+        spending.append(float(monthly_spending))
+    
+    return spending
+
 if __name__ == '__main__':
     with app.app_context():
         # Create admin user if not exists
@@ -1350,7 +1553,8 @@ if __name__ == '__main__':
         if not admin:
             admin = User(
                 email='admin@othiti.com',
-                name='Admin',
+                first_name='Admin',
+                last_name='User',
                 role='admin'
             )
             admin.set_password('admin123')  # Change this in production!

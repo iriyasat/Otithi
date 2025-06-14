@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Atithi - Your Home Away From Home{% endblock %}
+{% block title %}Otithi - Your Home Away From Home{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -30,7 +30,9 @@
                     <input type="date" class="form-control" id="check_out" name="check_out" required>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
                 </div>
             </form>
         </div>
@@ -45,8 +47,14 @@
             {% for property in featured_properties %}
             <div class="col-md-4">
                 <div class="property-card card h-100">
-                    <img src="{{ property.images[0] if property.images else url_for('static', filename='assets/images/default-property.svg') }}" 
-                         class="property-image card-img-top" alt="{{ property.title }}">
+                    <div class="property-image-container">
+                        <img src="{{ property.images[0] if property.images else url_for('static', filename='assets/images/default-property.svg') }}" 
+                             class="property-image card-img-top" alt="{{ property.title }}">
+                        <div class="property-rating">
+                            <i class="fas fa-star text-warning"></i>
+                            <span>{{ property.rating|default('4.5') }}</span>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <h5 class="card-title">{{ property.title }}</h5>
                         <p class="card-text text-muted">
@@ -54,14 +62,8 @@
                         </p>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="property-price">৳{{ property.price_per_night }}/night</span>
-                            <div class="rating">
-                                <i class="fas fa-star text-warning"></i>
-                                <span>{{ property.rating|default('4.5') }}</span>
-                            </div>
+                            <a href="{{ url_for('property_details', property_id=property.id) }}" class="btn btn-outline-primary">View Details</a>
                         </div>
-                    </div>
-                    <div class="card-footer bg-white border-0">
-                        <a href="{{ url_for('property_details', property_id=property.id) }}" class="btn btn-outline-primary w-100">View Details</a>
                     </div>
                 </div>
             </div>
@@ -73,10 +75,10 @@
 <!-- Why Choose Us -->
 <section class="py-5 bg-light">
     <div class="container">
-        <h2 class="text-center mb-5">Why Choose Atithi?</h2>
+        <h2 class="text-center mb-5">Why Choose Otithi?</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="text-center">
+                <div class="text-center feature-card">
                     <div class="feature-icon mx-auto">
                         <i class="fas fa-home"></i>
                     </div>
@@ -85,7 +87,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="text-center">
+                <div class="text-center feature-card">
                     <div class="feature-icon mx-auto">
                         <i class="fas fa-shield-alt"></i>
                     </div>
@@ -94,7 +96,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="text-center">
+                <div class="text-center feature-card">
                     <div class="feature-icon mx-auto">
                         <i class="fas fa-headset"></i>
                     </div>
@@ -166,24 +168,125 @@
 
 {% block extra_css %}
 <style>
+    .hero-section {
+        margin-top: -76px;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/assets/images/hero-bg.jpg');
+        background-size: cover;
+        background-position: center;
+        height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        padding: 0 20px;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .search-section {
+        margin-top: -50px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .search-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
     .feature-icon {
         width: 80px;
         height: 80px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-    }
-    
-    .hero-section {
-        margin-top: -76px;
-    }
-    
-    .card {
+        background: var(--bs-primary);
+        color: white;
+        border-radius: 50%;
+        font-size: 2rem;
         transition: transform 0.3s ease;
     }
-    
-    .card:hover {
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1);
+    }
+
+    .property-card {
+        border: none;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .property-card:hover {
         transform: translateY(-5px);
+    }
+
+    .property-image-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .property-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .property-card:hover .property-image {
+        transform: scale(1.05);
+    }
+
+    .property-rating {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .testimonial-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .testimonial-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .property-price {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--bs-primary);
     }
 </style>
 {% endblock %}
@@ -206,6 +309,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Add smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
 });
 </script>
 {% endblock %}

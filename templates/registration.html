@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Register - Atithi{% endblock %}
+{% block title %}Register - Otithi{% endblock %}
 
 {% block content %}
 <div class="container mt-5 pt-5">
@@ -10,13 +10,22 @@
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
                         <h2 class="fw-bold">Create Account</h2>
-                        <p class="text-muted">Join Atithi and start your journey</p>
+                        <p class="text-muted">Join Otithi and start your journey</p>
                     </div>
 
-                    <form id="registerForm" action="{{ url_for('register') }}" method="POST">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                    <div id="error-message" class="alert alert-danger d-none"></div>
+
+                    <form id="registerForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
@@ -43,7 +52,10 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                        <button type="submit" class="btn btn-primary w-100" id="register-button">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="register-spinner"></span>
+                            Create Account
+                        </button>
                     </form>
 
                     <div class="text-center mt-4">
@@ -58,35 +70,57 @@
 
 {% block extra_js %}
 <script>
-document.getElementById('registerForm').addEventListener('submit', function(e) {
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
-        userType: document.querySelector('input[name="userType"]:checked').value
-    };
+    const errorMessage = document.getElementById('error-message');
+    const registerButton = document.getElementById('register-button');
+    const registerSpinner = document.getElementById('register-spinner');
+    
+    // Reset error message
+    errorMessage.classList.add('d-none');
+    errorMessage.textContent = '';
+    
+    // Show loading state
+    registerButton.disabled = true;
+    registerSpinner.classList.remove('d-none');
+    
+    try {
+        const formData = {
+            first_name: document.getElementById('first_name').value,
+            last_name: document.getElementById('last_name').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            userType: document.querySelector('input[name="userType"]:checked').value,
+            csrf_token: document.querySelector('input[name="csrf_token"]').value
+        };
 
-    fetch('{{ url_for("register") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
+        const response = await fetch('{{ url_for("register") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        
+        if (response.ok && data.status === 'success') {
             window.location.href = data.redirect_url;
         } else {
-            alert(data.message);
+            errorMessage.textContent = data.message || 'An error occurred during registration';
+            errorMessage.classList.remove('d-none');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred during registration');
-    });
+    } catch (error) {
+        console.error('Registration error:', error);
+        errorMessage.textContent = 'An error occurred during registration. Please try again.';
+        errorMessage.classList.remove('d-none');
+    } finally {
+        // Reset button state
+        registerButton.disabled = false;
+        registerSpinner.classList.add('d-none');
+    }
 });
 </script>
 {% endblock %}

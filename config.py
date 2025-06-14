@@ -10,7 +10,7 @@ app = Flask(__name__,
             static_folder='static',
             static_url_path='/static')
 app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this to a secure secret key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3307/atithi_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3307/otithi_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -29,18 +29,21 @@ def seed_database():
         # Create sample users
         users = [
             User(
-                email='admin@atithi.com',
-                name='Admin User',
+                email='admin@otithi.com',
+                first_name='Admin',
+                last_name='User',
                 role='admin'
             ),
             User(
-                email='host@atithi.com',
-                name='Host User',
+                email='host@otithi.com',
+                first_name='Host',
+                last_name='User',
                 role='host'
             ),
             User(
-                email='guest@atithi.com',
-                name='Guest User',
+                email='guest@otithi.com',
+                first_name='Guest',
+                last_name='User',
                 role='guest'
             )
         ]
@@ -117,7 +120,7 @@ def seed_database():
 class Config:
     # Basic Flask configuration
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mysql+pymysql://root:@localhost:3307/atithi_db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mysql+pymysql://root:@localhost:3307/otithi_db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # File upload configuration

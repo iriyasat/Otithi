@@ -51,7 +51,7 @@
         <div class="mt-1 space-y-1">
             <a href="{{ url_for('browse_properties') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.endpoint == 'browse_properties' %}bg-primary-100 text-primary-900{% else %}text-gray-600 hover:bg-primary-50 hover:text-primary-900{% endif %}">
                 <i class="fas fa-search mr-3 {% if request.endpoint == 'browse_properties' %}text-primary-600{% else %}text-gray-400 group-hover:text-primary-600{% endif %}"></i>
-                Browse Properties
+                Explore Stays
             </a>
             <a href="{{ url_for('my_bookings') }}" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {% if request.endpoint == 'my_bookings' %}bg-primary-100 text-primary-900{% else %}text-gray-600 hover:bg-primary-50 hover:text-primary-900{% endif %}">
                 <i class="fas fa-calendar-check mr-3 {% if request.endpoint == 'my_bookings' %}text-primary-600{% else %}text-gray-400 group-hover:text-primary-600{% endif %}"></i>
