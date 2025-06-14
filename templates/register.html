@@ -139,8 +139,7 @@
         const formData = {
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
-            first_name: document.getElementById('first_name').value,
-            last_name: document.getElementById('last_name').value,
+            name: document.getElementById('first_name').value + ' ' + document.getElementById('last_name').value,
             userType: document.querySelector('input[name="userType"]:checked').value
         };
 
