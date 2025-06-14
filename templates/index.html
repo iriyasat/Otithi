@@ -1,277 +1,211 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atithi - আতিথি | Find Your Home in Bangladesh</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/21.6.10/i18next.min.js"></script>
-    <script src="/static/js/scripts.js" defer></script>
-</head>
+{% block title %}Atithi - Your Home Away From Home{% endblock %}
 
-<body>
-    <!-- Language Switcher -->
-    <div class="language-switcher">
-        <button class="lang-btn active" data-lang="en">EN</button>
-        <button class="lang-btn" data-lang="bn">বাং</button>
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Find Your Perfect Stay in Bangladesh</h1>
+        <p class="hero-subtitle">Experience the warmth of Bangladeshi hospitality with our curated selection of properties</p>
+        <a href="{{ url_for('browse_properties') }}" class="btn btn-primary btn-lg">Start Your Journey</a>
     </div>
+</section>
 
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="logo">
-                <a href="/">
-                    <span class="logo-text" data-i18n="logo.text">Atithi</span>
-                </a>
-            </div>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="/" class="active" data-i18n="nav.home">Home</a></li>
-                <li><a href="#properties" data-i18n="nav.properties">Properties</a></li>
-                <li><a href="#destinations" data-i18n="nav.destinations">Destinations</a></li>
-                <li><a href="#how-it-works" data-i18n="nav.howItWorks">How It Works</a></li>
-                <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
-                <li class="nav-buttons">
-                    <a href="/login" class="btn btn-outline" data-i18n="nav.login">Login</a>
-                    <a href="/registration" class="btn btn-primary" data-i18n="nav.register">Register</a>
-                </li>
-            </ul>
-            <div class="hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <h1 class="hero-title" data-i18n="hero.title">Discover Authentic Bangladesh</h1>
-            <p class="hero-subtitle" data-i18n="hero.subtitle">Experience the warmth of local hospitality</p>
-
-            <!-- Search Form -->
-            <form class="search-form" id="searchForm">
-                <div class="search-container">
-                    <div class="search-group">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <input type="text" placeholder="Where do you want to go?" name="location" required>
-                    </div>
-                    <div class="search-group">
-                        <i class="fas fa-calendar-alt"></i>
-                        <input type="date" placeholder="Check-in" name="checkin" required>
-                    </div>
-                    <div class="search-group">
-                        <i class="fas fa-calendar-alt"></i>
-                        <input type="date" placeholder="Check-out" name="checkout" required>
-                    </div>
-                    <div class="search-group">
-                        <i class="fas fa-user-friends"></i>
-                        <select name="guests">
-                            <option value="1">1 Guest</option>
-                            <option value="2">2 Guests</option>
-                            <option value="3">3 Guests</option>
-                            <option value="4">4+ Guests</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-search">
-                        <i class="fas fa-search"></i>
-                        <span data-i18n="search.button">Search</span>
-                    </button>
+<!-- Search Section -->
+<section class="search-section">
+    <div class="container">
+        <div class="search-card">
+            <form action="{{ url_for('browse_properties') }}" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" class="form-control" id="location" name="location" placeholder="Where do you want to stay?">
+                </div>
+                <div class="col-md-3">
+                    <label for="check_in" class="form-label">Check-in</label>
+                    <input type="date" class="form-control" id="check_in" name="check_in" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="check_out" class="form-label">Check-out</label>
+                    <input type="date" class="form-control" id="check_out" name="check_out" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
                 </div>
             </form>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Featured Properties -->
-    <section id="properties" class="featured-properties">
-        <div class="container">
-            <div class="section-header">
-                <h2 data-i18n="properties.title">Featured Properties</h2>
-                <p data-i18n="properties.subtitle">Discover our most popular accommodations</p>
-            </div>
-            <div class="property-grid">
-                {% for property in featured_properties %}
-                <div class="property-card">
-                    <div class="property-image">
-                        <img src="{{ property.images[0].image_url }}" alt="{{ property.title_en }}">
-                        <div class="property-price">
-                            <span class="currency">৳</span>
-                            <span class="amount">{{ property.price_per_night }}</span>
-                            <span class="period">/night</span>
-                        </div>
-                    </div>
-                    <div class="property-info">
-                        <h3>{{ property.title_en if g.get('lang') == 'en' else property.title_bn }}</h3>
-                        <p class="location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            {{ property.location_en if g.get('lang') == 'en' else property.location_bn }}
+<!-- Featured Properties -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Properties</h2>
+        <div class="row g-4">
+            {% for property in featured_properties %}
+            <div class="col-md-4">
+                <div class="property-card card h-100">
+                    <img src="{{ property.images[0] if property.images else url_for('static', filename='assets/images/default-property.svg') }}" 
+                         class="property-image card-img-top" alt="{{ property.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ property.title }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-map-marker-alt"></i> {{ property.location }}
                         </p>
-                        <div class="property-features">
-                            <span><i class="fas fa-bed"></i> {{ property.bedrooms }} beds</span>
-                            <span><i class="fas fa-bath"></i> {{ property.bathrooms }} baths</span>
-                            <span><i class="fas fa-users"></i> Up to {{ property.max_guests }} guests</span>
-                        </div>
-                        <div class="property-rating">
-                            <div class="stars">
-                                {% for i in range(5) %}
-                                <i class="fas fa-star {% if i < (property.rating|int) %}active{% endif %}"></i>
-                                {% endfor %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="property-price">৳{{ property.price_per_night }}/night</span>
+                            <div class="rating">
+                                <i class="fas fa-star text-warning"></i>
+                                <span>{{ property.rating|default('4.5') }}</span>
                             </div>
-                            <span class="rating-count">({{ property.reviews|length }} reviews)</span>
                         </div>
                     </div>
+                    <div class="card-footer bg-white border-0">
+                        <a href="{{ url_for('property_details', property_id=property.id) }}" class="btn btn-outline-primary w-100">View Details</a>
+                    </div>
                 </div>
-                {% endfor %}
             </div>
-            <div class="view-all">
-                <a href="/properties" class="btn btn-outline" data-i18n="properties.viewAll">View All Properties</a>
-            </div>
+            {% endfor %}
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Popular Destinations -->
-    <section id="destinations" class="destinations">
-        <div class="container">
-            <div class="section-header">
-                <h2 data-i18n="destinations.title">Popular Destinations</h2>
-                <p data-i18n="destinations.subtitle">Explore the beauty of Bangladesh</p>
-            </div>
-            <div class="destination-grid">
-                <div class="destination-card">
-                    <img src="/static/assets/images/dhaka.jpg" alt="Dhaka">
-                    <div class="destination-info">
-                        <h3>Dhaka</h3>
-                        <p>Capital city with rich history</p>
-                        <a href="/properties?city=dhaka" class="btn-explore">Explore</a>
-                    </div>
-                </div>
-                <div class="destination-card">
-                    <img src="/static/assets/images/coxs-bazar.jpg" alt="Cox's Bazar">
-                    <div class="destination-info">
-                        <h3>Cox's Bazar</h3>
-                        <p>World's longest beach</p>
-                        <a href="/properties?city=coxs-bazar" class="btn-explore">Explore</a>
-                    </div>
-                </div>
-                <div class="destination-card">
-                    <img src="/static/assets/images/sylhet.jpg" alt="Sylhet">
-                    <div class="destination-info">
-                        <h3>Sylhet</h3>
-                        <p>Tea gardens and natural beauty</p>
-                        <a href="/properties?city=sylhet" class="btn-explore">Explore</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="container">
-            <div class="section-header">
-                <h2 data-i18n="howItWorks.title">How It Works</h2>
-                <p data-i18n="howItWorks.subtitle">Simple steps to your perfect stay</p>
-            </div>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3 data-i18n="howItWorks.step1.title">Search</h3>
-                    <p data-i18n="howItWorks.step1.description">Find your perfect homestay</p>
-                </div>
-                <div class="step">
-                    <div class="step-icon">
-                        <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <h3 data-i18n="howItWorks.step2.title">Book</h3>
-                    <p data-i18n="howItWorks.step2.description">Reserve with secure payment</p>
-                </div>
-                <div class="step">
-                    <div class="step-icon">
+<!-- Why Choose Us -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose Atithi?</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="feature-icon mx-auto">
                         <i class="fas fa-home"></i>
                     </div>
-                    <h3 data-i18n="howItWorks.step3.title">Experience</h3>
-                    <p data-i18n="howItWorks.step3.description">Enjoy authentic Bangladesh</p>
+                    <h4 class="mt-3">Curated Properties</h4>
+                    <p class="text-muted">Carefully selected accommodations that meet our high standards</p>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Trust Indicators -->
-    <section class="trust-indicators">
-        <div class="container">
-            <div class="indicators-grid">
-                <div class="indicator">
-                    <i class="fas fa-shield-alt"></i>
-                    <h3 data-i18n="trust.secure.title">Secure Payments</h3>
-                    <p data-i18n="trust.secure.description">bKash & Nagad integration</p>
-                </div>
-                <div class="indicator">
-                    <i class="fas fa-check-circle"></i>
-                    <h3 data-i18n="trust.verified.title">Verified Hosts</h3>
-                    <p data-i18n="trust.verified.description">All hosts are verified</p>
-                </div>
-                <div class="indicator">
-                    <i class="fas fa-headset"></i>
-                    <h3 data-i18n="trust.support.title">24/7 Support</h3>
-                    <p data-i18n="trust.support.description">Always here to help</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer id="contact" class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3 data-i18n="footer.about.title">About Atithi</h3>
-                    <p data-i18n="footer.about.description">Connecting travelers with authentic Bangladeshi homestays</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                </div>
-                <div class="footer-section">
-                    <h3 data-i18n="footer.quickLinks.title">Quick Links</h3>
-                    <ul>
-                        <li><a href="#" data-i18n="footer.quickLinks.about">About Us</a></li>
-                        <li><a href="#" data-i18n="footer.quickLinks.howItWorks">How It Works</a></li>
-                        <li><a href="#" data-i18n="footer.quickLinks.safety">Safety</a></li>
-                        <li><a href="#" data-i18n="footer.quickLinks.contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3 data-i18n="footer.payment.title">Payment Partners</h3>
-                    <div class="payment-partners">
-                        <img src="/static/assets/images/bkash-logo.png" alt="bKash">
-                        <img src="/static/assets/images/nagad-logo.png" alt="Nagad">
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h3 data-i18n="footer.newsletter.title">Newsletter</h3>
-                    <form class="newsletter-form">
-                        <input type="email" placeholder="Enter your email" required>
-                        <button type="submit" class="btn btn-primary">Subscribe</button>
-                    </form>
+                    <h4 class="mt-3">Secure Booking</h4>
+                    <p class="text-muted">Safe and secure payment processing for all transactions</p>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Atithi. All rights reserved.</p>
-                <div class="footer-links">
-                    <a href="#" data-i18n="footer.privacy">Privacy Policy</a>
-                    <a href="#" data-i18n="footer.terms">Terms of Service</a>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4 class="mt-3">24/7 Support</h4>
+                    <p class="text-muted">Round-the-clock customer support for all your needs</p>
                 </div>
             </div>
         </div>
-    </footer>
-</body>
+    </div>
+</section>
 
-</html>
+<!-- Testimonials -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">What Our Guests Say</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='assets/images/default-avatar.svg') }}" 
+                             class="testimonial-avatar me-3" alt="Guest">
+                        <div>
+                            <h5 class="mb-0">Rahul Sharma</h5>
+                            <small class="text-muted">From India</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">"Amazing experience! The property was exactly as described and the host was very helpful."</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='assets/images/default-avatar.svg') }}" 
+                             class="testimonial-avatar me-3" alt="Guest">
+                        <div>
+                            <h5 class="mb-0">Sarah Johnson</h5>
+                            <small class="text-muted">From USA</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">"Great location and wonderful hospitality. Would definitely recommend!"</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='assets/images/default-avatar.svg') }}" 
+                             class="testimonial-avatar me-3" alt="Guest">
+                        <div>
+                            <h5 class="mb-0">Mohammed Ali</h5>
+                            <small class="text-muted">From UAE</small>
+                        </div>
+                    </div>
+                    <p class="mb-0">"The best place to stay in Bangladesh. Very clean and comfortable."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Start Your Journey?</h2>
+        <p class="mb-4">Join our community of hosts and guests today!</p>
+        <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Sign Up Now</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .hero-section {
+        margin-top: -76px;
+    }
+    
+    .card {
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date for check-in to today
+    const today = new Date().toISOString().split('T')[0];
+    const checkInInput = document.querySelector('input[name="check_in"]');
+    const checkOutInput = document.querySelector('input[name="check_out"]');
+    
+    if (checkInInput) {
+        checkInInput.min = today;
+        
+        // Update check-out minimum date when check-in is selected
+        checkInInput.addEventListener('change', function() {
+            if (checkOutInput) {
+                checkOutInput.min = this.value;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

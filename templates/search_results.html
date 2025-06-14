@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results - Atithi{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">Search Results</h1>
+    <div class="mb-4 text-gray-600">
+        {% if location %}
+            <span>Location: <span class="font-semibold">{{ location }}</span></span>
+        {% endif %}
+        {% if properties|length == 0 %}
+            <span class="ml-2">No properties found for your search.</span>
+        {% else %}
+            <span class="ml-2">{{ properties|length }} properties found.</span>
+        {% endif %}
+    </div>
+    <div class="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {% for property in properties %}
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+            <img src="{{ property.images[0].image_url if property.images else url_for('static', filename='assets/images/default-property.svg') }}" alt="{{ property.title }}" class="w-full h-48 object-cover">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900">{{ property.title }}</h2>
+                <p class="text-gray-500">{{ property.location }}</p>
+                <div class="flex items-center justify-between mt-4">
+                    <span class="text-primary-700 font-bold text-lg">৳{{ property.price_per_night }}</span>
+                    <a href="{{ url_for('property_details', property_id=property.id) }}" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full text-center text-gray-500">No properties found.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,266 @@
+/* Custom CSS Variables */
+:root {
+    --primary-color: #006A4E; /* Bangladesh Green */
+    --secondary-color: #F42A41; /* Bangladesh Red */
+    --accent-color: #FFD700; /* Gold */
+    --white-color: #FFFFFF;
+    --light-color: #F8F9FA;
+    --dark-color: #1A1A1A;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--dark-color);
+    background-color: var(--light-color);
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: var(--white-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    color: var(--primary-color) !important;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: var(--secondary-color) !important;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #005a43;
+    border-color: #005a43;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-secondary:hover {
+    background-color: #e61e2e;
+    border-color: #e61e2e;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--white-color);
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(rgba(0,106,78,0.8), rgba(244,42,65,0.8)), url('../assets/images/hero.svg');
+    background-size: cover;
+    background-position: center;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--white-color);
+}
+
+.hero-content {
+    max-width: 800px;
+    padding: 2rem;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--white-color);
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: var(--white-color);
+}
+
+/* Search Section */
+.search-section {
+    margin-top: -50px;
+    position: relative;
+    z-index: 10;
+}
+
+.search-card {
+    background: var(--white-color);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 2rem;
+    border: 2px solid var(--accent-color);
+}
+
+/* Property Cards */
+.property-card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.property-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.property-price {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Features Section */
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-color);
+    color: var(--white-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    border: 2px solid var(--accent-color);
+}
+
+/* Testimonials */
+.testimonial-card {
+    background: var(--white-color);
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid var(--accent-color);
+}
+
+.testimonial-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-color);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+    padding: 4rem 0 2rem;
+}
+
+.footer-title {
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.footer-link {
+    color: var(--white-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.social-link {
+    color: var(--white-color);
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    transition: color 0.3s ease;
+}
+
+.social-link:hover {
+    color: var(--accent-color);
+}
+
+/* Flash Messages */
+.alert {
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.alert-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: var(--white-color);
+}
+
+.alert-danger {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+    color: var(--white-color);
+}
+
+.alert-warning {
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+    color: var(--dark-color);
+}
+
+.alert-info {
+    background-color: var(--info-color);
+    border-color: var(--info-color);
+    color: var(--white-color);
+}
+
+/* Call to Action Section */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .search-section {
+        margin-top: -30px;
+    }
+    
+    .search-card {
+        padding: 1.5rem;
+    }
+} 

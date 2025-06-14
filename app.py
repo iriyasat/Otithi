@@ -29,6 +29,88 @@ db.init_app(app)
 CORS(app)
 csrf = CSRFProtect(app)
 
+# Exempt API routes from CSRF protection
+@csrf.exempt
+@app.route('/api/login', methods=['GET', 'POST'])
+def api_login():
+    if request.method == 'GET':
+        if current_user.is_authenticated:
+            return redirect(url_for(f'{current_user.role}_dashboard'))
+        return render_template('login.html')
+
+    if current_user.is_authenticated:
+        return jsonify({
+            "status": "error",
+            "message": _("You are already logged in")
+        }), 400
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": _("No data provided")
+            }), 400
+
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({
+                "status": "error",
+                "message": _("Email and password are required")
+            }), 400
+
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": _("Invalid email or password")
+            }), 401
+        
+        if not user.check_password(password):
+            return jsonify({
+                "status": "error",
+                "message": _("Invalid email or password")
+            }), 401
+            
+        if not user.is_active:
+            return jsonify({
+                "status": "error",
+                "message": _("Your account has been deactivated. Please contact support.")
+            }), 403
+            
+        login_user(user, remember=data.get('remember', False))
+        session['user_id'] = user.id
+        
+        # Determine the redirect URL based on user role
+        redirect_url = url_for(f'{user.role}_dashboard')
+        
+        return jsonify({
+            "status": "success",
+            "message": _("Login successful"),
+            "redirect_url": redirect_url,
+            "user": {
+                "role": user.role,
+                "name": user.name,
+                "preferred_language": user.preferred_language
+            }
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Login error: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": _("An error occurred during login. Please try again.")
+        }), 500
+
+@app.route('/login')
+def login_page():
+    if current_user.is_authenticated:
+        return redirect(url_for(f'{current_user.role}_dashboard'))
+    return render_template('login.html')
+
 def get_locale():
     if current_user.is_authenticated:
         return current_user.preferred_language
@@ -83,13 +165,32 @@ def guest_required(f):
 @app.route('/')
 def index():
     featured_properties = Property.query.filter_by(is_available=True).order_by(Property.created_at.desc()).limit(6).all()
-    return render_template('index.html', featured_properties=featured_properties)
+    testimonials = [
+        {
+            'user_name': 'John Doe',
+            'user_image': url_for('static', filename='assets/images/default-avatar.png'),
+            'rating': 5,
+            'comment': 'Amazing experience! The property was exactly as described and the host was very helpful.'
+        },
+        {
+            'user_name': 'Jane Smith',
+            'user_image': url_for('static', filename='assets/images/default-avatar.png'),
+            'rating': 5,
+            'comment': 'Great location and beautiful property. Will definitely book again!'
+        },
+        {
+            'user_name': 'Mike Johnson',
+            'user_image': url_for('static', filename='assets/images/default-avatar.png'),
+            'rating': 4,
+            'comment': 'Very comfortable stay. The amenities were perfect for our needs.'
+        }
+    ]
+    return render_template('index.html', featured_properties=featured_properties, testimonials=testimonials)
 
-@app.route('/login')
-def login_page():
-    if current_user.is_authenticated:
-        return redirect(url_for(f'{current_user.role}_dashboard'))
-    return render_template('login.html')
+@app.route('/browse')
+def browse_properties():
+    properties = Property.query.filter_by(is_available=True).order_by(Property.created_at.desc()).all()
+    return render_template('browse_properties.html', properties=properties)
 
 @app.route('/registration')
 def registration_page():
@@ -98,102 +199,176 @@ def registration_page():
     return render_template('registration.html')
 
 # Dashboard routes
-@app.route('/admin/dashboard')
+@app.route('/dashboard')
 @login_required
-@admin_required
-def admin_dashboard():
-    return render_template('admin/admin_dashboard.html')
+def dashboard():
+    if current_user.role == 'admin':
+        total_users = User.query.count()
+        total_properties = Property.query.count()
+        total_bookings = Booking.query.filter(
+            Booking.created_at >= datetime.now() - timedelta(days=30)
+        ).count()
+        total_revenue = db.session.query(db.func.sum(Booking.total_amount)).filter(
+            Booking.status == 'completed',
+            Booking.created_at >= datetime.now() - timedelta(days=30)
+        ).scalar() or 0
 
-@app.route('/host/dashboard')
-@login_required
-@host_required
-def host_dashboard():
-    return render_template('host/host_dashboard.html')
+        recent_activities = get_admin_activities()
+        
+        return render_template('dashboard.html',
+                             total_users=total_users,
+                             total_properties=total_properties,
+                             total_bookings=total_bookings,
+                             total_revenue=total_revenue,
+                             recent_activities=recent_activities)
 
-@app.route('/guest/dashboard')
-@login_required
-@guest_required
-def guest_dashboard():
-    return render_template('guest/guest_dashboard.html')
+    elif current_user.role == 'host':
+        total_properties = Property.query.filter_by(host_id=current_user.id).count()
+        active_bookings = Booking.query.filter_by(
+            property_id=Property.query.filter_by(host_id=current_user.id).subquery().c.id,
+            status='active'
+        ).count()
+        total_reviews = Review.query.filter_by(
+            property_id=Property.query.filter_by(host_id=current_user.id).subquery().c.id
+        ).count()
+        average_rating = db.session.query(db.func.avg(Review.rating)).filter_by(
+            property_id=Property.query.filter_by(host_id=current_user.id).subquery().c.id
+        ).scalar() or 0
+        total_earnings = db.session.query(db.func.sum(Booking.total_amount)).filter(
+            Booking.property_id.in_(Property.query.filter_by(host_id=current_user.id).subquery().c.id),
+            Booking.status == 'completed',
+            Booking.created_at >= datetime.now() - timedelta(days=30)
+        ).scalar() or 0
 
-@app.route('/admin')
-@login_required
-def admin_index():
-    if current_user.role != 'admin':
-        flash('Access denied. Admin privileges required.', 'error')
-        return redirect(url_for('index'))
-    return redirect(url_for('admin_dashboard'))
+        recent_activities = get_host_activities(current_user.id)
+        
+        return render_template('dashboard.html',
+                             total_properties=total_properties,
+                             active_bookings=active_bookings,
+                             total_reviews=total_reviews,
+                             average_rating=round(average_rating, 1),
+                             total_earnings=total_earnings,
+                             recent_activities=recent_activities)
 
-@app.route('/my-bookings')
-@login_required
-def my_bookings():
-    if current_user.role != 'guest':
-        return redirect(url_for('host_dashboard'))
+    elif current_user.role == 'guest':
+        total_bookings = Booking.query.filter_by(user_id=current_user.id).count()
+        saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).count()
+        total_reviews = Review.query.filter_by(user_id=current_user.id).count()
+        total_spent = db.session.query(db.func.sum(Booking.total_amount)).filter_by(
+            user_id=current_user.id,
+            status='completed'
+        ).scalar() or 0
+
+        recent_activities = get_guest_activities(current_user.id)
+        
+        return render_template('dashboard.html',
+                             total_bookings=total_bookings,
+                             saved_properties=saved_properties,
+                             total_reviews=total_reviews,
+                             total_spent=total_spent,
+                             recent_activities=recent_activities)
+
+def get_admin_activities():
+    activities = []
     
-    # Get all bookings for the guest
-    active_bookings = Booking.query.filter_by(
-        user_id=current_user.id,
-        status='active'
-    ).all()
+    # Get recent user registrations
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    for user in recent_users:
+        activities.append({
+            'date': user.created_at.strftime('%Y-%m-%d %H:%M'),
+            'description': f'New user registered: {user.name}',
+            'status': 'New',
+            'status_color': 'success',
+            'action_url': url_for('admin_users')
+        })
     
-    past_bookings = Booking.query.filter_by(
-        user_id=current_user.id,
-        status='completed'
-    ).all()
+    # Get recent bookings
+    recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
+    for booking in recent_bookings:
+        activities.append({
+            'date': booking.created_at.strftime('%Y-%m-%d %H:%M'),
+            'description': f'New booking for {booking.property.name}',
+            'status': booking.status.capitalize(),
+            'status_color': 'primary' if booking.status == 'active' else 'success' if booking.status == 'completed' else 'warning',
+            'action_url': url_for('admin_bookings')
+        })
     
-    upcoming_bookings = Booking.query.filter_by(
-        user_id=current_user.id,
-        status='confirmed'
-    ).order_by(Booking.check_in.asc()).all()
+    return sorted(activities, key=lambda x: x['date'], reverse=True)[:10]
+
+def get_host_activities(host_id):
+    activities = []
     
-    return render_template('guest/my_bookings.html',
-                         active_bookings=active_bookings,
-                         past_bookings=past_bookings,
-                         upcoming_bookings=upcoming_bookings)
+    # Get recent bookings for host's properties
+    recent_bookings = Booking.query.join(Property).filter(
+        Property.host_id == host_id
+    ).order_by(Booking.created_at.desc()).limit(5).all()
+    
+    for booking in recent_bookings:
+        activities.append({
+            'date': booking.created_at.strftime('%Y-%m-%d %H:%M'),
+            'description': f'New booking for {booking.property.name}',
+            'status': booking.status.capitalize(),
+            'status_color': 'primary' if booking.status == 'active' else 'success' if booking.status == 'completed' else 'warning',
+            'action_url': url_for('host_bookings')
+        })
+    
+    # Get recent reviews
+    recent_reviews = Review.query.join(Property).filter(
+        Property.host_id == host_id
+    ).order_by(Review.created_at.desc()).limit(5).all()
+    
+    for review in recent_reviews:
+        activities.append({
+            'date': review.created_at.strftime('%Y-%m-%d %H:%M'),
+            'description': f'New review for {review.property.name}',
+            'status': f'{review.rating} stars',
+            'status_color': 'warning',
+            'action_url': url_for('property_reviews', property_id=review.property_id)
+        })
+    
+    return sorted(activities, key=lambda x: x['date'], reverse=True)[:10]
+
+def get_guest_activities(user_id):
+    activities = []
+    
+    # Get recent bookings
+    recent_bookings = Booking.query.filter_by(
+        user_id=user_id
+    ).order_by(Booking.created_at.desc()).limit(5).all()
+    
+    for booking in recent_bookings:
+        activities.append({
+            'date': booking.created_at.strftime('%Y-%m-%d %H:%M'),
+            'description': f'Booking for {booking.property.name}',
+            'status': booking.status.capitalize(),
+            'status_color': 'primary' if booking.status == 'active' else 'success' if booking.status == 'completed' else 'warning',
+            'action_url': url_for('my_bookings')
+        })
+    
+    # Get recent reviews
+    recent_reviews = Review.query.filter_by(
+        user_id=user_id
+    ).order_by(Review.created_at.desc()).limit(5).all()
+    
+    for review in recent_reviews:
+        activities.append({
+            'date': review.created_at.strftime('%Y-%m-%d %H:%M'),
+            'description': f'Review for {review.property.name}',
+            'status': f'{review.rating} stars',
+            'status_color': 'warning',
+            'action_url': url_for('property_reviews', property_id=review.property_id)
+        })
+    
+    return sorted(activities, key=lambda x: x['date'], reverse=True)[:10]
 
 # API routes
-@app.route('/api/login', methods=['POST'])
-def login():
-    if current_user.is_authenticated:
-        return jsonify({
-            "status": "error",
-            "message": _("You are already logged in")
-        }), 400
-
-    data = request.get_json()
-    user = User.query.filter_by(email=data.get('email')).first()
-    
-    if user and user.check_password(data.get('password')):
-        if not user.is_active:
-            return jsonify({
-                "status": "error",
-                "message": _("Your account has been deactivated. Please contact support.")
-            }), 403
-            
-        login_user(user, remember=data.get('remember', False))
-        session['user_id'] = user.id
-        
-        # Determine the redirect URL based on user role
-        redirect_url = '/admin/dashboard' if user.role == 'admin' else f'/{user.role}/dashboard'
-        
-        return jsonify({
-            "status": "success",
-            "message": _("Login successful"),
-            "redirect_url": redirect_url,
-            "user": {
-                "role": user.role,
-                "name": user.name,
-                "preferred_language": user.preferred_language
-            }
-        })
-        
-    return jsonify({
-        "status": "error",
-        "message": _("Invalid email or password")
-    }), 401
-
-@app.route('/api/register', methods=['POST'])
+@app.route('/api/register', methods=['GET', 'POST'])
 def register():
+    if request.method == 'GET':
+        if current_user.is_authenticated:
+            return redirect(url_for(f'{current_user.role}_dashboard'))
+        return render_template('registration.html')
+
     if current_user.is_authenticated:
         return jsonify({
             "status": "error",
@@ -268,21 +443,16 @@ def register():
             "message": _("An error occurred during registration")
         }), 500
 
-@app.route('/api/logout', methods=['POST'])
+@app.route('/api/logout')
 @login_required
 def logout():
-    # Clear the session
-    session.clear()
-    # Logout the user
     logout_user()
-    # Clear any cookies
-    response = jsonify({
+    session.clear()
+    return jsonify({
         "status": "success",
-        "message": _("Logout successful"),
-        "redirect": url_for('index')
+        "message": _("Successfully logged out"),
+        "redirect_url": url_for('index')
     })
-    response.delete_cookie('session')
-    return response
 
 @app.route('/api/properties', methods=['GET'])
 def get_properties():
@@ -824,6 +994,41 @@ def delete_property_image(property_id, image_id):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/guest/dashboard')
+@login_required
+@guest_required
+def guest_dashboard():
+    total_bookings = Booking.query.filter_by(user_id=current_user.id).count()
+    saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).count()
+    total_reviews = Review.query.filter_by(user_id=current_user.id).count()
+    total_spent = db.session.query(db.func.sum(Booking.total_amount)).filter_by(
+        user_id=current_user.id,
+        status='completed'
+    ).scalar() or 0
+
+    recent_activities = get_guest_activities(current_user.id)
+    
+    return render_template('dashboard.html',
+                         total_bookings=total_bookings,
+                         saved_properties=saved_properties,
+                         total_reviews=total_reviews,
+                         total_spent=total_spent,
+                         recent_activities=recent_activities)
+
+@app.route('/guest/bookings')
+@login_required
+@guest_required
+def my_bookings():
+    bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
+    return render_template('my_bookings.html', bookings=bookings)
+
+@app.route('/guest/saved-properties')
+@login_required
+@guest_required
+def saved_properties():
+    saved_properties = SavedProperty.query.filter_by(user_id=current_user.id).order_by(SavedProperty.created_at.desc()).all()
+    return render_template('saved_properties.html', saved_properties=saved_properties)
 
 if __name__ == '__main__':
     with app.app_context():
