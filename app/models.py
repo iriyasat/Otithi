@@ -81,6 +81,7 @@ class Booking(db.Model):
     check_out = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, confirmed, checked_in, checked_out, cancelled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    actual_checkout = db.Column(db.DateTime, nullable=True)  # When user actually checked out
     
     # Relationships
     reviews = db.relationship('Review', backref='booking', lazy='dynamic', cascade='all, delete-orphan')
@@ -93,8 +94,15 @@ class Booking(db.Model):
         return self.status == 'checked_out'
     
     def can_be_reviewed(self):
-        """Check if this booking can be reviewed (checked out and no existing review by user)"""
-        return self.status == 'checked_out'
+        """Check if this booking can be reviewed - immediately after checkout or after checkout date"""
+        from datetime import date
+        # Allow review if manually checked out OR checkout date has passed
+        if self.actual_checkout:
+            return True  # Immediately after manual checkout
+        elif self.check_out <= date.today():
+            return True  # After planned checkout date
+        else:
+            return False  # Still before checkout
     
     def can_check_in(self):
         """Check if guest can check in today"""

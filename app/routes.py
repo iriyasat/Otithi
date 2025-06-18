@@ -9,7 +9,7 @@ from .forms import ListingForm, RegisterForm, LoginForm, BookingForm, ReviewForm
 from .decorators import role_required, admin_required, host_required, guest_required, owns_listing_or_admin
 import uuid
 from sqlalchemy import or_, func
-from datetime import date
+from datetime import date, datetime
 from PIL import Image
 from flask import url_for
 
@@ -535,6 +535,7 @@ def checkout(booking_id):
         return redirect(url_for('main.my_bookings'))
     
     booking.status = 'checked_out'
+    booking.actual_checkout = datetime.utcnow()
     db.session.commit()
     flash('You have checked out successfully! Thank you for your stay. Please consider leaving a review.', 'success')
     return redirect(url_for('main.my_bookings'))
@@ -548,15 +549,13 @@ def review_booking(booking_id):
     if current_user.id != booking.guest_id and current_user.id != booking.listing.host_id:
         abort(403)
     
-    # Only allow review after checkout date has passed
-    if date.today() <= booking.check_out:
-        days_until_checkout = (booking.check_out - date.today()).days
-        flash(f'You can only leave a review after checkout. {days_until_checkout} days remaining.', 'warning')
-        return redirect(url_for('main.my_bookings'))
-    
-    # Check if booking is confirmed
-    if booking.status != 'confirmed':
-        flash('You can only review confirmed bookings.', 'warning')
+    # Check if review is allowed using the new logic
+    if not booking.can_be_reviewed():
+        if booking.actual_checkout:
+            flash('You can only review this booking after checking out.', 'warning')
+        else:
+            days_until_checkout = (booking.check_out - date.today()).days
+            flash(f'You can only leave a review after checkout. {days_until_checkout} days remaining.', 'warning')
         return redirect(url_for('main.my_bookings'))
     
     form = ReviewForm()
