@@ -64,15 +64,21 @@ def save_listing_image(uploaded_file, listing_id):
     return filename
 
 def get_profile_image_url(filename):
-    """Get the correct URL for profile images"""
+    """Get the correct URL for profile images with fallback"""
     if filename:
-        return url_for('static', filename=f'images/profiles/{filename}')
+        # Check if file exists, otherwise use default
+        file_path = os.path.join(current_app.root_path, 'static', 'images', 'profiles', filename)
+        if os.path.exists(file_path):
+            return url_for('static', filename=f'images/profiles/{filename}')
     return url_for('static', filename='images/ui/default_avatar.png')
 
 def get_listing_image_url(filename):
-    """Get the correct URL for listing images"""
+    """Get the correct URL for listing images with fallback"""
     if filename:
-        return url_for('static', filename=f'images/listings/{filename}')
+        # Check if file exists, otherwise use default
+        file_path = os.path.join(current_app.root_path, 'static', 'images', 'listings', filename)
+        if os.path.exists(file_path):
+            return url_for('static', filename=f'images/listings/{filename}')
     return url_for('static', filename='images/ui/default_listing.jpg')
 
 @main.route('/')
