@@ -28,47 +28,67 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-bd">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <span class="logo-bd bangla-logo">অ.</span><span class="otithi-logo ms-2">Otithi</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/listings') %}active{% endif %}" href="/listings">Listings</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/add-listing') %}active{% endif %}" href="/add-listing">Add Listing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/about') %}active{% endif %}" href="/about">About</a>
-                    </li>
-                    {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/logout') %}active{% endif %}" href="/logout">Logout</a>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/login') %}active{% endif %}" href="/login">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/register') %}active{% endif %}" href="/register">Register</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <main id="main-content" class="container mt-4 section-fade">
-        {% block content %}{% endblock %}
+    <!-- Sticky Header with Logo and Navigation -->
+    <header class="header">
+        <a href="{{ url_for('main.home') }}" class="logo" aria-label="Otithi Home">
+            <!-- Logo text or image -->
+            <span style="color:#F42A41;">&#9679;</span> Otithi
+        </a>
+        <!-- Mobile menu toggle button (accessible) -->
+        <button class="menu-toggle" aria-label="Open navigation menu" aria-controls="main-nav" aria-expanded="false">
+            &#9776;
+        </button>
+        <!-- Navigation links -->
+        <nav>
+            <ul class="nav" id="main-nav">
+                <li><a class="nav-link" href="#home">Home</a></li>
+                <li><a class="nav-link" href="#about">About</a></li>
+                <li><a class="nav-link" href="#listings">Listings</a></li>
+                <li><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section with Gradient Background -->
+    <section class="hero section-fade" id="home">
+        <h1>Experience Bangladeshi Hospitality</h1>
+        <p>Discover unique stays and warm welcomes across Bangladesh.</p>
+        <a href="#listings" class="hero-btn btn">Browse Listings</a>
+    </section>
+
+    <!-- Responsive Card Grid Section -->
+    <main>
+        <section class="card-grid section-fade" id="listings" aria-label="Featured Listings">
+            <!-- Card 1 -->
+            <article class="card">
+                <img src="{{ url_for('static', filename='images/card1.jpg') }}" class="card-img-top" alt="Cultural homestay in Dhaka">
+                <div class="card-body">
+                    <h2 class="card-title">Cultural Homestay</h2>
+                    <p class="card-subtitle">Dhaka, Bangladesh</p>
+                    <p>Stay with a local family and experience authentic Bangladeshi culture in the heart of Dhaka.</p>
+                </div>
+            </article>
+            <!-- Card 2 -->
+            <article class="card">
+                <img src="{{ url_for('static', filename='images/card2.jpg') }}" class="card-img-top" alt="Tea garden retreat in Sylhet">
+                <div class="card-body">
+                    <h2 class="card-title">Tea Garden Retreat</h2>
+                    <p class="card-subtitle">Sylhet, Bangladesh</p>
+                    <p>Relax in a serene tea garden bungalow surrounded by lush greenery and rolling hills.</p>
+                </div>
+            </article>
+            <!-- Card 3 -->
+            <article class="card">
+                <img src="{{ url_for('static', filename='images/card3.jpg') }}" class="card-img-top" alt="Riverside cottage in Barisal">
+                <div class="card-body">
+                    <h2 class="card-title">Riverside Cottage</h2>
+                    <p class="card-subtitle">Barisal, Bangladesh</p>
+                    <p>Enjoy peaceful river views and fresh air in this charming riverside cottage getaway.</p>
+                </div>
+            </article>
+        </section>
     </main>
+
     <footer class="footer-bd">
         &copy; {{ 2024 }} Otithi. All rights reserved.
     </footer>
