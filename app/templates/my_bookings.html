@@ -48,8 +48,8 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-md-3">
-                                {% if booking.listing.image_filename %}
-                                <img src="{{ url_for('static', filename='images/' + booking.listing.image_filename) }}" 
+                                                        {% if booking.listing.image_filename %}
+                            <img src="{{ get_listing_image_url(booking.listing.image_filename) }}" 
                                      class="img-fluid rounded" alt="{{ booking.listing.name }}" style="height: 100px; object-fit: cover; width: 100%;">
                                 {% else %}
                                 <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 100px;">

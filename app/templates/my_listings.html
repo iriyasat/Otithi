@@ -21,8 +21,8 @@
         {% for listing in listings %}
         <div class="col-md-6 col-lg-4 mb-4">
             <div class="card h-100 shadow-sm">
-                {% if listing.image_filename %}
-                <img src="{{ url_for('static', filename='images/' + listing.image_filename) }}" 
+                                            {% if listing.image_filename %}
+                                <img src="{{ get_listing_image_url(listing.image_filename) }}" 
                      class="card-img-top" alt="{{ listing.name }}" style="height: 200px; object-fit: cover;">
                 {% else %}
                 <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">

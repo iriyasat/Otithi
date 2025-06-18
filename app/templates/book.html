@@ -10,8 +10,8 @@
             <div class="card shadow-sm mb-4">
                 <div class="row g-0">
                     <div class="col-md-4">
-                        {% if listing.image_filename %}
-                        <img src="{{ url_for('static', filename='images/' + listing.image_filename) }}" 
+                                        {% if listing.image_filename %}
+                    <img src="{{ get_listing_image_url(listing.image_filename) }}" 
                              class="img-fluid rounded-start h-100 object-cover" alt="{{ listing.name }}">
                         {% else %}
                         <div class="bg-light d-flex align-items-center justify-content-center h-100 rounded-start">

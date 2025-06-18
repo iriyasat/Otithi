@@ -42,8 +42,16 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    from .routes import main as main_blueprint
+    from .routes import main as main_blueprint, get_profile_image_url, get_listing_image_url
     app.register_blueprint(main_blueprint)
+
+    # Add helper functions to template context
+    @app.context_processor
+    def inject_image_helpers():
+        return {
+            'get_profile_image_url': get_profile_image_url,
+            'get_listing_image_url': get_listing_image_url
+        }
 
     @app.cli.command('init-db')
     def init_db_command():

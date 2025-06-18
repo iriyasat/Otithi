@@ -75,7 +75,7 @@
                 {% endif %}
                 {% if listing and listing.image_filename %}
                 <div class="mt-2">
-                    <img src="{{ url_for('static', filename='images/' + listing.image_filename) }}" alt="Current Image" class="img-fluid rounded shadow" style="max-height: 180px;">
+                    <img src="{{ get_listing_image_url(listing.image_filename) }}" alt="Current Image" class="img-fluid rounded shadow" style="max-height: 180px;">
                 </div>
                 {% endif %}
             </div>

@@ -11,13 +11,14 @@ import uuid
 from sqlalchemy import or_, func
 from datetime import date
 from PIL import Image
+from flask import url_for
 
 main = Blueprint('main', __name__)
 
 def save_profile_picture(uploaded_file, user_id):
-    """Save profile picture with user_id naming in static/images folder"""
+    """Save profile picture with user_id naming in static/images/profiles folder"""
     # Ensure target directory exists
-    folder = os.path.join(current_app.root_path, 'static', 'images')
+    folder = os.path.join(current_app.root_path, 'static', 'images', 'profiles')
     os.makedirs(folder, exist_ok=True)
 
     # Remove any existing profile picture for this user
@@ -39,9 +40,9 @@ def save_profile_picture(uploaded_file, user_id):
     return filename
 
 def save_listing_image(uploaded_file, listing_id):
-    """Save listing image with listing_id naming in static/images folder"""
+    """Save listing image with listing_id naming in static/images/listings folder"""
     # Ensure target directory exists
-    folder = os.path.join(current_app.root_path, 'static', 'images')
+    folder = os.path.join(current_app.root_path, 'static', 'images', 'listings')
     os.makedirs(folder, exist_ok=True)
 
     # Remove any existing listing image for this listing
@@ -61,6 +62,18 @@ def save_listing_image(uploaded_file, listing_id):
     img.save(filepath, format='JPEG', quality=90)
 
     return filename
+
+def get_profile_image_url(filename):
+    """Get the correct URL for profile images"""
+    if filename:
+        return url_for('static', filename=f'images/profiles/{filename}')
+    return url_for('static', filename='images/ui/default_avatar.png')
+
+def get_listing_image_url(filename):
+    """Get the correct URL for listing images"""
+    if filename:
+        return url_for('static', filename=f'images/listings/{filename}')
+    return url_for('static', filename='images/ui/default_listing.jpg')
 
 @main.route('/')
 def home():
@@ -346,7 +359,7 @@ def delete_listing(listing_id):
     try:
         # Delete associated image file if it exists
         if listing.image_filename:
-            image_path = os.path.join(current_app.root_path, 'static', 'images', listing.image_filename)
+            image_path = os.path.join(current_app.root_path, 'static', 'images', 'listings', listing.image_filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
         

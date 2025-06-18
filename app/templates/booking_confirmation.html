@@ -26,8 +26,8 @@
                 <div class="card-body p-4">
                     <div class="row">
                         <div class="col-md-4">
-                            {% if booking.listing.image_filename %}
-                            <img src="{{ url_for('static', filename='images/' + booking.listing.image_filename) }}" 
+                                            {% if booking.listing.image_filename %}
+                    <img src="{{ get_listing_image_url(booking.listing.image_filename) }}" 
                                  class="img-fluid rounded-3 shadow-sm mb-3" alt="{{ booking.listing.name }}">
                             {% else %}
                             <div class="bg-light rounded-3 d-flex align-items-center justify-content-center mb-3 shadow-sm" 

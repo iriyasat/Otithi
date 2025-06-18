@@ -93,7 +93,7 @@
                                             <td class="py-4">
                                                 <div class="d-flex align-items-center">
                                                     {% if listing.image_filename %}
-                                                    <img src="{{ url_for('static', filename='images/' + listing.image_filename) }}" 
+                                                    <img src="{{ get_listing_image_url(listing.image_filename) }}" 
                                                          class="rounded-3 me-3 shadow-sm" width="60" height="60" style="object-fit: cover;">
                                                     {% else %}
                                                     <div class="bg-light rounded-3 me-3 d-flex align-items-center justify-content-center shadow-sm" 
@@ -116,7 +116,7 @@
                                             </td>
                                             <td class="py-4">
                                                 <div class="d-flex align-items-center">
-                                                    <img src="{{ url_for('static', filename='images/default_avatar.png') }}" 
+                                                    <img src="{{ url_for('static', filename='images/ui/default_avatar.png') }}" 
                                                          class="rounded-circle me-2 shadow-sm" width="30" height="30">
                                                     <div>
                                                         <strong class="d-block">{{ listing.host_name }}</strong>
@@ -175,7 +175,7 @@
                                                         <div class="row">
                                                             <div class="col-md-6">
                                                                 {% if listing.image_filename %}
-                                                                <img src="{{ url_for('static', filename='images/' + listing.image_filename) }}" 
+                                                                <img src="{{ get_listing_image_url(listing.image_filename) }}" 
                                                                      class="img-fluid rounded-3 mb-3 shadow-sm" alt="{{ listing.name }}">
                                                                 {% else %}
                                                                 <div class="bg-light rounded-3 d-flex align-items-center justify-content-center mb-3 shadow-sm" 
