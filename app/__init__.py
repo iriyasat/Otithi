@@ -45,6 +45,17 @@ def create_app():
     from .routes import main as main_blueprint, get_profile_image_url, get_listing_image_url
     app.register_blueprint(main_blueprint)
 
+    # Register custom Jinja2 filters
+    from markupsafe import Markup, escape
+
+    def nl2br(value):
+        """Convert newlines in text to HTML line breaks"""
+        if not value:
+            return ''
+        return Markup("<br>").join(escape(value).split("\n"))
+
+    app.jinja_env.filters['nl2br'] = nl2br
+
     # Add helper functions to template context
     @app.context_processor
     def inject_image_helpers():
@@ -52,6 +63,32 @@ def create_app():
             'get_profile_image_url': get_profile_image_url,
             'get_listing_image_url': get_listing_image_url
         }
+    
+    # Add message notification count to template context
+    @app.context_processor
+    def inject_unread_message_count():
+        from flask_login import current_user
+        if current_user.is_authenticated:
+            from .models import Message, Conversation
+            # Only count messages that are part of actual conversations
+            unread_count = (db.session.query(Message)
+                          .join(Conversation)
+                          .filter(
+                              Message.recipient_id == current_user.id,
+                              Message.is_read == False,
+                              db.or_(
+                                  Conversation.user1_id == current_user.id,
+                                  Conversation.user2_id == current_user.id
+                              )
+                          ).count())
+            return {'new_message_count': unread_count}
+        return {'new_message_count': 0}
+    
+    # Add current year to template context
+    @app.context_processor
+    def inject_year():
+        from datetime import datetime
+        return {'current_year': datetime.now().year}
 
     @app.cli.command('init-db')
     def init_db_command():

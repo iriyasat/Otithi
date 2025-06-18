@@ -1,93 +1,540 @@
 {% extends 'base.html' %}
 
-{% block title %}Guesthouse Listings{% endblock %}
+{% block title %}Explore Stays - অতিথি{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Airbnb-style Search and Sort Bar -->
-    <form class="search-bar-airbnb d-flex flex-wrap align-items-center justify-content-center gap-2 shadow-sm bg-white rounded-pill px-3 py-2 mb-4 mx-auto" method="get" action="{{ url_for('main.listings') }}">
-        <input type="text" name="location" class="form-control border-0 rounded-pill search-pill" placeholder="Location" value="{{ request.args.get('location', '') }}" style="max-width:160px;">
-        <input type="date" name="date" class="form-control border-0 rounded-pill search-pill" value="{{ request.args.get('date', '') }}" style="max-width:140px;">
-        <input type="number" name="guests" min="1" class="form-control border-0 rounded-pill search-pill" placeholder="Guests" value="{{ request.args.get('guests', '') }}" style="max-width:100px;">
-        <button type="submit" class="btn btn-airbnb-pill ms-2">Search</button>
-    </form>
-
-    <!-- Listings Grid -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% for listing in listings %}
-        <div class="col">
-            <div class="card card-airbnb h-100">
-                                    {% if listing.image_filename %}
-                        <img src="{{ get_listing_image_url(listing.image_filename) }}" class="card-img-top" alt="{{ listing.name }}">
-                {% else %}
-                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                    <i class="bi bi-house-door fs-1 text-secondary"></i>
-                </div>
-                {% endif %}
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="card-title mb-0">{{ listing.name }}</h5>
-                        <span class="fw-bold text-airbnb">৳{{ "%.2f"|format(listing.price_per_night) }}</span>
+<!-- Hero Search Section -->
+<section class="listings-hero py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-4" data-aos="fade-up">
+            <h1 class="display-5 fw-bold text-otithi-green mb-3">
+                <i class="fas fa-search me-3"></i>Discover Your Perfect Stay
+            </h1>
+            <p class="lead text-muted">Find authentic Bengali hospitality across Bangladesh</p>
+        </div>
+        
+        <!-- Enhanced Search Bar -->
+        <form class="search-form-listings" method="get" action="{{ url_for('main.listings') }}" data-aos="fade-up" data-aos-delay="200">
+            <div class="search-container-listings">
+                <div class="search-field-group">
+                    <div class="search-field-listings">
+                        <div class="search-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="search-input">
+                            <label>Location</label>
+                            <input type="text" name="search" placeholder="Where do you want to stay?" value="{{ search or '' }}">
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center mb-1">
-                        <i class="bi bi-geo-alt-fill text-airbnb me-1"></i>
-                        <span class="small">{{ listing.location }}</span>
+                    
+                    <div class="search-field-listings">
+                        <div class="search-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="search-input">
+                            <label>Check-in Date</label>
+                            <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center mb-1">
-                        <i class="bi bi-person-fill text-airbnb me-1"></i>
-                        <span class="small">Host: {{ listing.host_name }}</span>
+                    
+                    <div class="search-field-listings">
+                        <div class="search-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="search-input">
+                            <label>Guests</label>
+                            <input type="number" name="guests" min="1" max="20" placeholder="1" value="{{ guests or '' }}">
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-star-fill text-warning me-1"></i>
-                        <span class="small">{{ listing.rating or 'New' }}</span>
-                    </div>
-                    <p class="card-text small">{{ listing.description[:120] }}{% if listing.description|length > 120 %}...{% endif %}</p>
-                </div>
-                <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
-                    {% if current_user.is_authenticated %}
-                        {% if current_user.username == listing.host_name %}
-                            <!-- Host can edit/delete their own listings -->
-                            <div class="btn-group">
-                                <a href="{{ url_for('main.edit_listing', listing_id=listing.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                <form action="{{ url_for('main.delete_listing', listing_id=listing.id) }}" method="post" class="d-inline">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this listing?')">Delete</button>
-                                </form>
-                            </div>
-                        {% elif current_user.role == 'guest' %}
-                            <!-- Guests can book listings -->
-                            <a href="{{ url_for('main.book_listing', listing_id=listing.id) }}" class="btn btn-success">
-                                <i class="bi bi-calendar-check me-1"></i>Book Now
-                            </a>
-                        {% endif %}
-                    {% else %}
-                        <!-- Non-authenticated users see login prompt -->
-                        <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Login to Book
-                        </a>
-                    {% endif %}
+                    
+                    <button type="submit" class="search-button-listings">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </button>
                 </div>
             </div>
-        </div>
-        {% endfor %}
+        </form>
     </div>
-    <!-- Pagination -->
-    {% if pagination.pages > 1 %}
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% for page in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
-                {% if page %}
-                    <li class="page-item {% if page == pagination.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('main.listings', page=page, location=request.args.get('location', ''), date=request.args.get('date', ''), guests=request.args.get('guests', '')) }}">
-                            {{ page }}
+</section>
+
+<!-- Listings Section -->
+<section class="listings-grid py-5">
+    <div class="container">
+        <!-- Results Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-up">
+            <div>
+                <h3 class="h4 fw-bold text-otithi-gray-800">
+                    {% if search %}
+                        Stays in {{ search }}
+                    {% elif guests %}
+                        Stays for {{ guests }} {{ 'guest' if guests == 1 else 'guests' }}
+                    {% else %}
+                        All Available Stays
+                    {% endif %}
+                </h3>
+                <p class="text-muted mb-0">{{ listings|length }} {% if listings|length == 1 %}property{% else %}properties{% endif %} available</p>
+            </div>
+            
+            <!-- Sort Options -->
+            <div class="dropdown">
+                <button class="btn btn-outline-otithi dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-sort me-2"></i>Sort by
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Price: Low to High</a></li>
+                    <li><a class="dropdown-item" href="#">Price: High to Low</a></li>
+                    <li><a class="dropdown-item" href="#">Rating</a></li>
+                    <li><a class="dropdown-item" href="#">Newest</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Listings Grid -->
+        {% if listings %}
+        <div class="row g-4">
+            {% for listing in listings %}
+            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 100 }}">
+                <div class="listing-card h-100">
+                    <div class="listing-image-container">
+                        {% if listing.image_filename %}
+                            <img src="{{ get_listing_image_url(listing.image_filename) }}" 
+                                 class="listing-image" 
+                                 alt="{{ listing.name }}"
+                                 loading="lazy">
+                        {% else %}
+                            <div class="listing-image-placeholder">
+                                <i class="fas fa-home fa-3x text-otithi-green"></i>
+                                <p class="mt-2 text-muted">No Image</p>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Listing Badge -->
+                        <div class="listing-badge">
+                            <span class="badge bg-otithi-green">
+                                <i class="fas fa-star me-1"></i>{{ listing.rating or 'New' }}
+                            </span>
+                        </div>
+                        
+                        <!-- Wishlist Button -->
+                        <button class="wishlist-btn" title="Add to wishlist">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="listing-content">
+                        <div class="listing-header">
+                            <h5 class="listing-title">{{ listing.name }}</h5>
+                            <div class="listing-price">
+                                <span class="price-amount">৳{{ "%.0f"|format(listing.price_per_night) }}</span>
+                                <span class="price-period">/night</span>
+                            </div>
+                        </div>
+                        
+                        <div class="listing-meta">
+                            <div class="listing-location">
+                                <i class="fas fa-map-marker-alt text-otithi-green me-2"></i>
+                                <span>{{ listing.location }}</span>
+                            </div>
+                            <div class="listing-capacity">
+                                <i class="fas fa-users text-otithi-green me-2"></i>
+                                <span>Sleeps {{ listing.guest_capacity }} {{ 'guest' if listing.guest_capacity == 1 else 'guests' }}</span>
+                            </div>
+                            <div class="listing-host">
+                                <i class="fas fa-user text-otithi-green me-2"></i>
+                                <span>Hosted by {{ listing.host_name }}</span>
+                            </div>
+                        </div>
+                        
+                        <p class="listing-description">
+                            {{ listing.description[:100] }}{% if listing.description|length > 100 %}...{% endif %}
+                        </p>
+                        
+                        <!-- Action Buttons -->
+                        <div class="listing-actions">
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.username == listing.host_name %}
+                                    <!-- Host Actions -->
+                                    <div class="btn-group w-100">
+                                        <a href="{{ url_for('main.edit_listing', listing_id=listing.id) }}" 
+                                           class="btn btn-outline-otithi">
+                                            <i class="fas fa-edit me-1"></i>Edit
+                                        </a>
+                                        <form action="{{ url_for('main.delete_listing', listing_id=listing.id) }}" 
+                                              method="post" class="d-inline flex-fill">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" 
+                                                    class="btn btn-outline-danger w-100"
+                                                    onclick="return confirm('Are you sure you want to delete this listing?')">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% elif current_user.role == 'guest' %}
+                                    <!-- Guest Actions -->
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ url_for('main.start_conversation', user_id=listing.host_id) }}" 
+                                           class="btn btn-outline-otithi">
+                                            <i class="fas fa-envelope me-1"></i>Message
+                                        </a>
+                                        <a href="{{ url_for('main.book_listing', listing_id=listing.id) }}" 
+                                           class="btn btn-otithi flex-fill">
+                                            <i class="fas fa-calendar-check me-1"></i>Book Now
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <!-- Non-authenticated Actions -->
+                                <a href="{{ url_for('main.login') }}" class="btn btn-otithi w-100">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login to Book
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- No Results -->
+        <div class="text-center py-5" data-aos="fade-up">
+            <div class="no-results">
+                <i class="fas fa-search fa-4x text-otithi-green mb-4"></i>
+                <h3 class="h4 mb-3" style="color: var(--otithi-gray-900);">No stays found</h3>
+                <p class="mb-4" style="color: var(--otithi-gray-600);">
+                    {% if request.args.get('location') %}
+                        We couldn't find any stays matching your search in {{ request.args.get('location') }}.
+                    {% else %}
+                        No properties are currently available.
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('main.listings') }}" class="btn btn-outline-otithi">
+                    <i class="fas fa-redo me-2"></i>Clear Search
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pagination -->
+        {% if pagination and pagination.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-5" data-aos="fade-up">
+            <ul class="pagination pagination-otithi justify-content-center">
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.listings', page=pagination.prev_num, location=request.args.get('location', ''), date=request.args.get('date', ''), guests=request.args.get('guests', '')) }}">
+                            <i class="fas fa-chevron-left"></i>
                         </a>
                     </li>
-                {% else %}
-                    <li class="page-item disabled"><span class="page-link">...</span></li>
                 {% endif %}
-            {% endfor %}
-        </ul>
-    </nav>
-    {% endif %}
-</div>
+                
+                {% for page in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                    {% if page %}
+                        <li class="page-item {% if page == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('main.listings', page=page, location=request.args.get('location', ''), date=request.args.get('date', ''), guests=request.args.get('guests', '')) }}">
+                                {{ page }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.listings', page=pagination.next_num, location=request.args.get('location', ''), date=request.args.get('date', ''), guests=request.args.get('guests', '')) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Custom Styles for Listings Page -->
+<style>
+/* Listings Hero Section */
+.listings-hero {
+    background: linear-gradient(135deg, var(--otithi-gray-50) 0%, #f8fffe 100%);
+}
+
+/* Enhanced Search Form */
+.search-form-listings {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.search-container-listings {
+    background: var(--otithi-white);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    padding: var(--space-3);
+    border: 1px solid var(--otithi-gray-200);
+}
+
+.search-field-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.search-field-listings {
+    display: flex;
+    align-items: center;
+    padding: var(--space-4);
+    flex: 1;
+    min-width: 0;
+}
+
+.search-field-listings .search-icon {
+    color: var(--otithi-green);
+    margin-right: var(--space-3);
+    font-size: 1rem;
+}
+
+.search-field-listings .search-input {
+    flex: 1;
+}
+
+.search-field-listings .search-input label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--otithi-gray-800);
+    margin-bottom: var(--space-1);
+}
+
+.search-field-listings .search-input input {
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    color: var(--otithi-gray-700);
+    background: transparent;
+    width: 100%;
+}
+
+.search-field-listings .search-input input::placeholder {
+    color: var(--otithi-gray-400);
+}
+
+.search-button-listings {
+    background: var(--otithi-green);
+    color: var(--otithi-white);
+    border: none;
+    border-radius: var(--radius-xl);
+    padding: var(--space-4) var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 600;
+    transition: var(--transition-fast);
+    margin-left: var(--space-3);
+}
+
+.search-button-listings:hover {
+    background: var(--otithi-green-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Listing Cards */
+.listing-card {
+    background: var(--otithi-white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-all);
+    border: 1px solid var(--otithi-gray-200);
+}
+
+.listing-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-2xl);
+}
+
+.listing-image-container {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.listing-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition-slow);
+}
+
+.listing-card:hover .listing-image {
+    transform: scale(1.05);
+}
+
+.listing-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: var(--otithi-gray-100);
+    color: var(--otithi-gray-400);
+}
+
+.listing-badge {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: 2;
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    background: var(--otithi-white);
+    border: none;
+    border-radius: var(--radius-full);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-fast);
+    z-index: 2;
+}
+
+.wishlist-btn:hover {
+    background: var(--otithi-red);
+    color: var(--otithi-white);
+    transform: scale(1.1);
+}
+
+.listing-content {
+    padding: var(--space-6);
+}
+
+.listing-header {
+    display: flex;
+    justify-content: between;
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
+}
+
+.listing-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--otithi-gray-800);
+    margin: 0;
+    flex: 1;
+    margin-right: var(--space-3);
+}
+
+.listing-price {
+    text-align: right;
+}
+
+.price-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--otithi-green);
+}
+
+.price-period {
+    font-size: 0.875rem;
+    color: var(--otithi-gray-500);
+}
+
+.listing-meta {
+    margin-bottom: var(--space-4);
+}
+
+.listing-location,
+.listing-host {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--otithi-gray-600);
+    margin-bottom: var(--space-2);
+}
+
+.listing-description {
+    color: var(--otithi-gray-600);
+    line-height: 1.5;
+    margin-bottom: var(--space-5);
+}
+
+.listing-actions {
+    margin-top: auto;
+}
+
+/* Pagination */
+.pagination-otithi .page-link {
+    border: 2px solid var(--otithi-gray-200);
+    color: var(--otithi-gray-700);
+    margin: 0 var(--space-1);
+    border-radius: var(--radius-md);
+    transition: var(--transition-fast);
+}
+
+.pagination-otithi .page-item.active .page-link {
+    background: var(--otithi-green);
+    border-color: var(--otithi-green);
+    color: var(--otithi-white);
+}
+
+.pagination-otithi .page-link:hover {
+    background: var(--otithi-green);
+    border-color: var(--otithi-green);
+    color: var(--otithi-white);
+    transform: translateY(-1px);
+}
+
+/* No Results */
+.no-results {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .search-field-group {
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    
+    .search-field-listings {
+        width: 100%;
+        padding: var(--space-3);
+    }
+    
+    .search-button-listings {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+        margin-top: var(--space-2);
+    }
+    
+    .listing-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .listing-price {
+        text-align: left;
+        margin-top: var(--space-2);
+    }
+}
+
+@media (max-width: 576px) {
+    .listing-image-container {
+        height: 200px;
+    }
+    
+    .listing-content {
+        padding: var(--space-4);
+    }
+}
+</style>
 {% endblock %} 

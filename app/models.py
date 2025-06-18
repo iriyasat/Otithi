@@ -17,6 +17,18 @@ class User(UserMixin, db.Model):
     listings = db.relationship('Listing', backref='host', lazy=True, cascade='all, delete-orphan')
     reviews_given = db.relationship('Review', foreign_keys='Review.reviewer_id', backref='reviewer', lazy='dynamic', cascade='all, delete-orphan')
     reviews_received = db.relationship('Review', foreign_keys='Review.reviewed_id', backref='reviewed', lazy='dynamic')
+    
+    # Messaging relationships
+    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic', cascade='all, delete-orphan')
+    received_messages = db.relationship('Message', foreign_keys='Message.recipient_id', backref='recipient', lazy='dynamic')
+    conversations_as_user1 = db.relationship('Conversation', foreign_keys='Conversation.user1_id', backref='user1', lazy='dynamic', cascade='all, delete-orphan')
+    conversations_as_user2 = db.relationship('Conversation', foreign_keys='Conversation.user2_id', backref='user2', lazy='dynamic')
+    
+    # Messaging relationships
+    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic', cascade='all, delete-orphan')
+    received_messages = db.relationship('Message', foreign_keys='Message.recipient_id', backref='recipient', lazy='dynamic')
+    conversations_as_user1 = db.relationship('Conversation', foreign_keys='Conversation.user1_id', backref='user1', lazy='dynamic', cascade='all, delete-orphan')
+    conversations_as_user2 = db.relationship('Conversation', foreign_keys='Conversation.user2_id', backref='user2', lazy='dynamic')
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -39,12 +51,58 @@ class User(UserMixin, db.Model):
         admin_count = User.query.filter_by(is_admin=True).count()
         return admin_count > 1
 
+    def get_conversations(self):
+        """Get all conversations for this user"""
+        conversations = db.session.query(Conversation).filter(
+            db.or_(Conversation.user1_id == self.id, Conversation.user2_id == self.id)
+        ).order_by(Conversation.last_message_at.desc()).all()
+        return conversations
+    
+    def get_conversation_with(self, other_user_id):
+        """Get conversation between this user and another user"""
+        return Conversation.query.filter(
+            db.or_(
+                db.and_(Conversation.user1_id == self.id, Conversation.user2_id == other_user_id),
+                db.and_(Conversation.user1_id == other_user_id, Conversation.user2_id == self.id)
+            )
+        ).first()
+
+    def get_conversations(self):
+        """Get all conversations for this user"""
+        conversations = db.session.query(Conversation).filter(
+            db.or_(Conversation.user1_id == self.id, Conversation.user2_id == self.id)
+        ).order_by(Conversation.last_message_at.desc()).all()
+        return conversations
+    
+    def get_conversation_with(self, other_user_id):
+        """Get conversation between this user and another user"""
+        return Conversation.query.filter(
+            db.or_(
+                db.and_(Conversation.user1_id == self.id, Conversation.user2_id == other_user_id),
+                db.and_(Conversation.user1_id == other_user_id, Conversation.user2_id == self.id)
+            )
+        ).first()
+    
+    def get_unread_message_count(self):
+        """Get count of unread messages for this user from valid conversations only"""
+        return (db.session.query(Message)
+               .join(Conversation)
+               .filter(
+                   Message.recipient_id == self.id,
+                   Message.is_read == False,
+                   db.or_(
+                       Conversation.user1_id == self.id,
+                       Conversation.user2_id == self.id
+                   )
+               ).count())
+
 class Listing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     location = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price_per_night = db.Column(db.Float, nullable=False)
+    guest_capacity = db.Column(db.Integer, nullable=False, default=1)
     host_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     host_name = db.Column(db.String(120), nullable=False)  # Keep for display purposes
     image_filename = db.Column(db.String(255), nullable=True)
@@ -55,7 +113,7 @@ class Listing(db.Model):
     bookings = db.relationship('Booking', backref='listing', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Listing {self.name} in {self.location}>'
+        return f'<Listing {self.name} in {self.location} (Sleeps {self.guest_capacity})>'
     
     def get_status(self):
         """Get listing approval status for display"""
@@ -79,6 +137,7 @@ class Booking(db.Model):
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=False)
     check_in = db.Column(db.Date, nullable=False)
     check_out = db.Column(db.Date, nullable=False)
+    guest_count = db.Column(db.Integer, nullable=False, default=1)
     status = db.Column(db.String(20), default='pending')  # pending, confirmed, checked_in, checked_out, cancelled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     actual_checkout = db.Column(db.DateTime, nullable=True)  # When user actually checked out
@@ -87,7 +146,7 @@ class Booking(db.Model):
     reviews = db.relationship('Review', backref='booking', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Booking {self.id} - Guest: {self.guest_id}, Listing: {self.listing_id}>'
+        return f'<Booking {self.id} - Guest: {self.guest_id}, Listing: {self.listing_id}, Guests: {self.guest_count}>'
     
     def is_completed(self):
         """Check if booking is completed (checked out)"""
@@ -160,4 +219,57 @@ class Review(db.Model):
     
     def get_reviewed_role(self):
         """Get the role of the person being reviewed"""
-        return self.reviewed.role 
+        return self.reviewed.role
+
+class Conversation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_message_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    messages = db.relationship('Message', backref='conversation', lazy='dynamic', cascade='all, delete-orphan', order_by='Message.created_at')
+    
+    def __repr__(self):
+        return f'<Conversation {self.id} between User {self.user1_id} and User {self.user2_id}>'
+    
+    def get_other_user(self, current_user_id):
+        """Get the other user in this conversation"""
+        if self.user1_id == current_user_id:
+            return self.user2
+        else:
+            return self.user1
+    
+    def get_last_message(self):
+        """Get the most recent message in this conversation"""
+        return self.messages.order_by(Message.created_at.desc()).first()
+    
+    def mark_messages_as_read(self, user_id):
+        """Mark all messages in this conversation as read for a specific user"""
+        unread_messages = self.messages.filter_by(recipient_id=user_id, is_read=False).all()
+        for message in unread_messages:
+            message.is_read = True
+        if unread_messages:
+            db.session.commit()
+    
+    def get_unread_count(self, user_id):
+        """Get count of unread messages for a specific user"""
+        return self.messages.filter_by(recipient_id=user_id, is_read=False).count()
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+    
+    def __repr__(self):
+        return f'<Message {self.id} from User {self.sender_id} to User {self.recipient_id}>'
+    
+    def mark_as_read(self):
+        """Mark this message as read"""
+        self.is_read = True
+        db.session.commit()

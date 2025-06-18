@@ -1,202 +1,339 @@
 {% extends 'base.html' %}
 
-{% block title %}Welcome to Otithi{% endblock %}
+{% block title %}Experience Authentic Bangladeshi Hospitality{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section bg-light py-5">
+<section class="hero-otithi position-relative overflow-hidden">
+    <div class="hero-background"></div>
     <div class="container">
-        <div class="row align-items-center min-vh-75">
-            <div class="col-lg-6">
-                <div class="hero-content pe-lg-4">
-                    <h1 class="display-4 fw-bold text-dark mb-4">
-                        Experience authentic <span style="color: #444;">Bengali</span> hospitality
+        <div class="row align-items-center min-vh-100 py-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="hero-content pe-lg-5">
+                    <div class="hero-badge mb-4" data-aos="fade-down" data-aos-delay="100">
+                        <span class="badge bg-otithi-green text-white px-3 py-2" role="status" aria-label="Welcome message">
+                            <i class="fas fa-heart me-2" aria-hidden="true"></i>Experience True Bengali Hospitality
+                        </span>
+                    </div>
+                    
+                    <h1 class="hero-title mb-4" data-aos="fade-up" data-aos-delay="200">
+                        Welcome to <span class="text-otithi-green">অতিথি</span><br>
+                        <span class="hero-subtitle text-dark">Your Home Away From Home</span>
                     </h1>
-                    <p class="lead text-muted mb-4">
-                        Discover unique homes, connect with local hosts, and create unforgettable memories 
-                        across Bangladesh with <strong>অ. Otithi</strong> — where every stay feels like home.
+                    
+                    <p class="hero-description mb-5 text-dark" data-aos="fade-up" data-aos-delay="300">
+                        Discover authentic Bangladeshi warmth through unique stays with verified hosts. 
+                        From bustling Dhaka to serene Sylhet, experience the true spirit of Bengali hospitality.
                     </p>
                     
-                    <!-- Search Bar -->
-                    <div class="search-container">
-                        <form class="bg-white rounded-4 shadow-sm p-3 mb-4" method="get" action="{{ url_for('main.listings') }}">
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <div class="form-floating">
-                                        <input type="text" name="location" class="form-control border-0" id="location" placeholder="Where to?">
-                                        <label for="location" class="text-muted">Where to?</label>
+                    <!-- Modern Search Bar -->
+                    <div class="hero-search" data-aos="fade-up" data-aos-delay="400">
+                        <form class="search-form" method="get" action="{{ url_for('main.listings') }}">
+                            <div class="search-container">
+                                <div class="search-field">
+                                    <div class="search-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div class="search-input">
+                                        <label>Where</label>
+                                        <input type="text" name="location" placeholder="Dhaka, Chittagong, Sylhet...">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="form-floating">
-                                        <input type="date" name="check_in" class="form-control border-0" id="check_in" placeholder="Check in">
-                                        <label for="check_in" class="text-muted">Check in</label>
+                                <div class="search-divider"></div>
+                                <div class="search-field">
+                                    <div class="search-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <div class="search-input">
+                                        <label>Check in</label>
+                                        <input type="date" name="check_in">
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="form-floating">
-                                        <input type="number" name="guests" class="form-control border-0" id="guests" placeholder="Guests" min="1">
-                                        <label for="guests" class="text-muted">Guests</label>
+                                <div class="search-divider"></div>
+                                <div class="search-field">
+                                    <div class="search-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="search-input">
+                                        <label>Guests</label>
+                                        <input type="number" name="guests" placeholder="1" min="1" max="20" value="1">
                                     </div>
                                 </div>
-                                <div class="col-md-2">
-                                    <button type="submit" class="btn btn-dark w-100 h-100 d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                </div>
+                                <button type="submit" class="search-button">
+                                    <i class="fas fa-search"></i>
+                                </button>
                             </div>
                         </form>
                     </div>
                     
                     <!-- CTA Buttons -->
-                    <div class="d-flex gap-3 flex-wrap">
-                        <a href="{{ url_for('main.listings') }}" class="btn btn-dark btn-lg px-4">
-                            <i class="bi bi-house-door me-2"></i>Browse Stays
+                    <div class="hero-actions mt-5" data-aos="fade-up" data-aos-delay="500">
+                        <a href="{{ url_for('main.listings') }}" class="btn btn-otithi btn-lg me-3">
+                            <i class="fas fa-compass me-2"></i>Explore Stays
                         </a>
                         {% if not current_user.is_authenticated %}
-                        <a href="{{ url_for('main.register') }}" class="btn btn-outline-dark btn-lg px-4">
-                            <i class="bi bi-person-plus me-2"></i>Join as Host
+                        <a href="{{ url_for('main.register') }}" class="btn btn-outline-otithi btn-lg">
+                            <i class="fas fa-home me-2"></i>Become a Host
                         </a>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="col-lg-6">
-                <div class="hero-image text-center">
-                    <div class="position-relative">
-                        <img src="{{ url_for('static', filename='images/ui/003f858996e943b19374f65490fd1ef3.jpg') }}" 
-                             alt="Beautiful home in Bangladesh" 
-                             class="img-fluid rounded-4 shadow-lg"
-                             style="max-height: 500px; object-fit: cover; width: 100%;">
-                        <div class="position-absolute bottom-0 start-0 end-0 bg-gradient-to-top p-4">
-                            <p class="text-white mb-0 small">
-                                <i class="bi bi-geo-alt-fill me-1"></i>
-                                Authentic stays across Bangladesh
-                            </p>
-                        </div>
+            <div class="col-lg-6" data-aos="fade-left" data-aos-delay="300">
+                <div class="hero-visual">
+                    <div class="hero-image-container">
+                        <img src="{{ url_for('static', filename='images/ui/default_listing.jpg') }}" 
+                             alt="Beautiful traditional home in Bangladesh" 
+                             class="hero-main-image">
+                        {% if recent_reviews %}
+                            {% for review in recent_reviews %}
+                                <div class="floating-card" data-aos="zoom-in" data-aos-delay="{{ 800 + loop.index0 * 200 }}">
+                                    <div class="card border-0 shadow-lg">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="avatar me-3">
+                                                    {% if review.reviewer.profile_picture %}
+                                                        <img src="{{ get_profile_image_url(review.reviewer.profile_picture) }}" alt="{{ review.reviewer.username }}">
+                                                    {% else %}
+                                                        <img src="{{ url_for('static', filename='images/ui/default_avatar.png') }}" alt="{{ review.reviewer.username }}">
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1 text-dark">{{ review.reviewer.username }}</h6>
+                                                    <small class="text-secondary">
+                                                        {{ review.reviewer.role.title() }} • {{ review.booking.listing.location }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <div class="rating mb-2">
+                                                {% for i in range(5) %}
+                                                    {% if i < review.rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-muted"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="ms-2 fw-bold text-dark">{{ review.rating }}.0</span>
+                                            </div>
+                                            <p class="mb-0 small text-secondary">
+                                                "{{ review.comment[:60] }}{% if review.comment|length > 60 %}...{% endif %}"
+                                            </p>
+                                            <small class="text-muted">{{ review.created_at.strftime('%B %Y') }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="floating-card" data-aos="zoom-in" data-aos-delay="800">
+                                <div class="card border-0 shadow-lg">
+                                    <div class="card-body p-4 text-center">
+                                        <div class="mb-3">
+                                            <i class="fas fa-heart text-otithi-green fa-2x"></i>
+                                        </div>
+                                        <h6 class="mb-2 text-dark">Be Our First Reviewer!</h6>
+                                        <p class="mb-0 small text-secondary">
+                                            Join our growing community and share your experience with authentic Bengali hospitality.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+
 
 <!-- Features Section -->
-<section class="py-5">
+<section class="features-section py-5">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="h3 fw-bold text-dark mb-3">Why choose <span style="color: #444;">অ. Otithi</span>?</h2>
-            <p class="text-muted">Experience the warmth of Bengali hospitality</p>
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="section-title mb-4 text-dark">Why Choose <span class="text-otithi-green">অতিথি</span>?</h2>
+            <p class="section-subtitle text-secondary">Experience the authentic warmth of Bengali hospitality</p>
         </div>
         
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="text-center p-4">
-                    <div class="feature-icon bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="bi bi-house-heart fs-3 text-dark"></i>
+        <div class="row g-5">
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-gradient-otithi">
+                        <i class="fas fa-home"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-3">Authentic Homes</h5>
-                    <p class="text-muted">Stay in carefully selected homes that reflect the true spirit of Bangladesh</p>
+                    <h4 class="feature-title text-dark">Authentic Experiences</h4>
+                    <p class="feature-description text-secondary">
+                        Stay in traditional Bengali homes and experience local culture, cuisine, and customs firsthand.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Traditional architecture</li>
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Home-cooked meals</li>
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Cultural activities</li>
+                    </ul>
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="text-center p-4">
-                    <div class="feature-icon bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="bi bi-people fs-3 text-dark"></i>
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-gradient-otithi">
+                        <i class="fas fa-shield-check"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-3">Local Hosts</h5>
-                    <p class="text-muted">Connect with friendly hosts who share their culture and local insights</p>
+                    <h4 class="feature-title text-dark">Verified & Safe</h4>
+                    <p class="feature-description text-secondary">
+                        All hosts are verified through our rigorous screening process for your safety and peace of mind.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>ID verification</li>
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Background checks</li>
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>24/7 support</li>
+                    </ul>
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="text-center p-4">
-                    <div class="feature-icon bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                        <i class="bi bi-shield-check fs-3 text-dark"></i>
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-card h-100">
+                    <div class="feature-icon bg-gradient-otithi">
+                        <i class="fas fa-heart"></i>
                     </div>
-                    <h5 class="fw-bold text-dark mb-3">Trusted Platform</h5>
-                    <p class="text-muted">Book with confidence on our secure and trusted platform</p>
+                    <h4 class="feature-title text-dark">Personal Connection</h4>
+                    <p class="feature-description text-secondary">
+                        Connect with local hosts who share stories, traditions, and hidden gems of Bangladesh.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Local insights</li>
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Personal stories</li>
+                        <li><i class="fas fa-check text-otithi-green me-2"></i>Lasting friendships</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Featured Hosts Section (Placeholder) -->
-<section class="py-5 bg-light">
+<!-- Destinations Section -->
+<section class="destinations-section py-5 bg-light">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="h3 fw-bold text-dark mb-3">Featured Hosts</h2>
-            <p class="text-muted">Meet our top-rated hosts who provide exceptional experiences</p>
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="section-title mb-4 text-dark">Discover Bangladesh</h2>
+            <p class="section-subtitle text-secondary">From bustling cities to serene countryside</p>
         </div>
         
         <div class="row g-4">
-            <!-- This section will display actual hosts based on ratings and listing count -->
-            <div class="col-12 text-center">
-                <div class="bg-white rounded-4 p-5 shadow-sm">
-                    <i class="bi bi-star-fill text-warning fs-1 mb-3"></i>
-                    <h5 class="text-muted">Featured hosts coming soon</h5>
-                    <p class="text-muted small">Hosts with exceptional ratings and reviews will be showcased here</p>
+            <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="100">
+                <div class="destination-card">
+                    <div class="destination-image">
+                        <img src="{{ url_for('static', filename='images/ui/default_listing.jpg') }}" alt="Dhaka">
+                        <div class="destination-overlay">
+                            <div class="destination-badge">
+                                <span class="badge bg-white text-dark">{{ total_listings }} total stays</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="destination-content">
+                        <h5 class="destination-title text-dark">Dhaka</h5>
+                        <p class="destination-subtitle text-otithi-green fw-semibold">Capital & Cultural Hub</p>
+                        <p class="destination-description text-secondary">
+                            Experience the vibrant energy of Bangladesh's capital with historic landmarks and modern comforts.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</section>
-
-<!-- Guest Testimonials Section (Placeholder) -->
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="h3 fw-bold text-dark mb-3">What Our Guests Say</h2>
-            <p class="text-muted">Real reviews from confirmed bookings</p>
+            
+            <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="200">
+                <div class="destination-card">
+                    <div class="destination-image">
+                        <img src="{{ url_for('static', filename='images/ui/default_listing.jpg') }}" alt="Cox's Bazar">
+                        <div class="destination-overlay">
+                            <div class="destination-badge">
+                                <span class="badge bg-white text-dark">{{ total_listings }} total stays</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="destination-content">
+                        <h5 class="destination-title text-dark">Cox's Bazar</h5>
+                        <p class="destination-subtitle text-otithi-green fw-semibold">World's Longest Beach</p>
+                        <p class="destination-description text-secondary">
+                            Relax at the world's longest natural beach with stunning sunsets and seaside hospitality.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6" data-aos="zoom-in" data-aos-delay="300">
+                <div class="destination-card">
+                    <div class="destination-image">
+                        <img src="{{ url_for('static', filename='images/ui/default_listing.jpg') }}" alt="Sylhet">
+                        <div class="destination-overlay">
+                            <div class="destination-badge">
+                                <span class="badge bg-white text-dark">{{ total_listings }} total stays</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="destination-content">
+                        <h5 class="destination-title text-dark">Sylhet</h5>
+                        <p class="destination-subtitle text-otithi-green fw-semibold">Tea Gardens & Hills</p>
+                        <p class="destination-description text-secondary">
+                            Immerse yourself in nature with rolling tea gardens, crystal-clear lakes, and hill station charm.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="row g-4">
-            <!-- This section will display actual reviews from confirmed bookings -->
-            <div class="col-12 text-center">
-                <div class="bg-light rounded-4 p-5">
-                    <i class="bi bi-chat-heart text-primary fs-1 mb-3"></i>
-                    <h5 class="text-muted">Guest testimonials coming soon</h5>
-                    <p class="text-muted small">Authentic reviews from guests who have completed their stays will appear here</p>
-                </div>
-            </div>
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="{{ url_for('main.listings') }}" class="btn btn-outline-otithi btn-lg">
+                <i class="fas fa-map me-2"></i>Explore All Destinations
+            </a>
         </div>
     </div>
 </section>
 
-<!-- Explore Top Destinations Section -->
-<section class="explore-section py-5 bg-light">
-    <div class="container text-center">
-        <h3 class="fw-bold text-dark mb-3">Explore Top Destinations</h3>
-        <p class="text-muted">Discover unique stays across cities, beaches, and countryside in Bangladesh</p>
-        <div class="row mt-4">
-            <div class="col-md-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                                                <img src="{{ url_for('static', filename='images/ui/003f858996e943b19374f65490fd1ef3.jpg') }}" class="card-img-top" alt="Dhaka">
-                    <div class="card-body">
-                        <h5 class="card-title">Dhaka</h5>
-                        <p class="card-text">Experience the heartbeat of Bangladesh with historic and modern comforts.</p>
+<!-- How It Works Section -->
+<section class="how-it-works-section py-5">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h2 class="section-title mb-4 text-dark">How It Works</h2>
+            <p class="section-subtitle text-secondary">Your journey to authentic Bengali hospitality in 3 simple steps</p>
+        </div>
+        
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-4" data-aos="fade-right" data-aos-delay="100">
+                <div class="step-card text-center">
+                    <div class="step-number">01</div>
+                    <div class="step-icon">
+                        <i class="fas fa-search"></i>
                     </div>
+                    <h4 class="step-title text-dark">Search & Discover</h4>
+                    <p class="step-description text-secondary">
+                        Browse through verified hosts and unique stays across Bangladesh. Filter by location, amenities, and experiences.
+                    </p>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                                                <img src="{{ url_for('static', filename='images/ui/003f858996e943b19374f65490fd1ef3.jpg') }}" class="card-img-top" alt="Cox's Bazar">
-                    <div class="card-body">
-                        <h5 class="card-title">Cox's Bazar</h5>
-                        <p class="card-text">Relax at the world's longest beach with luxury villas and sea views.</p>
+            
+            <div class="col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="step-card text-center">
+                    <div class="step-number">02</div>
+                    <div class="step-icon">
+                        <i class="fas fa-handshake"></i>
                     </div>
+                    <h4 class="step-title text-dark">Connect & Book</h4>
+                    <p class="step-description text-secondary">
+                        Message your host, ask questions, and book your stay securely through our platform with instant confirmation.
+                    </p>
                 </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                                                <img src="{{ url_for('static', filename='images/ui/003f858996e943b19374f65490fd1ef3.jpg') }}" class="card-img-top" alt="Sylhet">
-                    <div class="card-body">
-                        <h5 class="card-title">Sylhet</h5>
-                        <p class="card-text">Get close to nature with hills, tea gardens, and serene lakes.</p>
+            
+            <div class="col-lg-4" data-aos="fade-left" data-aos-delay="300">
+                <div class="step-card text-center">
+                    <div class="step-number">03</div>
+                    <div class="step-icon">
+                        <i class="fas fa-heart"></i>
                     </div>
+                    <h4 class="step-title text-dark">Experience & Enjoy</h4>
+                    <p class="step-description text-secondary">
+                        Arrive and be welcomed like family. Experience authentic Bengali culture, food, and hospitality firsthand.
+                    </p>
                 </div>
             </div>
         </div>
@@ -204,68 +341,433 @@
 </section>
 
 <!-- CTA Section -->
-<section class="bg-dark text-white py-5">
-    <div class="container text-center">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <h2 class="h3 fw-bold mb-3">Ready to start your journey?</h2>
-                <p class="lead mb-4">Join thousands of travelers discovering Bangladesh through authentic home-stays</p>
-                <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    {% if not current_user.is_authenticated %}
-                    <a href="{{ url_for('main.register') }}" class="btn btn-light btn-lg">
-                        <i class="bi bi-person-plus me-2"></i>Sign Up Today
-                    </a>
-                    {% endif %}
-                    <a href="{{ url_for('main.about') }}" class="btn btn-outline-light btn-lg">
-                        <i class="bi bi-info-circle me-2"></i>Learn More
-                    </a>
-                </div>
+<section class="cta-section py-5 bg-gradient-otithi text-white" role="complementary" aria-labelledby="cta-heading">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8" data-aos="fade-right">
+                <h2 id="cta-heading" class="cta-title mb-3" style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);">Ready to Experience Bengali Hospitality?</h2>
+                <p class="cta-description mb-4" style="color: rgba(255, 255, 255, 0.95); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);">
+                    Join thousands of travelers who've discovered the warmth of Bangladesh through authentic home stays.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end" data-aos="fade-left">
+                <a href="{{ url_for('main.listings') }}" class="btn btn-outline-light btn-lg me-3" aria-label="Start exploring accommodations">
+                    Start Exploring
+                </a>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('main.register') }}" class="btn btn-light btn-lg" aria-label="Join Otithi platform">
+                    Join Now
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
 </section>
 
+<!-- Custom Styles for Hero -->
 <style>
-.min-vh-75 {
-    min-height: 75vh;
+/* Hero Section Styles */
+.hero-otithi {
+    background: linear-gradient(135deg, var(--otithi-gray-50) 0%, #f8fffe 100%);
+    position: relative;
+    overflow: hidden;
 }
 
-.bg-gradient-to-top {
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+.hero-background::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(circle, rgba(0, 106, 78, 0.05) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float 20s ease-in-out infinite;
 }
 
-.feature-icon {
-    transition: transform 0.3s ease;
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
 }
 
-.feature-icon:hover {
-    transform: translateY(-5px);
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--otithi-gray-900);
 }
 
-.search-container .form-floating > label {
-    font-size: 0.85rem;
+.hero-subtitle {
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--otithi-gray-800);
 }
 
-.hero-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+.hero-description {
+    font-size: 1.25rem;
+    color: var(--otithi-gray-700);
+    line-height: 1.6;
 }
 
-.explore-section h3 {
+/* Search Form Styles */
+.search-form {
+    background: var(--otithi-white);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    padding: var(--space-2);
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.search-field {
+    display: flex;
+    align-items: center;
+    padding: var(--space-4);
+    flex: 1;
+    min-width: 0;
+}
+
+.search-icon {
+    color: var(--otithi-green);
+    margin-right: var(--space-3);
+    font-size: 1.1rem;
+}
+
+.search-input {
+    flex: 1;
+}
+
+.search-input label {
+    display: block;
+    font-size: 0.75rem;
     font-weight: 600;
+    color: var(--otithi-gray-800);
+    margin-bottom: var(--space-1);
 }
 
-.card-img-top {
-    height: 200px;
+.search-input input {
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    color: var(--otithi-gray-700);
+    background: transparent;
+    width: 100%;
+}
+
+.search-input input::placeholder {
+    color: var(--otithi-gray-400);
+}
+
+.search-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--otithi-gray-200);
+}
+
+.search-button {
+    background: var(--otithi-green);
+    color: var(--otithi-white);
+    border: none;
+    border-radius: var(--radius-full);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--space-2);
+    transition: var(--transition-fast);
+}
+
+.search-button:hover {
+    background: var(--otithi-green-dark);
+    transform: scale(1.05);
+}
+
+/* Hero Visual Styles */
+.hero-visual {
+    position: relative;
+}
+
+.hero-image-container {
+    position: relative;
+}
+
+.hero-main-image {
+    width: 100%;
+    max-height: 600px;
+    object-fit: cover;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-2xl);
+}
+
+.floating-card {
+    position: absolute;
+    bottom: var(--space-6);
+    left: var(--space-6);
+    max-width: 280px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 
+/* Stats Section */
+.stats-section {
+    background: linear-gradient(135deg, var(--otithi-green) 0%, var(--otithi-green-dark) 100%);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.stat-label {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: var(--otithi-white);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-all);
+    border: 1px solid var(--otithi-gray-200);
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-2xl);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-6);
+    font-size: 2rem;
+    color: var(--otithi-white);
+}
+
+.bg-gradient-otithi {
+    background: linear-gradient(135deg, var(--otithi-green) 0%, var(--otithi-green-light) 100%);
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--otithi-gray-900);
+    margin-bottom: var(--space-4);
+}
+
+.feature-description {
+    color: var(--otithi-gray-700);
+    margin-bottom: var(--space-4);
+    line-height: 1.6;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.feature-list li {
+    margin-bottom: var(--space-2);
+    color: var(--otithi-gray-700);
+}
+
+/* Destination Cards */
+.destination-card {
+    background: var(--otithi-white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-all);
+}
+
+.destination-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-2xl);
+}
+
+.destination-image {
+    position: relative;
+    height: 250px;
+    overflow: hidden;
+}
+
+.destination-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition-slow);
+}
+
+.destination-card:hover .destination-image img {
+    transform: scale(1.1);
+}
+
+.destination-overlay {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+}
+
+.destination-content {
+    padding: var(--space-6);
+}
+
+.destination-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--otithi-gray-900);
+    margin-bottom: var(--space-1);
+}
+
+.destination-subtitle {
+    color: var(--otithi-green);
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+}
+
+.destination-description {
+    color: var(--otithi-gray-600);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* How It Works */
+.step-card {
+    position: relative;
+    padding: var(--space-8);
+}
+
+.step-number {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--otithi-green);
+    color: var(--otithi-white);
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-lg);
+}
+
+.step-icon {
+    background: var(--otithi-gray-100);
+    width: 100px;
+    height: 100px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: var(--space-8) auto var(--space-6);
+    font-size: 2.5rem;
+    color: var(--otithi-green);
+}
+
+.step-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--otithi-gray-800);
+    margin-bottom: var(--space-4);
+}
+
+.step-description {
+    color: var(--otithi-gray-600);
+    line-height: 1.6;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, var(--otithi-green) 0%, var(--otithi-green-dark) 100%);
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.cta-description {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--otithi-gray-800);
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: var(--otithi-gray-600);
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
-    .display-4 {
-        font-size: 2rem;
+    .hero-title {
+        font-size: 2.5rem;
     }
     
-    .hero-image {
-        margin-top: 2rem;
+    .hero-subtitle {
+        font-size: 1.5rem;
+    }
+    
+    .search-container {
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    
+    .search-field {
+        width: 100%;
+    }
+    
+    .search-divider {
+        width: 100%;
+        height: 1px;
+    }
+    
+    .floating-card {
+        position: static;
+        margin-top: var(--space-4);
+    }
+    
+    .step-number {
+        position: static;
+        transform: none;
+        margin: 0 auto var(--space-4);
+    }
+    
+    .step-icon {
+        margin-top: var(--space-4);
     }
 }
 </style>

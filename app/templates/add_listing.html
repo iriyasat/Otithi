@@ -53,6 +53,23 @@
                 {% endif %}
             </div>
             <div class="mb-3">
+                {{ form.guest_capacity.label(class="form-label") }}
+                <div class="input-group">
+                    {{ form.guest_capacity(class="form-control" + (' is-invalid' if form.guest_capacity.errors else ''), min="1", max="20", value=form.guest_capacity.data or 1) }}
+                    <span class="input-group-text">
+                        <i class="fas fa-users" aria-hidden="true"></i>
+                    </span>
+                </div>
+                {% if form.guest_capacity.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.guest_capacity.errors %}
+                    <small>{{ error }}</small>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <small class="form-text text-muted">Maximum number of guests your accommodation can host (1-20)</small>
+            </div>
+            <div class="mb-3">
                 {{ form.host_name.label(class="form-label") }}
                 {{ form.host_name(class="form-control" + (' is-invalid' if form.host_name.errors else '')) }}
                 {% if form.host_name.errors %}

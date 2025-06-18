@@ -437,7 +437,7 @@ host_listings = get_listings_by_host(host_id=1)
 results = search_listings(query="cozy", location="dhaka")
 
 # Booking Operations:
-booking = create_booking(guest_id=2, listing_id=1, check_in=date(2024,6,1), check_out=date(2024,6,5))
+booking = create_booking(guest_id=2, listing_id=1, check_in=date(2025,6,1), check_out=date(2025,6,5))
 guest_bookings = get_bookings_by_guest(guest_id=2)
 host_bookings = get_bookings_by_host(host_id=1)
 updated_booking = update_booking_status(booking_id=1, status='confirmed')

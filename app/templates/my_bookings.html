@@ -78,6 +78,10 @@
                                     <i class="bi bi-calendar-date me-2"></i>
                                     <span>{{ booking.check_in.strftime('%B %d, %Y') }} - {{ booking.check_out.strftime('%B %d, %Y') }}</span>
                                 </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-users text-primary me-2"></i>
+                                    <span>{{ booking.guest_count }} {{ 'guest' if booking.guest_count == 1 else 'guests' }}</span>
+                                </div>
                                 <div class="d-flex align-items-center">
                                     <i class="bi bi-currency-dollar text-success me-2"></i>
                                     {% set nights = (booking.check_out - booking.check_in).days %}
@@ -108,8 +112,21 @@
                                     </span>
                                 {% endif %}
                                 
-                                <div class="small text-muted mb-2">
+                                <div class="small mb-2 timestamp">
                                     Booked: {{ booking.created_at.strftime('%m/%d/%Y') }}
+                                </div>
+
+                                <!-- Message Button -->
+                                <div class="mb-2">
+                                    {% if current_user.role == 'guest' %}
+                                        <a href="{{ url_for('main.start_conversation', user_id=booking.listing.host_id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-envelope me-1"></i>Message Host
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('main.start_conversation', user_id=booking.guest_id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-envelope me-1"></i>Message Guest
+                                        </a>
+                                    {% endif %}
                                 </div>
 
                                 {% if current_user.role == 'host' and booking.status == 'pending' %}
@@ -141,7 +158,7 @@
                                                 <i class="bi bi-house-check me-1"></i>Check In
                                             </button>
                                         </form>
-                                        <div class="small text-muted mt-1">
+                                        <div class="small mt-1 meta-text">
                                             <i class="bi bi-info-circle me-1"></i>Check-in available
                                         </div>
                                     </div>
@@ -153,7 +170,7 @@
                                                 <i class="bi bi-house-dash me-1"></i>Check Out
                                             </button>
                                         </form>
-                                        <div class="small text-muted mt-1">
+                                        <div class="small mt-1 meta-text">
                                             <i class="bi bi-clock me-1"></i>Enjoying your stay?
                                         </div>
                                     </div>

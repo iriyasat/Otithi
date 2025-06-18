@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-envelope"></i> Messages</h1>
+            </div>
+
+            {% if conversations %}
+                <div class="row">
+                    {% for conversation in conversations %}
+                        {% set other_user = conversation.get_other_user(current_user.id) %}
+                        {% set last_message = conversation.get_last_message() %}
+                        {% set unread_count = conversation.get_unread_count(current_user.id) %}
+                        
+                        <div class="col-md-12 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-center">
+                                            <img src="{{ url_for('static', filename='images/profiles/' + (other_user.profile_picture or 'default_avatar.png')) }}" 
+                                                 alt="{{ other_user.username }}" 
+                                                 class="rounded-circle" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;"
+                                                 onerror="this.src='{{ url_for('static', filename='images/ui/default_avatar.png') }}'">
+                                        </div>
+                                        <div class="col-md-8">
+                                            <h5 class="mb-1">
+                                                {{ other_user.username }}
+                                                <span class="badge bg-{{ 'primary' if other_user.role == 'host' else 'success' }} ms-2">
+                                                    {{ other_user.role.title() }}
+                                                </span>
+                                                {% if unread_count > 0 %}
+                                                    <span class="badge bg-danger ms-1">{{ unread_count }} new</span>
+                                                {% endif %}
+                                            </h5>
+                                            {% if last_message %}
+                                                <p class="text-muted mb-1">
+                                                    <strong>{{ last_message.sender.username }}:</strong> 
+                                                    {{ last_message.content[:100] }}{% if last_message.content|length > 100 %}...{% endif %}
+                                                </p>
+                                                <small class="text-muted">{{ last_message.created_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                                            {% else %}
+                                                <p class="text-muted mb-1">No messages yet</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <a href="{{ url_for('main.view_conversation', conversation_id=conversation.id) }}" 
+                                               class="btn btn-primary btn-sm">
+                                                <i class="fas fa-comment"></i> View
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h3 class="text-muted">No conversations yet</h3>
+                    <p class="text-muted">Start messaging with hosts or guests to see your conversations here.</p>
+                    
+                    {% if total_unread and total_unread > 0 %}
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> You have {{ total_unread }} unread message(s) that may not be linked to a conversation. 
+                            If this persists, please contact support.
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

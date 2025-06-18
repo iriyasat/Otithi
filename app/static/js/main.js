@@ -1,111 +1,321 @@
 /*
-Bangladesh-Inspired Interactive JS
-Author: Your Name
-Description: Clean, robust JavaScript for Flask app with Bangladesh color theme.
+===============================
+অতিথি - Otithi Interactive JS
+Modern Bangladesh-Inspired UI
+===============================
 */
 
-/* =========================
-   Airbnb-Style UI Interactions
-   ========================= */
-document.addEventListener('DOMContentLoaded', function () {
-    // --- Mobile Nav Toggle ---
-    const menuToggle = document.querySelector('.menu-toggle');
-    const mobileNav = document.querySelector('.mobile-nav');
-    if (menuToggle && mobileNav) {
-        menuToggle.addEventListener('click', function () {
-            const isOpen = mobileNav.classList.toggle('open');
-            menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+class OtithiApp {
+    constructor() {
+        this.init();
+        this.bindEvents();
+        this.initAnimations();
+    }
+
+    init() {
+        console.log('🏠 অতিথি - Otithi App Initialized');
+        
+        // Set theme colors for dynamic use
+        this.colors = {
+            green: '#006A4E',
+            red: '#F42A41',
+            white: '#FFFFFF'
+        };
+    }
+
+    bindEvents() {
+        // Navbar scroll effect
+        this.initNavbarScroll();
+        
+        // Search interactions
+        this.initSearchFeatures();
+        
+        // Form enhancements
+        this.initFormFeatures();
+        
+        // Button interactions
+        this.initButtonAnimations();
+    }
+
+    initAnimations() {
+        // Counter animations for stats
+        this.initCounterAnimations();
+        
+        // Scroll animations
+        this.initScrollAnimations();
+    }
+
+    // ==================== NAVBAR FUNCTIONALITY ====================
+    initNavbarScroll() {
+        const navbar = document.getElementById('mainNavbar');
+        if (!navbar) return;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
         });
-        mobileNav.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileNav.classList.remove('open');
-                menuToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    // ==================== SEARCH FUNCTIONALITY ====================
+    initSearchFeatures() {
+        const searchForm = document.querySelector('.search-form');
+        if (!searchForm) return;
+
+        const searchFields = searchForm.querySelectorAll('.search-field');
+        
+        searchFields.forEach(field => {
+            const input = field.querySelector('input');
+            if (!input) return;
+
+            // Focus animations
+            input.addEventListener('focus', () => {
+                field.classList.add('focused');
+                this.animateSearchField(field, true);
+            });
+
+            input.addEventListener('blur', () => {
+                if (!input.value) {
+                    field.classList.remove('focused');
+                    this.animateSearchField(field, false);
+                }
+            });
+        });
+
+        // Search form submission with loading state
+        searchForm.addEventListener('submit', (e) => {
+            this.handleSearchSubmit(e, searchForm);
+        });
+    }
+
+    animateSearchField(field, focused) {
+        const icon = field.querySelector('.search-icon i');
+        if (icon) {
+            if (focused) {
+                icon.style.transform = 'scale(1.1)';
+                icon.style.color = this.colors.green;
+            } else {
+                icon.style.transform = 'scale(1)';
+                icon.style.color = '';
+            }
+        }
+    }
+
+    handleSearchSubmit(e, form) {
+        const submitButton = form.querySelector('.search-button');
+        if (!submitButton) return;
+
+        // Show loading state
+        const originalContent = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        submitButton.disabled = true;
+
+        // Restore after delay (form will redirect)
+        setTimeout(() => {
+            submitButton.innerHTML = originalContent;
+            submitButton.disabled = false;
+        }, 2000);
+    }
+
+    // ==================== FORM ENHANCEMENTS ====================
+    initFormFeatures() {
+        const forms = document.querySelectorAll('form');
+        
+        forms.forEach(form => {
+            form.addEventListener('submit', (e) => {
+                if (!this.validateForm(form)) {
+                    e.preventDefault();
+                    this.showValidationErrors(form);
+                }
             });
         });
     }
 
-    // --- Profile Dropdown (Bootstrap handles dropdowns) ---
-    // No custom JS needed for dropdown-menu if using Bootstrap
-
-    // --- Search Bar Focus Animation ---
-    document.querySelectorAll('.search-bar-airbnb input').forEach(input => {
-        input.addEventListener('focus', function () {
-            this.closest('.search-bar-airbnb').classList.add('active');
+    validateForm(form) {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
         });
-        input.addEventListener('blur', function () {
-            this.closest('.search-bar-airbnb').classList.remove('active');
-        });
-    });
 
-    // --- Section Fade-In on Scroll ---
-    const fadeSections = document.querySelectorAll('.section-fade');
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries, obs) => {
+        return isValid;
+    }
+
+    showValidationErrors(form) {
+        const firstInvalid = form.querySelector('.is-invalid');
+        if (firstInvalid) {
+            firstInvalid.focus();
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // ==================== ANIMATIONS ====================
+    initScrollAnimations() {
+        const animatedElements = document.querySelectorAll('[data-aos]');
+        
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('aos-animate');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            animatedElements.forEach(el => observer.observe(el));
+        }
+    }
+
+    initCounterAnimations() {
+        const counters = document.querySelectorAll('.stat-number');
+        
+        const animateCounter = (counter) => {
+            const target = parseInt(counter.textContent.replace(/[^\d]/g, ''));
+            const duration = 2000;
+            const increment = target / (duration / 16);
+            let current = 0;
+
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.textContent = Math.floor(current) + (counter.textContent.includes('+') ? '+' : '');
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.textContent = target + (counter.textContent.includes('+') ? '+' : '');
+                }
+            };
+
+            updateCounter();
+        };
+
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    obs.unobserve(entry.target);
+                    animateCounter(entry.target);
+                    observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.15 });
-        fadeSections.forEach(section => observer.observe(section));
-    } else {
-        function revealSections() {
-            const trigger = window.innerHeight * 0.92;
-            fadeSections.forEach(section => {
-                const rect = section.getBoundingClientRect();
-                if (rect.top < trigger) {
-                    section.classList.add('visible');
-                }
-            });
-        }
-        window.addEventListener('scroll', revealSections);
-        revealSections();
+        });
+
+        counters.forEach(counter => observer.observe(counter));
     }
 
-    // Smooth Scroll for Anchor Links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            const targetId = this.getAttribute('href');
-            // Only handle valid, non-empty hash links
-            if (targetId && targetId.length > 1 && document.querySelector(targetId)) {
-                e.preventDefault();
-                document.querySelector(targetId).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-
-    // Listing form validation
-    const listingForms = document.querySelectorAll('form[action*="listing"]');
-    listingForms.forEach(form => {
-        form.addEventListener('submit', function (e) {
-            let valid = true;
-            const requiredFields = ['name', 'location', 'description', 'price_per_night', 'host_name'];
-            requiredFields.forEach(field => {
-                const input = form.querySelector(`[name="${field}"]`);
-                if (input && !input.value.trim()) {
-                    valid = false;
-                    input.classList.add('is-invalid');
-                } else if (input) {
-                    input.classList.remove('is-invalid');
-                }
+    // ==================== BUTTON ANIMATIONS ====================
+    initButtonAnimations() {
+        const buttons = document.querySelectorAll('.btn');
+        
+        buttons.forEach(button => {
+            // Ripple effect
+            button.addEventListener('click', (e) => {
+                this.createRipple(e, button);
             });
-            if (!valid) {
-                e.preventDefault();
-                alert('Please fill in all required fields.');
-            }
-        });
-    });
 
-    // Button ripple/hover effect
-    document.querySelectorAll('.btn').forEach(btn => {
-        btn.addEventListener('mouseenter', function () {
-            btn.classList.add('fade-in');
+            // Hover animations
+            button.addEventListener('mouseenter', () => {
+                button.style.transform = 'translateY(-2px)';
+            });
+
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'translateY(0)';
+            });
         });
-        btn.addEventListener('mouseleave', function () {
-            btn.classList.remove('fade-in');
-        });
-    });
+    }
+
+    createRipple(e, button) {
+        const ripple = document.createElement('span');
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+
+        ripple.style.cssText = `
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            pointer-events: none;
+        `;
+
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(ripple);
+
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+
+    // ==================== UTILITY FUNCTIONS ====================
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+}
+
+// CSS for additional animations
+const additionalStyles = `
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    .search-field.focused {
+        background: rgba(0, 106, 78, 0.05);
+        border-radius: 12px;
+    }
+
+    .aos-animate {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+
+// Inject additional styles
+const styleSheet = document.createElement('style');
+styleSheet.textContent = additionalStyles;
+document.head.appendChild(styleSheet);
+
+// Initialize the app
+document.addEventListener('DOMContentLoaded', () => {
+    new OtithiApp();
 }); 

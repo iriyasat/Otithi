@@ -46,6 +46,10 @@ class ListingForm(FlaskForm):
         DataRequired(),
         NumberRange(min=0, message='Price must be positive')
     ])
+    guest_capacity = IntegerField('Guest Capacity', validators=[
+        DataRequired(),
+        NumberRange(min=1, max=20, message='Guest capacity must be between 1 and 20')
+    ])
     host_name = StringField('Host Name', validators=[
         DataRequired(),
         Length(min=2, max=120, message='Host name must be between 2 and 120 characters')
@@ -55,6 +59,10 @@ class ListingForm(FlaskForm):
 class BookingForm(FlaskForm):
     check_in = DateField('Check-in Date', validators=[DataRequired()])
     check_out = DateField('Check-out Date', validators=[DataRequired()])
+    guest_count = IntegerField('Number of Guests', validators=[
+        DataRequired(),
+        NumberRange(min=1, max=20, message='Number of guests must be between 1 and 20')
+    ])
     submit = SubmitField('Request Booking')
 
 class ReviewForm(FlaskForm):
@@ -106,4 +114,11 @@ class EditUserForm(FlaskForm):
         if email.data != self.original_email:
             user = User.query.filter_by(email=email.data).first()
             if user:
-                raise ValidationError('Email already exists. Please use a different email address.') 
+                raise ValidationError('Email already exists. Please use a different email address.')
+
+class MessageForm(FlaskForm):
+    content = TextAreaField('Message', validators=[
+        DataRequired(message='Message cannot be empty'),
+        Length(min=1, max=1000, message='Message must be between 1 and 1000 characters')
+    ])
+    submit = SubmitField('Send Message')

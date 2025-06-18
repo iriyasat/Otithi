@@ -3,9 +3,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.utils import secure_filename
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import Listing, User, Booking, Review
+from .models import Listing, User, Booking, Review, Conversation, Message
 from . import db
-from .forms import ListingForm, RegisterForm, LoginForm, BookingForm, ReviewForm, EditUserForm, ProfileSettingsForm
+from .forms import ListingForm, RegisterForm, LoginForm, BookingForm, ReviewForm, EditUserForm, ProfileSettingsForm, MessageForm
 from .decorators import role_required, admin_required, host_required, guest_required, owns_listing_or_admin
 import uuid
 from sqlalchemy import or_, func
@@ -83,11 +83,46 @@ def get_listing_image_url(filename):
 
 @main.route('/')
 def home():
-    return render_template('index.html')
+    # Get real reviews for homepage (latest 2 reviews with good ratings)
+    recent_reviews = (Review.query
+                     .filter(Review.rating >= 4)  # Only show 4+ star reviews
+                     .order_by(Review.created_at.desc())
+                     .limit(2)
+                     .all())
+    
+    return render_template('index.html', recent_reviews=recent_reviews)
 
 @main.route('/about')
 def about():
-    return render_template('about.html')
+    # Get total user count for about page
+    total_users = User.query.count()
+    total_guests = User.query.filter_by(role='guest').count()
+    total_hosts = User.query.filter_by(role='host').count()
+    
+    # Get real-time platform statistics for about page
+    total_listings = Listing.query.filter_by(approved=True).count()
+    
+    # Calculate average rating from all reviews with fallback
+    avg_rating = db.session.query(func.avg(Review.rating)).scalar()
+    if avg_rating and not (isinstance(avg_rating, float) and avg_rating != avg_rating):  # Check for NaN
+        avg_rating = round(avg_rating, 1)
+    else:
+        avg_rating = 0.0
+    
+    # Get total bookings completed
+    total_bookings = Booking.query.filter_by(status='checked_out').count()
+    
+    # Count unique districts/locations covered
+    unique_locations = db.session.query(func.count(func.distinct(Listing.location))).filter_by(approved=True).scalar() or 0
+    
+    return render_template('about.html', 
+                         total_users=total_users,
+                         total_guests=total_guests,
+                         total_hosts=total_hosts,
+                         total_listings=total_listings,
+                         avg_rating=avg_rating,
+                         total_bookings=total_bookings,
+                         unique_locations=unique_locations)
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -273,6 +308,7 @@ def listings():
     page = request.args.get('page', 1, type=int)
     sort = request.args.get('sort', '')
     search = request.args.get('search', '')
+    guests = request.args.get('guests', type=int)
     
     # Only show approved listings to public
     query = Listing.query.filter_by(approved=True)
@@ -286,6 +322,10 @@ def listings():
                 Listing.location.ilike(search_term)
             )
         )
+    
+    # Apply guest filter if provided
+    if guests and guests > 0:
+        query = query.filter(Listing.guest_capacity >= guests)
     
     # Apply sorting
     if sort == 'asc':
@@ -302,7 +342,8 @@ def listings():
         listings=listings,
         pagination=pagination,
         search=search,
-        sort=sort
+        sort=sort,
+        guests=guests
     )
 
 @main.route('/add-listing', methods=['GET', 'POST'])
@@ -319,6 +360,7 @@ def add_listing():
             location=form.location.data,
             description=form.description.data,
             price_per_night=float(form.price_per_night.data),
+            guest_capacity=int(form.guest_capacity.data),
             host_id=current_user.id,  # Use current user's ID
             host_name=form.host_name.data,
             image_filename=None,  # Will be updated after image upload
@@ -409,6 +451,11 @@ def book_listing(listing_id):
             flash('Check-in date cannot be in the past!', 'danger')
             return render_template('book.html', form=form, listing=listing)
         
+        # Validate guest count doesn't exceed listing capacity
+        if form.guest_count.data > listing.guest_capacity:
+            flash(f'This listing can accommodate maximum {listing.guest_capacity} guests. Please reduce the number of guests.', 'danger')
+            return render_template('book.html', form=form, listing=listing)
+        
         # Check for conflicting bookings
         existing_booking = Booking.query.filter(
             Booking.listing_id == listing.id,
@@ -430,12 +477,13 @@ def book_listing(listing_id):
             guest_id=current_user.id,
             listing_id=listing.id,
             check_in=form.check_in.data,
-            check_out=form.check_out.data
+            check_out=form.check_out.data,
+            guest_count=form.guest_count.data
         )
         db.session.add(booking)
         db.session.commit()
         
-        flash(f'Booking request sent for {days} nights (৳{total_cost:.2f} total)! The host will review your request.', 'success')
+        flash(f'Booking request sent for {form.guest_count.data} guests, {days} nights (৳{total_cost:.2f} total)! The host will review your request.', 'success')
         return redirect(url_for('main.my_bookings'))
 
     return render_template('book.html', form=form, listing=listing)
@@ -770,4 +818,131 @@ def not_found_error(error):
 @main.app_errorhandler(500)
 def internal_error(error):
     db.session.rollback()  # Roll back db session in case of database error
-    return render_template('500.html'), 500 
+    return render_template('500.html'), 500
+
+# Messaging Routes
+
+@main.route('/messages')
+@login_required
+def messages():
+    """Display all conversations for the current user"""
+    # Get conversations using improved query
+    conversations = (Conversation.query
+                   .filter(db.or_(
+                       Conversation.user1_id == current_user.id,
+                       Conversation.user2_id == current_user.id
+                   ))
+                   .join(Message)  # Only show conversations that have messages
+                   .order_by(Conversation.last_message_at.desc())
+                   .distinct()
+                   .all())
+    
+    # Debug information for troubleshooting
+    total_unread = (Message.query
+                   .join(Conversation)
+                   .filter(
+                       Message.recipient_id == current_user.id,
+                       Message.is_read == False,
+                       db.or_(
+                           Conversation.user1_id == current_user.id,
+                           Conversation.user2_id == current_user.id
+                       )
+                   ).count())
+    
+    print(f"DEBUG: User {current_user.username} has {len(conversations)} conversations and {total_unread} unread messages")
+    
+    return render_template('messages.html', conversations=conversations, total_unread=total_unread)
+
+@main.route('/messages/<int:conversation_id>')
+@login_required
+def view_conversation(conversation_id):
+    """Display messages for a specific conversation"""
+    conversation = Conversation.query.get_or_404(conversation_id)
+    
+    # Check if current user is part of this conversation
+    if conversation.user1_id != current_user.id and conversation.user2_id != current_user.id:
+        abort(403)
+    
+    # Mark messages as read for current user
+    conversation.mark_messages_as_read(current_user.id)
+    
+    # Get all messages in conversation
+    messages = conversation.messages.order_by(Message.created_at.asc()).all()
+    
+    # Get the other user in conversation
+    other_user = conversation.get_other_user(current_user.id)
+    
+    form = MessageForm()
+    
+    return render_template('conversation.html', 
+                         conversation=conversation, 
+                         messages=messages, 
+                         other_user=other_user, 
+                         form=form)
+
+@main.route('/messages/<int:conversation_id>/send', methods=['POST'])
+@login_required
+def send_message(conversation_id):
+    """Send a message in a conversation"""
+    conversation = Conversation.query.get_or_404(conversation_id)
+    
+    # Check if current user is part of this conversation
+    if conversation.user1_id != current_user.id and conversation.user2_id != current_user.id:
+        abort(403)
+    
+    form = MessageForm()
+    
+    if form.validate_on_submit():
+        # Determine recipient
+        recipient_id = conversation.user2_id if conversation.user1_id == current_user.id else conversation.user1_id
+        
+        # Create new message
+        message = Message(
+            conversation_id=conversation.id,
+            sender_id=current_user.id,
+            recipient_id=recipient_id,
+            content=form.content.data
+        )
+        
+        # Update conversation last message time
+        conversation.last_message_at = datetime.utcnow()
+        
+        db.session.add(message)
+        db.session.commit()
+        
+        flash('Message sent successfully!', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{error}', 'danger')
+    
+    return redirect(url_for('main.view_conversation', conversation_id=conversation_id))
+
+@main.route('/start-conversation/<int:user_id>')
+@login_required
+def start_conversation(user_id):
+    """Start a new conversation with another user"""
+    other_user = User.query.get_or_404(user_id)
+    
+    # Don't allow messaging yourself
+    if other_user.id == current_user.id:
+        flash('You cannot message yourself!', 'danger')
+        return redirect(url_for('main.messages'))
+    
+    # Check if conversation already exists
+    existing_conversation = current_user.get_conversation_with(other_user.id)
+    
+    if existing_conversation:
+        return redirect(url_for('main.view_conversation', conversation_id=existing_conversation.id))
+    
+    # Create new conversation
+    conversation = Conversation(
+        user1_id=min(current_user.id, other_user.id),  # Keep user1_id as the smaller ID for consistency
+        user2_id=max(current_user.id, other_user.id)
+    )
+    
+    db.session.add(conversation)
+    db.session.commit()
+    
+    flash(f'Started conversation with {other_user.username}!', 'success')
+    return redirect(url_for('main.view_conversation', conversation_id=conversation.id))
