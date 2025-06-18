@@ -14,6 +14,30 @@ from PIL import Image
 
 main = Blueprint('main', __name__)
 
+def save_profile_picture(uploaded_file, user_id):
+    """Save profile picture with user_id naming in static/images folder"""
+    # Ensure target directory exists
+    folder = os.path.join(current_app.root_path, 'static', 'images')
+    os.makedirs(folder, exist_ok=True)
+
+    # Remove any existing profile picture for this user
+    for ext in ['.jpg', '.jpeg', '.png']:
+        existing_file = os.path.join(folder, f"user_{user_id}{ext}")
+        if os.path.exists(existing_file):
+            os.remove(existing_file)
+
+    # Define the filename (always save as .jpg for consistency)
+    filename = f"user_{user_id}.jpg"
+    filepath = os.path.join(folder, filename)
+
+    # Resize and save using Pillow
+    img = Image.open(uploaded_file)
+    img = img.convert('RGB')  # Convert to RGB for JPEG format
+    img.thumbnail((300, 300))  # Resize to 300x300 max
+    img.save(filepath, format='JPEG', quality=85)
+
+    return filename
+
 @main.route('/')
 def home():
     return render_template('index.html')
@@ -155,25 +179,9 @@ def update_profile():
             if form.profile_picture.data:
                 pic = form.profile_picture.data
                 if pic.filename:
-                    # Generate secure filename
-                    filename = secure_filename(pic.filename)
-                    ext = os.path.splitext(filename)[1].lower()
-                    new_filename = f"profile_{current_user.id}{ext}"
-                    
-                    # Create upload directory if it doesn't exist
-                    os.makedirs(current_app.config['PROFILE_PIC_FOLDER'], exist_ok=True)
-                    
-                    # Resize and save image
-                    img = Image.open(pic)
-                    img = img.convert('RGB')  # Fix for PNG transparency
-                    img.thumbnail((300, 300))  # Resize to max 300x300
-                    
-                    # Save the image
-                    image_path = os.path.join(current_app.config['PROFILE_PIC_FOLDER'], new_filename)
-                    img.save(image_path)
-                    
-                    # Update user profile picture
-                    current_user.profile_picture = new_filename
+                    # Use the new save_profile_picture function
+                    picture_file = save_profile_picture(pic, current_user.id)
+                    current_user.profile_picture = picture_file
             
             # Handle password change if provided
             password_updated = False
