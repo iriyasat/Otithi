@@ -3,18 +3,270 @@
 {% block title %}Welcome to Otithi{% endblock %}
 
 {% block content %}
-<div class="hero-section text-center py-5 position-relative">
-    <div class="position-absolute start-0 top-0 opacity-25 display-1 text-green" style="left:2rem;top:2rem;font-size:7rem;">
-        <span>পট</span>
+<!-- Hero Section -->
+<section class="hero-section bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-content pe-lg-4">
+                    <h1 class="display-4 fw-bold text-dark mb-4">
+                        Experience authentic <span style="color: #444;">Bengali</span> hospitality
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        Discover unique homes, connect with local hosts, and create unforgettable memories 
+                        across Bangladesh with <strong>অ. Otithi</strong> — where every stay feels like home.
+                    </p>
+                    
+                    <!-- Search Bar -->
+                    <div class="search-container">
+                        <form class="bg-white rounded-4 shadow-sm p-3 mb-4" method="get" action="{{ url_for('main.listings') }}">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        <input type="text" name="location" class="form-control border-0" id="location" placeholder="Where to?">
+                                        <label for="location" class="text-muted">Where to?</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-floating">
+                                        <input type="date" name="check_in" class="form-control border-0" id="check_in" placeholder="Check in">
+                                        <label for="check_in" class="text-muted">Check in</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-floating">
+                                        <input type="number" name="guests" class="form-control border-0" id="guests" placeholder="Guests" min="1">
+                                        <label for="guests" class="text-muted">Guests</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-dark w-100 h-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- CTA Buttons -->
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{{ url_for('main.listings') }}" class="btn btn-dark btn-lg px-4">
+                            <i class="bi bi-house-door me-2"></i>Browse Stays
+                        </a>
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('main.register') }}" class="btn btn-outline-dark btn-lg px-4">
+                            <i class="bi bi-person-plus me-2"></i>Join as Host
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="hero-image text-center">
+                    <div class="position-relative">
+                        <img src="{{ url_for('static', filename='images/003f858996e943b19374f65490fd1ef3.jpg') }}" 
+                             alt="Beautiful home in Bangladesh" 
+                             class="img-fluid rounded-4 shadow-lg"
+                             style="max-height: 500px; object-fit: cover; width: 100%;">
+                        <div class="position-absolute bottom-0 start-0 end-0 bg-gradient-to-top p-4">
+                            <p class="text-white mb-0 small">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                Authentic stays across Bangladesh
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="position-absolute end-0 bottom-0 opacity-25 display-1 text-red" style="right:2rem;bottom:2rem;font-size:7rem;">
-        <span>নকশি</span>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="h3 fw-bold text-dark mb-3">Why choose <span style="color: #444;">অ. Otithi</span>?</h2>
+            <p class="text-muted">Experience the warmth of Bengali hospitality</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-house-heart fs-3 text-dark"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-3">Authentic Homes</h5>
+                    <p class="text-muted">Stay in carefully selected homes that reflect the true spirit of Bangladesh</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-people fs-3 text-dark"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-3">Local Hosts</h5>
+                    <p class="text-muted">Connect with friendly hosts who share their culture and local insights</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="text-center p-4">
+                    <div class="feature-icon bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-shield-check fs-3 text-dark"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-3">Trusted Platform</h5>
+                    <p class="text-muted">Book with confidence on our secure and trusted platform</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <h1 class="display-4 fw-bold mb-3 text-gold">Experience Bangladeshi Hospitality</h1>
-    <p class="lead mb-4">Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.</p>
-    <div class="d-flex justify-content-center gap-3">
-        <a href="/listings" class="btn btn-lg btn-bd-green">Find a Stay</a>
-        <a href="/add-listing" class="btn btn-lg btn-bd-red">Become a Host</a>
+</section>
+
+<!-- Featured Hosts Section (Placeholder) -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="h3 fw-bold text-dark mb-3">Featured Hosts</h2>
+            <p class="text-muted">Meet our top-rated hosts who provide exceptional experiences</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- This section will display actual hosts based on ratings and listing count -->
+            <div class="col-12 text-center">
+                <div class="bg-white rounded-4 p-5 shadow-sm">
+                    <i class="bi bi-star-fill text-warning fs-1 mb-3"></i>
+                    <h5 class="text-muted">Featured hosts coming soon</h5>
+                    <p class="text-muted small">Hosts with exceptional ratings and reviews will be showcased here</p>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+<!-- Guest Testimonials Section (Placeholder) -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="h3 fw-bold text-dark mb-3">What Our Guests Say</h2>
+            <p class="text-muted">Real reviews from confirmed bookings</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- This section will display actual reviews from confirmed bookings -->
+            <div class="col-12 text-center">
+                <div class="bg-light rounded-4 p-5">
+                    <i class="bi bi-chat-heart text-primary fs-1 mb-3"></i>
+                    <h5 class="text-muted">Guest testimonials coming soon</h5>
+                    <p class="text-muted small">Authentic reviews from guests who have completed their stays will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Explore Top Destinations Section -->
+<section class="explore-section py-5 bg-light">
+    <div class="container text-center">
+        <h3 class="fw-bold text-dark mb-3">Explore Top Destinations</h3>
+        <p class="text-muted">Discover unique stays across cities, beaches, and countryside in Bangladesh</p>
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ url_for('static', filename='images/003f858996e943b19374f65490fd1ef3.jpg') }}" class="card-img-top" alt="Dhaka">
+                    <div class="card-body">
+                        <h5 class="card-title">Dhaka</h5>
+                        <p class="card-text">Experience the heartbeat of Bangladesh with historic and modern comforts.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ url_for('static', filename='images/003f858996e943b19374f65490fd1ef3.jpg') }}" class="card-img-top" alt="Cox's Bazar">
+                    <div class="card-body">
+                        <h5 class="card-title">Cox's Bazar</h5>
+                        <p class="card-text">Relax at the world's longest beach with luxury villas and sea views.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ url_for('static', filename='images/003f858996e943b19374f65490fd1ef3.jpg') }}" class="card-img-top" alt="Sylhet">
+                    <div class="card-body">
+                        <h5 class="card-title">Sylhet</h5>
+                        <p class="card-text">Get close to nature with hills, tea gardens, and serene lakes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-dark text-white py-5">
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="h3 fw-bold mb-3">Ready to start your journey?</h2>
+                <p class="lead mb-4">Join thousands of travelers discovering Bangladesh through authentic home-stays</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('main.register') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Sign Up Today
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.about') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+.bg-gradient-to-top {
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+}
+
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.feature-icon:hover {
+    transform: translateY(-5px);
+}
+
+.search-container .form-floating > label {
+    font-size: 0.85rem;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.explore-section h3 {
+    font-weight: 600;
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .hero-image {
+        margin-top: 2rem;
+    }
+}
+</style>
 {% endblock %} 

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Leave a Review - Otithi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-star me-2"></i>
+                        Leave a Review
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Booking Details -->
+                    <div class="booking-details mb-4 p-3 bg-light rounded">
+                        <h5 class="text-muted mb-3">Booking Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Property:</strong> {{ booking.listing.name }}</p>
+                                <p><strong>Location:</strong> {{ booking.listing.location }}</p>
+                                <p><strong>Check-in:</strong> {{ booking.check_in.strftime('%B %d, %Y') }}</p>
+                                <p><strong>Check-out:</strong> {{ booking.check_out.strftime('%B %d, %Y') }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>You are reviewing the {{ review_target }}:</strong></p>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ url_for('static', filename='images/default_avatar.png') }}" 
+                                         alt="Avatar" class="rounded-circle me-2" width="40" height="40">
+                                    <div>
+                                        <strong>{{ reviewed_user.username }}</strong>
+                                        <small class="text-muted d-block">{{ reviewed_user.role.title() }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Form -->
+                    <form method="POST" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Rating Section -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <strong>Rating <span class="text-danger">*</span></strong>
+                            </label>
+                            <div class="star-rating mb-2">
+                                <div class="star-input">
+                                    <input type="radio" name="rating" value="1" id="star1" required>
+                                    <label for="star1" class="star">★</label>
+                                    <input type="radio" name="rating" value="2" id="star2">
+                                    <label for="star2" class="star">★</label>
+                                    <input type="radio" name="rating" value="3" id="star3">
+                                    <label for="star3" class="star">★</label>
+                                    <input type="radio" name="rating" value="4" id="star4">
+                                    <label for="star4" class="star">★</label>
+                                    <input type="radio" name="rating" value="5" id="star5">
+                                    <label for="star5" class="star">★</label>
+                                </div>
+                                <div class="rating-text mt-2">
+                                    <small class="text-muted">Click on a star to rate (1 = Poor, 5 = Excellent)</small>
+                                </div>
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.rating.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Comment Section -->
+                        <div class="mb-4">
+                            {{ form.comment.label(class="form-label") }}
+                            {{ form.comment(class="form-control", rows="4", placeholder="Share your experience... (Optional)") }}
+                            {% if form.comment.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.comment.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Maximum 500 characters</div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('main.my_bookings') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Bookings
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Submit Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Star Rating Styles */
+.star-rating {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.star-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-input input[type="radio"] {
+    display: none;
+}
+
+.star-input label {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    margin-right: 5px;
+}
+
+.star-input label:hover,
+.star-input label:hover ~ label {
+    color: #ffd700;
+}
+
+.star-input input[type="radio"]:checked ~ label {
+    color: #ffd700;
+}
+
+.booking-details {
+    border-left: 4px solid #007bff;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .star-input label {
+        font-size: 1.5rem;
+        margin-right: 3px;
+    }
+}
+</style>
+
+<script>
+// JavaScript for star rating interaction
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star-input label');
+    const ratingText = document.querySelector('.rating-text small');
+    
+    const ratingMessages = {
+        1: '★ Poor - Not satisfied',
+        2: '★★ Fair - Below expectations', 
+        3: '★★★ Good - Met expectations',
+        4: '★★★★ Very Good - Exceeded expectations',
+        5: '★★★★★ Excellent - Outstanding experience'
+    };
+    
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseover', function() {
+            const rating = 5 - index;
+            ratingText.textContent = ratingMessages[rating];
+            ratingText.style.color = '#ffd700';
+        });
+        
+        star.addEventListener('mouseout', function() {
+            ratingText.textContent = 'Click on a star to rate (1 = Poor, 5 = Excellent)';
+            ratingText.style.color = '#6c757d';
+        });
+        
+        star.addEventListener('click', function() {
+            const rating = 5 - index;
+            ratingText.textContent = ratingMessages[rating];
+            ratingText.style.color = '#ffd700';
+        });
+    });
+});
+</script>
+{% endblock %} 

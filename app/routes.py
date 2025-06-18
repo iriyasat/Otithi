@@ -1,13 +1,16 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, abort
 from werkzeug.utils import secure_filename
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import Listing, User
+from .models import Listing, User, Booking, Review
 from . import db
-from .forms import ListingForm, RegisterForm, LoginForm
+from .forms import ListingForm, RegisterForm, LoginForm, BookingForm, ReviewForm, EditUserForm, ProfileSettingsForm
+from .decorators import role_required, admin_required, host_required, guest_required, owns_listing_or_admin
 import uuid
-from sqlalchemy import or_
+from sqlalchemy import or_, func
+from datetime import date
+from PIL import Image
 
 main = Blueprint('main', __name__)
 
@@ -23,21 +26,47 @@ def about():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
+    
     form = RegisterForm()
-    if form.validate_on_submit():
-        existing_user = User.query.filter((User.username == form.username.data) | (User.email == form.email.data)).first()
-        if existing_user:
-            flash('Username or email already exists.')
-            return render_template('register.html', form=form)
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            password_hash=generate_password_hash(form.password.data)
-        )
-        db.session.add(user)
-        db.session.commit()
-        flash('Registration successful! Please log in.')
-        return redirect(url_for('main.login'))
+    
+    if request.method == 'POST':
+        # Debug: Print form data and validation status
+        print(f"DEBUG: Form data received: {request.form}")
+        print(f"DEBUG: Form validation status: {form.validate()}")
+        print(f"DEBUG: Form errors: {form.errors}")
+        
+        if form.validate_on_submit():
+            try:
+                # Security: Ensure only guest/host roles can be registered
+                if form.account_type.data not in ['guest', 'host']:
+                    flash('Invalid account type selected.', 'danger')
+                    return render_template('register.html', form=form)
+                
+                # Create new user (validation already handled by form validators)
+                user = User(
+                    username=form.username.data,
+                    email=form.email.data,
+                    role=form.account_type.data,
+                    is_admin=False,  # Explicitly set to False for security
+                    password_hash=generate_password_hash(form.password.data)
+                )
+                
+                db.session.add(user)
+                db.session.commit()
+                
+                flash(f'Registration successful as a {form.account_type.data.title()}! Please log in.', 'success')
+                return redirect(url_for('main.login'))
+                
+            except Exception as e:
+                db.session.rollback()
+                print(f"DEBUG: Database error during registration: {str(e)}")
+                flash('An error occurred during registration. Please try again.', 'danger')
+                return render_template('register.html', form=form)
+        else:
+            # Form validation failed - show specific errors
+            print(f"DEBUG: Form validation failed with errors: {form.errors}")
+            flash('Please correct the errors below and try again.', 'danger')
+    
     return render_template('register.html', form=form)
 
 @main.route('/login', methods=['GET', 'POST'])
@@ -49,28 +78,144 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user)
-            flash('Logged in successfully!')
+            flash('Login successful. Welcome back, {}!'.format(current_user.username), 'success')
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('main.home'))
+            if next_page:
+                return redirect(next_page)
+            # Role-based redirect after login
+            if current_user.is_admin:
+                return redirect(url_for('main.admin_dashboard'))
+            elif current_user.role == 'host':
+                return redirect(url_for('main.host_dashboard'))
+            else:
+                return redirect(url_for('main.browse'))
         else:
-            flash('Invalid username or password.')
+            flash('Invalid username or password.', 'danger')
+    else:
+        # Debug: Show form validation errors if form doesn't validate
+        if request.method == 'POST':
+            for field_name, errors in form.errors.items():
+                for error in errors:
+                    flash(f'{field_name}: {error}', 'danger')
     return render_template('login.html', form=form)
 
 @main.route('/logout')
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.')
+    flash('You have been logged out.', 'info')
     return redirect(url_for('main.home'))
 
-@main.route('/test-db')
-def test_db():
-    from .models import Listing
-    try:
-        listings = Listing.query.all()
-        return 'Database connected successfully'
-    except Exception as e:
-        return f'Database connection failed: {e}'
+@main.route('/profile')
+@login_required
+def profile():
+    form = ProfileSettingsForm()
+    # Pre-populate form with current user data
+    form.username.data = current_user.username
+    form.email.data = current_user.email
+    return render_template('profile.html', title='Profile', Review=Review, form=form)
+
+@main.route('/my-listings')
+@role_required('host', 'admin')
+def my_listings():
+    if current_user.is_admin:
+        # Admin can see all listings
+        user_listings = Listing.query.all()
+        title = 'All Listings (Admin View)'
+    else:
+        # Host can only see their own listings using proper foreign key
+        user_listings = Listing.query.filter_by(host_id=current_user.id).all()
+        title = 'My Listings'
+    return render_template('my_listings.html', listings=user_listings, title=title)
+
+@main.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    form = ProfileSettingsForm()
+    if form.validate_on_submit():
+        try:
+            # Check if username or email is already taken by another user
+            if form.username.data != current_user.username:
+                existing_user = User.query.filter_by(username=form.username.data).first()
+                if existing_user:
+                    flash('Username already exists. Please choose a different one.', 'danger')
+                    return redirect(url_for('main.profile'))
+            
+            if form.email.data != current_user.email:
+                existing_user = User.query.filter_by(email=form.email.data).first()
+                if existing_user:
+                    flash('Email already exists. Please choose a different one.', 'danger')
+                    return redirect(url_for('main.profile'))
+            
+            # Update basic information
+            current_user.username = form.username.data
+            current_user.email = form.email.data
+            
+            # Handle profile picture upload
+            if form.profile_picture.data:
+                pic = form.profile_picture.data
+                if pic.filename:
+                    # Generate secure filename
+                    filename = secure_filename(pic.filename)
+                    ext = os.path.splitext(filename)[1].lower()
+                    new_filename = f"profile_{current_user.id}{ext}"
+                    
+                    # Create upload directory if it doesn't exist
+                    os.makedirs(current_app.config['PROFILE_PIC_FOLDER'], exist_ok=True)
+                    
+                    # Resize and save image
+                    img = Image.open(pic)
+                    img = img.convert('RGB')  # Fix for PNG transparency
+                    img.thumbnail((300, 300))  # Resize to max 300x300
+                    
+                    # Save the image
+                    image_path = os.path.join(current_app.config['PROFILE_PIC_FOLDER'], new_filename)
+                    img.save(image_path)
+                    
+                    # Update user profile picture
+                    current_user.profile_picture = new_filename
+            
+            # Handle password change if provided
+            password_updated = False
+            if form.current_password.data and form.current_password.data.strip():
+                if not check_password_hash(current_user.password_hash, form.current_password.data):
+                    flash('Current password is incorrect.', 'danger')
+                    return redirect(url_for('main.profile'))
+                
+                if form.new_password.data and form.new_password.data.strip():
+                    current_user.password_hash = generate_password_hash(form.new_password.data)
+                    password_updated = True
+                else:
+                    flash('New password is required when current password is provided.', 'danger')
+                    return redirect(url_for('main.profile'))
+            
+            # Commit changes
+            db.session.commit()
+            
+            # Success message
+            updates = []
+            if form.profile_picture.data and form.profile_picture.data.filename:
+                updates.append('profile picture')
+            if password_updated:
+                updates.append('password')
+            if form.username.data != form.username.object_data or form.email.data != form.email.object_data:
+                updates.append('profile information')
+            
+            if updates:
+                flash(f'Successfully updated: {", ".join(updates)}!', 'success')
+            else:
+                flash('Profile updated successfully!', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+    else:
+        # Form validation failed
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{field}: {error}', 'danger')
+    
+    return redirect(url_for('main.profile'))
 
 @main.route('/listings')
 def listings():
@@ -78,7 +223,8 @@ def listings():
     sort = request.args.get('sort', '')
     search = request.args.get('search', '')
     
-    query = Listing.query
+    # Only show approved listings to public
+    query = Listing.query.filter_by(approved=True)
     
     # Apply search if provided
     if search:
@@ -109,7 +255,7 @@ def listings():
     )
 
 @main.route('/add-listing', methods=['GET', 'POST'])
-@login_required
+@role_required('host', 'admin')
 def add_listing():
     form = ListingForm()
     if form.validate_on_submit():
@@ -122,24 +268,34 @@ def add_listing():
                 image_path = os.path.join(current_app.root_path, 'static', 'images', unique_name)
                 image_file.save(image_path)
                 image_filename = unique_name
+        # Admin can directly approve listings, hosts need approval
+        approved = current_user.is_admin
+        
         listing = Listing(
             name=form.name.data,
             location=form.location.data,
             description=form.description.data,
             price_per_night=float(form.price_per_night.data),
+            host_id=current_user.id,  # Use current user's ID
             host_name=form.host_name.data,
-            image_filename=image_filename
+            image_filename=image_filename,
+            approved=approved
         )
         db.session.add(listing)
         db.session.commit()
-        flash('Listing added successfully!')
-        return redirect(url_for('main.listings'))
+        
+        if approved:
+            flash('Listing added successfully and is now live!', 'success')
+        else:
+            flash('Your listing has been submitted and is pending admin approval. You will be notified once it\'s reviewed.', 'info')
+        
+        return redirect(url_for('main.my_listings'))
     return render_template('add_listing.html', form=form)
 
-@main.route('/edit-listing/<int:id>', methods=['GET', 'POST'])
-@login_required
-def edit_listing(id):
-    listing = Listing.query.get_or_404(id)
+@main.route('/edit-listing/<int:listing_id>', methods=['GET', 'POST'])
+@owns_listing_or_admin
+def edit_listing(listing_id):
+    listing = Listing.query.get_or_404(listing_id)
     form = ListingForm(obj=listing)
     if form.validate_on_submit():
         form.populate_obj(listing)
@@ -154,22 +310,415 @@ def edit_listing(id):
         return redirect(url_for('main.listings'))
     return render_template('edit_listing.html', form=form, listing=listing)
 
-@main.route('/delete-listing/<int:id>', methods=['POST'])
-@login_required
-def delete_listing(id):
-    listing = Listing.query.get_or_404(id)
-    # Delete associated image file if it exists
-    if listing.image_filename:
-        image_path = os.path.join(current_app.root_path, 'static', 'images', listing.image_filename)
-        try:
+@main.route('/delete-listing/<int:listing_id>', methods=['POST'])
+@owns_listing_or_admin
+def delete_listing(listing_id):
+    listing = Listing.query.get_or_404(listing_id)
+    try:
+        # Delete associated image file if it exists
+        if listing.image_filename:
+            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], listing.image_filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
-        except Exception as e:
-            flash(f'Image file could not be deleted: {e}', 'warning')
-    db.session.delete(listing)
+        
+        db.session.delete(listing)
+        db.session.commit()
+        flash('Listing deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting listing: {str(e)}', 'danger')
+    return redirect(url_for('main.my_listings'))
+
+@main.route('/listing/<int:listing_id>/book', methods=['GET', 'POST'])
+@login_required
+def book_listing(listing_id):
+    # Only guests can book listings
+    if current_user.role != 'guest':
+        flash('Only guests can book listings!', 'danger')
+        return redirect(url_for('main.browse'))
+    
+    form = BookingForm()
+    listing = Listing.query.get_or_404(listing_id)
+    
+    # Check if listing is approved
+    if not listing.approved:
+        flash('This listing is not available for booking.', 'danger')
+        return redirect(url_for('main.browse'))
+    
+    # Check if user is trying to book their own listing
+    if listing.host_id == current_user.id:
+        flash('You cannot book your own listing!', 'danger')
+        return redirect(url_for('main.browse'))
+    
+    if form.validate_on_submit():
+        # Validate check-in and check-out dates
+        if form.check_out.data <= form.check_in.data:
+            flash('Check-out date must be after check-in date!', 'danger')
+            return render_template('book.html', form=form, listing=listing)
+        
+        # Validate check-in is not in the past
+        if form.check_in.data < date.today():
+            flash('Check-in date cannot be in the past!', 'danger')
+            return render_template('book.html', form=form, listing=listing)
+        
+        # Check for conflicting bookings
+        existing_booking = Booking.query.filter(
+            Booking.listing_id == listing.id,
+            Booking.status.in_(['pending', 'confirmed']),
+            Booking.check_in < form.check_out.data,
+            Booking.check_out > form.check_in.data
+        ).first()
+        
+        if existing_booking:
+            flash('These dates are not available. Please select different dates.', 'danger')
+            return render_template('book.html', form=form, listing=listing)
+        
+        # Calculate cost
+        days = (form.check_out.data - form.check_in.data).days
+        total_cost = days * listing.price_per_night
+        
+        # Create booking
+        booking = Booking(
+            guest_id=current_user.id,
+            listing_id=listing.id,
+            check_in=form.check_in.data,
+            check_out=form.check_out.data
+        )
+        db.session.add(booking)
+        db.session.commit()
+        
+        flash(f'Booking request sent for {days} nights (৳{total_cost:.2f} total)! The host will review your request.', 'success')
+        return redirect(url_for('main.my_bookings'))
+
+    return render_template('book.html', form=form, listing=listing)
+
+@main.route('/booking/<int:booking_id>/confirmation')
+@login_required
+def booking_confirmation(booking_id):
+    """Show booking confirmation page"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Only the guest who made the booking can view this
+    if booking.guest_id != current_user.id:
+        abort(403)
+    
+    return render_template('booking_confirmation.html', booking=booking)
+
+@main.route('/my-bookings')
+@role_required('guest', 'host')
+def my_bookings():
+    if current_user.role == 'guest':
+        # Show bookings made by this guest
+        bookings = Booking.query.filter_by(guest_id=current_user.id).order_by(Booking.created_at.desc()).all()
+        title = "My Bookings"
+    else:
+        # Show bookings for listings owned by this host using proper join
+        bookings = Booking.query \
+            .join(Listing, Booking.listing_id == Listing.id) \
+            .filter(Listing.host_id == current_user.id) \
+            .order_by(Booking.created_at.desc()) \
+            .all()
+        title = "Booking Requests"
+    
+    # Pass current date for template logic
+    today = date.today()
+    return render_template('my_bookings.html', bookings=bookings, title=title, today=today)
+
+@main.route('/booking/<int:booking_id>/update-status', methods=['POST'])
+@role_required('host', 'admin')
+def update_booking_status(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    listing = booking.listing
+    
+    # Only the host of the listing or admin can update booking status
+    if not current_user.is_admin and listing.host_id != current_user.id:
+        abort(403)
+    
+    new_status = request.form.get('status')
+    if new_status in ['confirmed', 'cancelled']:
+        old_status = booking.status
+        booking.status = new_status
+        db.session.commit()
+        
+        # Notify guest about status change
+        action = "confirmed" if new_status == 'confirmed' else "cancelled"
+        flash(f'Booking request {action} successfully! Guest will be notified.', 'success')
+        
+        # Add notification logic here if needed
+        
+    else:
+        flash('Invalid status update!', 'danger')
+    
+    return redirect(url_for('main.my_bookings'))
+
+@main.route('/booking/<int:booking_id>/checkin', methods=['POST'])
+@login_required
+def checkin(booking_id):
+    """Allow guest to check in to their booking"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Only the guest can check in
+    if booking.guest_id != current_user.id:
+        abort(403)
+    
+    # Check if check-in is allowed
+    if not booking.can_check_in():
+        flash('Check-in is not available for this booking. Please ensure it is confirmed and within the check-in period.', 'warning')
+        return redirect(url_for('main.my_bookings'))
+    
+    booking.status = 'checked_in'
     db.session.commit()
-    flash('Listing deleted successfully!')
+    flash('You have checked in successfully! Enjoy your stay.', 'success')
+    return redirect(url_for('main.my_bookings'))
+
+@main.route('/booking/<int:booking_id>/checkout', methods=['POST'])
+@login_required
+def checkout(booking_id):
+    """Allow guest to check out of their booking"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Only the guest can check out
+    if booking.guest_id != current_user.id:
+        abort(403)
+    
+    # Check if check-out is allowed
+    if not booking.can_check_out():
+        flash('Check-out is not available. You must be checked in first.', 'warning')
+        return redirect(url_for('main.my_bookings'))
+    
+    booking.status = 'checked_out'
+    db.session.commit()
+    flash('You have checked out successfully! Thank you for your stay. Please consider leaving a review.', 'success')
+    return redirect(url_for('main.my_bookings'))
+
+@main.route('/review/<int:booking_id>', methods=['GET', 'POST'])
+@login_required
+def review_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Verify user is either guest or host of this booking
+    if current_user.id != booking.guest_id and current_user.id != booking.listing.host_id:
+        abort(403)
+    
+    # Only allow review after checkout date has passed
+    if date.today() <= booking.check_out:
+        days_until_checkout = (booking.check_out - date.today()).days
+        flash(f'You can only leave a review after checkout. {days_until_checkout} days remaining.', 'warning')
+        return redirect(url_for('main.my_bookings'))
+    
+    # Check if booking is confirmed
+    if booking.status != 'confirmed':
+        flash('You can only review confirmed bookings.', 'warning')
+        return redirect(url_for('main.my_bookings'))
+    
+    form = ReviewForm()
+
+    if form.validate_on_submit():
+        # Prevent duplicate reviews for same booking and same direction
+        existing = Review.query.filter_by(booking_id=booking.id, reviewer_id=current_user.id).first()
+        if existing:
+            flash('You already submitted a review for this booking.', 'info')
+            return redirect(url_for('main.my_bookings'))
+
+        # Determine who is being reviewed
+        if current_user.id == booking.guest_id:
+            # Guest is reviewing the host
+            reviewed_user_id = booking.listing.host_id
+            reviewer_type = 'guest'
+            reviewed_type = 'host'
+        else:
+            # Host is reviewing the guest
+            reviewed_user_id = booking.guest_id
+            reviewer_type = 'host'
+            reviewed_type = 'guest'
+
+        review = Review(
+            reviewer_id=current_user.id,
+            reviewed_id=reviewed_user_id,
+            booking_id=booking.id,
+            rating=form.rating.data,
+            comment=form.comment.data
+        )
+        db.session.add(review)
+        db.session.commit()
+        flash(f'Review submitted successfully! You rated the {reviewed_type}.', 'success')
+        return redirect(url_for('main.my_bookings'))
+
+    # Determine who is being reviewed for display
+    if current_user.id == booking.guest_id:
+        reviewed_user = booking.listing.host
+        review_target = 'host'
+    else:
+        reviewed_user = booking.guest
+        review_target = 'guest'
+
+    return render_template('review.html', form=form, booking=booking, reviewed_user=reviewed_user, review_target=review_target)
+
+@main.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    q = request.args.get('q', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    user_query = User.query
+    if q:
+        user_query = user_query.filter(
+            or_(
+                User.username.ilike(f'%{q}%'),
+                User.email.ilike(f'%{q}%'),
+                User.role.ilike(f'%{q}%')
+            )
+        )
+    user_query = user_query.order_by(User.username.asc())
+    pagination = user_query.paginate(page=page, per_page=per_page, error_out=False)
+    users = pagination.items
+    # Split users into hosts and guests for tables
+    hosts = [u for u in users if u.role == 'host']
+    guests = [u for u in users if u.role == 'guest']
+    # Analytics
+    total_users = User.query.count()
+    total_hosts = User.query.filter_by(role='host').count()
+    total_listings = Listing.query.count()
+    # Host/guest data for tables
+    host_data = [
+        {
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'role': 'Host',
+            'total_listings': Listing.query.filter_by(host_id=u.id).count()
+        } for u in hosts
+    ]
+    guest_data = [
+        {
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'role': 'Guest',
+            'total_bookings': 0  # Placeholder
+        } for u in guests
+    ]
+    return render_template('admin_dashboard.html',
+        hosts=host_data,
+        guests=guest_data,
+        pagination=pagination,
+        q=q,
+        total_users=total_users,
+        total_hosts=total_hosts,
+        total_listings=total_listings
+    )
+
+@main.route('/admin/listings/pending')
+@admin_required
+def admin_pending_listings():
+    """Admin panel for managing pending listings"""
+    pending_listings = Listing.query.filter_by(approved=False).order_by(Listing.created_at.desc()).all()
+    approved_count = Listing.query.filter_by(approved=True).count()
+    pending_count = len(pending_listings)
+    
+    return render_template('admin/pending_listings.html', 
+                         listings=pending_listings,
+                         approved_count=approved_count,
+                         pending_count=pending_count)
+
+@main.route('/admin/listing/<int:listing_id>/approve', methods=['POST'])
+@admin_required
+def admin_approve_listing(listing_id):
+    """Approve a pending listing"""
+    listing = Listing.query.get_or_404(listing_id)
+    listing.approved = True
+    db.session.commit()
+    flash(f'Listing "{listing.name}" has been approved and is now live!', 'success')
+    return redirect(url_for('main.admin_pending_listings'))
+
+@main.route('/admin/listing/<int:listing_id>/reject', methods=['POST'])
+@admin_required  
+def admin_reject_listing(listing_id):
+    """Reject/delete a pending listing"""
+    listing = Listing.query.get_or_404(listing_id)
+    listing_name = listing.name
+    
+    try:
+        # Delete associated image file if it exists
+        if listing.image_filename:
+            image_path = os.path.join(current_app.root_path, 'static', 'images', listing.image_filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        
+        db.session.delete(listing)
+        db.session.commit()
+        flash(f'Listing "{listing_name}" has been rejected and removed.', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error rejecting listing: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.admin_pending_listings'))
+
+@main.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    form = EditUserForm(original_email=user.email, obj=user)
+    
+    if form.validate_on_submit():
+        user.email = form.email.data
+        user.role = form.role.data
+        try:
+            db.session.commit()
+            flash('User updated successfully!', 'success')
+            return redirect(url_for('main.admin_dashboard', q=request.args.get('q', '')))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating user: {str(e)}', 'danger')
+    else:
+        # Flash form validation errors
+        for field in form:
+            for error in field.errors:
+                flash(f"{field.label.text}: {error}", "danger")
+    
+    return render_template('edit_user.html', user=user, form=form)
+
+@main.route('/admin/user/<int:user_id>/delete', methods=['POST'])
+@admin_required
+def admin_delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deleting own account
+    if user.id == current_user.id:
+        flash('You cannot delete your own admin account.', 'danger')
+        return redirect(url_for('main.admin_dashboard', q=request.args.get('q', '')))
+    
+    # Prevent deleting if this is the only admin
+    if not user.can_be_deleted():
+        flash('Cannot delete the only admin user. Create another admin first.', 'danger')
+        return redirect(url_for('main.admin_dashboard', q=request.args.get('q', '')))
+    
+    username = user.username
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f'User "{username}" deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting user: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.admin_dashboard', q=request.args.get('q', '')))
+
+# Role-based redirect routes
+@main.route('/host/dashboard')
+@host_required
+def host_dashboard():
+    """Placeholder host dashboard - redirects to my listings for now"""
+    return redirect(url_for('main.my_listings'))
+
+@main.route('/browse')
+def browse():
+    """Placeholder browse page - redirects to listings for now"""
     return redirect(url_for('main.listings'))
+
+@main.app_errorhandler(403)
+def forbidden_error(error):
+    return render_template('403.html'), 403
 
 @main.app_errorhandler(404)
 def not_found_error(error):

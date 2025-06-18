@@ -4,77 +4,73 @@
 
 {% block content %}
 <div class="container py-4">
-    <!-- Search and Sort Section -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <form class="d-flex" method="get" action="{{ url_for('main.listings') }}">
-                <input type="text" name="search" class="form-control me-2" placeholder="Search by name or location..." value="{{ search }}">
-                <button type="submit" class="btn btn-bd-green">Search</button>
-            </form>
-        </div>
-        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <div class="btn-group">
-                <a href="{{ url_for('main.listings', search=search, sort='asc') }}" class="btn btn-bd-gold {% if sort == 'asc' %}active{% endif %}">
-                    Price Low to High
-                </a>
-                <a href="{{ url_for('main.listings', search=search, sort='desc') }}" class="btn btn-bd-gold {% if sort == 'desc' %}active{% endif %}">
-                    Price High to Low
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+    <!-- Airbnb-style Search and Sort Bar -->
+    <form class="search-bar-airbnb d-flex flex-wrap align-items-center justify-content-center gap-2 shadow-sm bg-white rounded-pill px-3 py-2 mb-4 mx-auto" method="get" action="{{ url_for('main.listings') }}">
+        <input type="text" name="location" class="form-control border-0 rounded-pill search-pill" placeholder="Location" value="{{ request.args.get('location', '') }}" style="max-width:160px;">
+        <input type="date" name="date" class="form-control border-0 rounded-pill search-pill" value="{{ request.args.get('date', '') }}" style="max-width:140px;">
+        <input type="number" name="guests" min="1" class="form-control border-0 rounded-pill search-pill" placeholder="Guests" value="{{ request.args.get('guests', '') }}" style="max-width:100px;">
+        <button type="submit" class="btn btn-airbnb-pill ms-2">Search</button>
+    </form>
 
     <!-- Listings Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for listing in listings %}
         <div class="col">
-            <div class="card h-100 shadow-sm">
+            <div class="card card-airbnb h-100">
                 {% if listing.image_filename %}
                 <img src="{{ url_for('static', filename='images/' + listing.image_filename) }}" class="card-img-top" alt="{{ listing.name }}">
                 {% else %}
-                <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                    <i class="fas fa-home fa-3x"></i>
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="bi bi-house-door fs-1 text-secondary"></i>
                 </div>
                 {% endif %}
                 <div class="card-body">
-                    <h5 class="card-title text-green">{{ listing.name }}</h5>
-                    <p class="card-text">
-                        <i class="fas fa-map-marker-alt text-red"></i> {{ listing.location }}<br>
-                        <i class="fas fa-user text-gold"></i> {{ listing.host_name }}
-                    </p>
-                    <p class="card-text">{{ listing.description[:150] }}{% if listing.description|length > 150 %}...{% endif %}</p>
-                </div>
-                <div class="card-footer bg-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-green fw-bold">৳{{ "%.2f"|format(listing.price_per_night) }}/night</span>
-                        {% if current_user.is_authenticated %}
-                        <div class="btn-group">
-                            <a href="{{ url_for('main.edit_listing', id=listing.id) }}" class="btn btn-sm btn-bd-gold">Edit</a>
-                            <form action="{{ url_for('main.delete_listing', id=listing.id) }}" method="post" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-bd-red" onclick="return confirm('Are you sure you want to delete this listing?')">Delete</button>
-                            </form>
-                        </div>
-                        {% endif %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title mb-0">{{ listing.name }}</h5>
+                        <span class="fw-bold text-airbnb">৳{{ "%.2f"|format(listing.price_per_night) }}</span>
                     </div>
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-geo-alt-fill text-airbnb me-1"></i>
+                        <span class="small">{{ listing.location }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="bi bi-person-fill text-airbnb me-1"></i>
+                        <span class="small">Host: {{ listing.host_name }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-star-fill text-warning me-1"></i>
+                        <span class="small">{{ listing.rating or 'New' }}</span>
+                    </div>
+                    <p class="card-text small">{{ listing.description[:120] }}{% if listing.description|length > 120 %}...{% endif %}</p>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.username == listing.host_name %}
+                            <!-- Host can edit/delete their own listings -->
+                            <div class="btn-group">
+                                <a href="{{ url_for('main.edit_listing', listing_id=listing.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <form action="{{ url_for('main.delete_listing', listing_id=listing.id) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this listing?')">Delete</button>
+                                </form>
+                            </div>
+                        {% elif current_user.role == 'guest' %}
+                            <!-- Guests can book listings -->
+                            <a href="{{ url_for('main.book_listing', listing_id=listing.id) }}" class="btn btn-success">
+                                <i class="bi bi-calendar-check me-1"></i>Book Now
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <!-- Non-authenticated users see login prompt -->
+                        <a href="{{ url_for('main.login') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login to Book
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
-
     <!-- Pagination -->
     {% if pagination.pages > 1 %}
     <nav aria-label="Page navigation" class="mt-4">
@@ -82,8 +78,7 @@
             {% for page in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
                 {% if page %}
                     <li class="page-item {% if page == pagination.page %}active{% endif %}">
-                        <a class="page-link {% if page == pagination.page %}bg-success border-success{% endif %}" 
-                           href="{{ url_for('main.listings', page=page, search=search, sort=sort) }}">
+                        <a class="page-link" href="{{ url_for('main.listings', page=page, location=request.args.get('location', ''), date=request.args.get('date', ''), guests=request.args.get('guests', '')) }}">
                             {{ page }}
                         </a>
                     </li>

@@ -1,12 +1,78 @@
-// Navbar toggle for mobile (Bootstrap handles this, but for custom toggles you can use this)
+/*
+Bangladesh-Inspired Interactive JS
+Author: Your Name
+Description: Clean, robust JavaScript for Flask app with Bangladesh color theme.
+*/
+
+/* =========================
+   Airbnb-Style UI Interactions
+   ========================= */
 document.addEventListener('DOMContentLoaded', function () {
-    // Smooth scrolling for anchor links
+    // --- Mobile Nav Toggle ---
+    const menuToggle = document.querySelector('.menu-toggle');
+    const mobileNav = document.querySelector('.mobile-nav');
+    if (menuToggle && mobileNav) {
+        menuToggle.addEventListener('click', function () {
+            const isOpen = mobileNav.classList.toggle('open');
+            menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+        mobileNav.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileNav.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+
+    // --- Profile Dropdown (Bootstrap handles dropdowns) ---
+    // No custom JS needed for dropdown-menu if using Bootstrap
+
+    // --- Search Bar Focus Animation ---
+    document.querySelectorAll('.search-bar-airbnb input').forEach(input => {
+        input.addEventListener('focus', function () {
+            this.closest('.search-bar-airbnb').classList.add('active');
+        });
+        input.addEventListener('blur', function () {
+            this.closest('.search-bar-airbnb').classList.remove('active');
+        });
+    });
+
+    // --- Section Fade-In on Scroll ---
+    const fadeSections = document.querySelectorAll('.section-fade');
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+        fadeSections.forEach(section => observer.observe(section));
+    } else {
+        function revealSections() {
+            const trigger = window.innerHeight * 0.92;
+            fadeSections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top < trigger) {
+                    section.classList.add('visible');
+                }
+            });
+        }
+        window.addEventListener('scroll', revealSections);
+        revealSections();
+    }
+
+    // Smooth Scroll for Anchor Links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
+            const targetId = this.getAttribute('href');
+            // Only handle valid, non-empty hash links
+            if (targetId && targetId.length > 1 && document.querySelector(targetId)) {
                 e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth' });
+                document.querySelector(targetId).scrollIntoView({
+                    behavior: 'smooth'
+                });
             }
         });
     });
@@ -32,66 +98,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-
-    // Navbar shadow/color on scroll
-    const navbar = document.querySelector('.navbar-bd');
-    window.addEventListener('scroll', function () {
-        if (window.scrollY > 10) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-    });
-
-    // --- Airbnb-style Mobile Menu Toggle ---
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navMenu = document.querySelector('.navbar-nav');
-    if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', function () {
-            navMenu.classList.toggle('open');
-            menuToggle.classList.toggle('open');
-        });
-    }
-
-    // --- Airbnb-style Section Fade-in with Intersection Observer ---
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    obs.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.15 });
-        document.querySelectorAll('.section-fade').forEach(section => {
-            observer.observe(section);
-        });
-    } else {
-        // fallback to scroll event
-        function revealSections() {
-            const sections = document.querySelectorAll('.section-fade');
-            const trigger = window.innerHeight * 0.92;
-            sections.forEach(section => {
-                const rect = section.getBoundingClientRect();
-                if (rect.top < trigger) {
-                    section.classList.add('visible');
-                }
-            });
-        }
-        window.addEventListener('scroll', revealSections);
-        revealSections();
-    }
-
-    // --- Airbnb-style Search Bar Animation ---
-    const searchBar = document.querySelector('.search-bar-animated');
-    if (searchBar) {
-        searchBar.addEventListener('focus', function () {
-            searchBar.classList.add('active');
-        });
-        searchBar.addEventListener('blur', function () {
-            searchBar.classList.remove('active');
-        });
-    }
 
     // Button ripple/hover effect
     document.querySelectorAll('.btn').forEach(btn => {

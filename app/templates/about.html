@@ -3,10 +3,78 @@
 {% block title %}About Otithi{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="card shadow-gold p-4">
-        <h2 class="mb-3 text-green">About Otithi</h2>
-        <p class="lead text-gold">Otithi is a Bangladesh hospitality platform connecting guests and hosts across the country.</p>
+<section class="about-section py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="card shadow-lg border-0">
+          <div class="card-body p-5">
+            <div class="text-center mb-5">
+              <h1 class="display-5 fw-bold mb-3" style="color: #006A4E;">Welcome to <strong>অ. Otithi</strong></h1>
+              <div class="hero-divider mx-auto mb-4" style="width: 80px; height: 4px; background: linear-gradient(90deg, #006A4E, #007bff); border-radius: 2px;"></div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-12">
+                <p class="lead mb-4"><strong>অ. Otithi</strong> is a community-driven accommodation platform designed for Bangladesh. We connect travelers with real local hosts across the country, promoting hospitality, culture, and economic empowerment.</p>
+
+                <div class="bg-light rounded-3 p-4 my-5">
+                  <h4 class="mb-3" style="color: #006A4E;"><i class="fas fa-bullseye me-2"></i>🌍 Our Mission</h4>
+                  <p class="mb-0 fs-6">We aim to make travel personal again — by letting guests experience authentic Bangladeshi living, and giving hosts an opportunity to earn and share their culture.</p>
+                </div>
+
+                <h4 class="mt-5 mb-4" style="color: #006A4E;"><i class="fas fa-star me-2"></i>🏠 What Makes Otithi Different?</h4>
+                <ul class="list-unstyled">
+                  <li class="mb-3"><i class="fas fa-flag text-success me-3"></i><strong>🇧🇩 100% Bangladesh-focused — built for local people and places</strong></li>
+                  <li class="mb-3"><i class="fas fa-shield-alt text-primary me-3"></i><strong>🔒 Safe and Verified — every host and guest is reviewed and vetted</strong></li>
+                  <li class="mb-3"><i class="fas fa-mobile-alt text-info me-3"></i><strong>📱 Simple — browse, book, and host all from your phone</strong></li>
+                  <li class="mb-3"><i class="fas fa-users text-warning me-3"></i><strong>🫱🏽‍🫲🏽 Community-first — you're not just a user, you're part of the Otithi family</strong></li>
+                </ul>
+
+                <div class="row mt-5">
+                  <div class="col-md-6">
+                    <div class="card border-0 bg-light h-100">
+                      <div class="card-body text-center p-4">
+                        <i class="fas fa-users fa-3x mb-3" style="color: #007bff;"></i>
+                        <h5 class="card-title">For Guests</h5>
+                        <p class="card-text">Discover authentic Bangladeshi hospitality and explore local communities with verified hosts.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card border-0 bg-light h-100">
+                      <div class="card-body text-center p-4">
+                        <i class="fas fa-home fa-3x mb-3" style="color: #006A4E;"></i>
+                        <h5 class="card-title">For Hosts</h5>
+                        <p class="card-text">Share your space, meet travelers from around the world, and earn extra income from your property.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="contact-section mt-5 p-4 rounded-3" style="background: linear-gradient(135deg, #006A4E, #007bff); color: white;">
+                  <h4 class="mb-4 text-white"><i class="fas fa-envelope me-2"></i>📞 Contact Us</h4>
+                  <p class="mb-2"><i class="fas fa-envelope me-2"></i><strong>Email:</strong> support@otithi.com</p>
+                  <p class="mb-0"><i class="fas fa-phone me-2"></i><strong>Phone:</strong> +880-1700000000</p>
+                </div>
+
+                <div class="text-center mt-5">
+                  <h5 class="mb-3" style="color: #006A4E;">Ready to Start Your Journey?</h5>
+                  <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{{ url_for('main.listings') }}" class="btn btn-otithi btn-lg px-4">
+                      <i class="fas fa-search me-2"></i>Browse Listings
+                    </a>
+                    <a href="{{ url_for('main.register') }}" class="btn btn-outline-otithi btn-lg px-4">
+                      <i class="fas fa-user-plus me-2"></i>Join as Host
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</section>
 {% endblock %} 

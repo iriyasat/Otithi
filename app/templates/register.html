@@ -10,17 +10,22 @@
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4 text-green">Register</h2>
                     
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
+                    <!-- General Form Errors -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:
+                        </h6>
+                        <ul class="mb-0">
+                            {% for field_name, field_errors in form.errors.items() %}
+                                {% for error in field_errors %}
+                                    <li><strong>{{ form[field_name].label.text }}:</strong> {{ error }}</li>
+                                {% endfor %}
                             {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
                     <form method="POST" action="">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
@@ -34,6 +39,22 @@
                             {{ form.email.label(class="form-label") }}
                             {{ form.email(class="form-control") }}
                             {% for error in form.email.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="account_type" class="form-label">
+                                <i class="fas fa-user-tag me-2 text-muted"></i>Account Type
+                            </label>
+                            {{ form.account_type(class="form-select", id="account_type") }}
+                            <div class="form-text">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Guest:</strong> Browse and book accommodations | 
+                                    <strong>Host:</strong> List your properties and welcome guests
+                                </small>
+                            </div>
+                            {% for error in form.account_type.errors %}
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>

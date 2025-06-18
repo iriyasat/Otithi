@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-calendar-check me-2"></i>{{ title }}</h2>
+        {% if current_user.role == 'guest' %}
+        <a href="{{ url_for('main.browse') }}" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i>Find More Listings
+        </a>
+        {% else %}
+        <a href="{{ url_for('main.my_listings') }}" class="btn btn-primary">
+            <i class="bi bi-house-door me-1"></i>My Listings
+        </a>
+        {% endif %}
+    </div>
+
+
+
+    {% if bookings %}
+        <!-- Pending Review Notifications -->
+        {% set pending_reviews = [] %}
+        {% for booking in bookings %}
+            {% if current_user.role == 'guest' and booking.status == 'checked_out' and not booking.has_review_from_user(current_user.id) %}
+                {% set _ = pending_reviews.append(booking) %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if pending_reviews %}
+        <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-star fs-4 me-3"></i>
+                <div>
+                    <h6 class="mb-1">📝 Reviews Pending</h6>
+                    <p class="mb-0">You have {{ pending_reviews|length }} completed booking{{ 's' if pending_reviews|length != 1 else '' }} waiting for your review!</p>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            {% for booking in bookings %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                {% if booking.listing.image_filename %}
+                                <img src="{{ url_for('static', filename='images/' + booking.listing.image_filename) }}" 
+                                     class="img-fluid rounded" alt="{{ booking.listing.name }}" style="height: 100px; object-fit: cover; width: 100%;">
+                                {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 100px;">
+                                    <i class="bi bi-house-door fs-3 text-secondary"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="card-title mb-2">{{ booking.listing.name }}</h5>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-geo-alt-fill text-primary me-2"></i>
+                                    <span>{{ booking.listing.location }}</span>
+                                </div>
+                                {% if current_user.role == 'guest' %}
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-person-fill text-primary me-2"></i>
+                                    <span>Host: {{ booking.listing.host_name }}</span>
+                                </div>
+                                {% else %}
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-person-fill text-primary me-2"></i>
+                                    <span>Guest: {{ booking.guest.username }}</span>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-calendar-date me-2"></i>
+                                    <span>{{ booking.check_in.strftime('%B %d, %Y') }} - {{ booking.check_out.strftime('%B %d, %Y') }}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-currency-dollar text-success me-2"></i>
+                                    {% set nights = (booking.check_out - booking.check_in).days %}
+                                    {% set total = nights * booking.listing.price_per_night %}
+                                    <span class="fw-bold text-success">৳{{ "%.2f"|format(total) }} ({{ nights }} nights)</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                {% if booking.status == 'pending' %}
+                                    <span class="badge bg-warning fs-6 mb-2">
+                                        <i class="bi bi-clock me-1"></i>Pending
+                                    </span>
+                                {% elif booking.status == 'confirmed' %}
+                                    <span class="badge bg-info fs-6 mb-2">
+                                        <i class="bi bi-check-circle me-1"></i>Confirmed
+                                    </span>
+                                {% elif booking.status == 'checked_in' %}
+                                    <span class="badge bg-primary fs-6 mb-2">
+                                        <i class="bi bi-house-check me-1"></i>Checked In
+                                    </span>
+                                {% elif booking.status == 'checked_out' %}
+                                    <span class="badge bg-success fs-6 mb-2">
+                                        <i class="bi bi-house-dash me-1"></i>Checked Out
+                                    </span>
+                                {% elif booking.status == 'cancelled' %}
+                                    <span class="badge bg-danger fs-6 mb-2">
+                                        <i class="bi bi-x-circle me-1"></i>Cancelled
+                                    </span>
+                                {% endif %}
+                                
+                                <div class="small text-muted mb-2">
+                                    Booked: {{ booking.created_at.strftime('%m/%d/%Y') }}
+                                </div>
+
+                                {% if current_user.role == 'host' and booking.status == 'pending' %}
+                                <div class="btn-group-vertical d-grid gap-1">
+                                    <form action="{{ url_for('main.update_booking_status', booking_id=booking.id) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="status" value="confirmed">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check me-1"></i>Confirm
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('main.update_booking_status', booking_id=booking.id) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                            <i class="bi bi-x me-1"></i>Decline
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endif %}
+
+                                {# Guest Actions: Check-in, Check-out, Review #}
+                                {% if current_user.role == 'guest' %}
+                                    {% if booking.can_check_in() %}
+                                    <div class="mt-2">
+                                        <form action="{{ url_for('main.checkin', booking_id=booking.id) }}" method="post" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-house-check me-1"></i>Check In
+                                            </button>
+                                        </form>
+                                        <div class="small text-muted mt-1">
+                                            <i class="bi bi-info-circle me-1"></i>Check-in available
+                                        </div>
+                                    </div>
+                                    {% elif booking.can_check_out() %}
+                                    <div class="mt-2">
+                                        <form action="{{ url_for('main.checkout', booking_id=booking.id) }}" method="post" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-house-dash me-1"></i>Check Out
+                                            </button>
+                                        </form>
+                                        <div class="small text-muted mt-1">
+                                            <i class="bi bi-clock me-1"></i>Enjoying your stay?
+                                        </div>
+                                    </div>
+                                    {% elif booking.status == 'checked_out' and not booking.has_review_from_user(current_user.id) %}
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('main.review_booking', booking_id=booking.id) }}" class="btn btn-sm btn-success">
+                                            <i class="bi bi-star-fill me-1"></i>Leave Review
+                                        </a>
+                                        <div class="small text-muted mt-1">
+                                            <i class="bi bi-heart me-1"></i>Share your experience!
+                                        </div>
+                                    </div>
+                                    {% elif booking.status == 'checked_out' and booking.has_review_from_user(current_user.id) %}
+                                    <div class="mt-2">
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Review Submitted
+                                        </span>
+                                        <div class="small text-muted mt-1">Thank you for your feedback!</div>
+                                    </div>
+                                    {% elif booking.status == 'confirmed' %}
+                                    <div class="mt-2">
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-calendar-check me-1"></i>Upcoming Stay
+                                        </span>
+                                        <div class="small text-muted mt-1">
+                                            {% set days_until = (booking.check_in - today).days %}
+                                            {% if days_until > 0 %}
+                                                {{ days_until }} days until check-in
+                                            {% elif days_until == 0 %}
+                                                Check-in available today!
+                                            {% else %}
+                                                Check-in period active
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+
+                                {# Host can still see review status #}
+                                {% if current_user.role == 'host' and booking.status == 'checked_out' %}
+                                    {% if booking.has_review_from_user(booking.guest_id) %}
+                                    <div class="mt-2">
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-star-fill me-1"></i>Guest Reviewed
+                                        </span>
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-2">
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-clock me-1"></i>Awaiting Guest Review
+                                        </span>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+            {% if current_user.role == 'guest' %}
+            <h4 class="text-muted">No bookings yet</h4>
+            <p class="text-muted">Start exploring amazing places to stay!</p>
+            <a href="{{ url_for('main.browse') }}" class="btn btn-primary">
+                <i class="bi bi-search me-1"></i>Browse Listings
+            </a>
+            {% else %}
+            <h4 class="text-muted">No booking requests yet</h4>
+            <p class="text-muted">Guests will see their booking requests here once they book your listings.</p>
+            <a href="{{ url_for('main.my_listings') }}" class="btn btn-primary">
+                <i class="bi bi-house-door me-1"></i>View My Listings
+            </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
