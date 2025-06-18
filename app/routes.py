@@ -38,6 +38,30 @@ def save_profile_picture(uploaded_file, user_id):
 
     return filename
 
+def save_listing_image(uploaded_file, listing_id):
+    """Save listing image with listing_id naming in static/images folder"""
+    # Ensure target directory exists
+    folder = os.path.join(current_app.root_path, 'static', 'images')
+    os.makedirs(folder, exist_ok=True)
+
+    # Remove any existing listing image for this listing
+    for ext in ['.jpg', '.jpeg', '.png']:
+        existing_file = os.path.join(folder, f"listing_{listing_id}{ext}")
+        if os.path.exists(existing_file):
+            os.remove(existing_file)
+
+    # Define the filename (always save as .jpg for consistency)
+    filename = f"listing_{listing_id}.jpg"
+    filepath = os.path.join(folder, filename)
+
+    # Resize and save using Pillow
+    img = Image.open(uploaded_file)
+    img = img.convert('RGB')  # Convert to RGB for JPEG format
+    img.thumbnail((800, 600))  # Larger size for listing images
+    img.save(filepath, format='JPEG', quality=90)
+
+    return filename
+
 @main.route('/')
 def home():
     return render_template('index.html')
@@ -267,18 +291,10 @@ def listings():
 def add_listing():
     form = ListingForm()
     if form.validate_on_submit():
-        image_filename = None
-        if form.image.data:
-            image_file = form.image.data
-            if image_file.filename:
-                ext = os.path.splitext(secure_filename(image_file.filename))[1]
-                unique_name = f"{uuid.uuid4().hex}{ext}"
-                image_path = os.path.join(current_app.root_path, 'static', 'images', unique_name)
-                image_file.save(image_path)
-                image_filename = unique_name
         # Admin can directly approve listings, hosts need approval
         approved = current_user.is_admin
         
+        # Create listing first without image
         listing = Listing(
             name=form.name.data,
             location=form.location.data,
@@ -286,10 +302,17 @@ def add_listing():
             price_per_night=float(form.price_per_night.data),
             host_id=current_user.id,  # Use current user's ID
             host_name=form.host_name.data,
-            image_filename=image_filename,
+            image_filename=None,  # Will be updated after image upload
             approved=approved
         )
         db.session.add(listing)
+        db.session.flush()  # Get the listing ID without committing
+        
+        # Now handle image upload with listing_id
+        if form.image.data and form.image.data.filename:
+            image_filename = save_listing_image(form.image.data, listing.id)
+            listing.image_filename = image_filename
+        
         db.session.commit()
         
         if approved:
@@ -307,12 +330,10 @@ def edit_listing(listing_id):
     form = ListingForm(obj=listing)
     if form.validate_on_submit():
         form.populate_obj(listing)
-        if form.image.data:
-            image_file = form.image.data
-            filename = secure_filename(image_file.filename)
-            image_path = os.path.join(current_app.root_path, 'static', 'images', filename)
-            image_file.save(image_path)
-            listing.image_filename = filename
+        # Handle image upload with automatic renaming
+        if form.image.data and form.image.data.filename:
+            image_filename = save_listing_image(form.image.data, listing.id)
+            listing.image_filename = image_filename
         db.session.commit()
         flash('Listing updated successfully!')
         return redirect(url_for('main.listings'))
@@ -325,7 +346,7 @@ def delete_listing(listing_id):
     try:
         # Delete associated image file if it exists
         if listing.image_filename:
-            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], listing.image_filename)
+            image_path = os.path.join(current_app.root_path, 'static', 'images', listing.image_filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
         
