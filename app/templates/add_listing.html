@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Listing{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <h2 class="mb-4" style="color: #006a4e;">Add a New Listing</h2>
+    <form method="POST" action="" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <div class="mb-3">
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+            {% if form.name.errors %}
+            <div class="alert alert-danger mt-1">
+                {% for error in form.name.errors %}
+                <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.location.label(class="form-label") }}
+            {{ form.location(class="form-control") }}
+            {% if form.location.errors %}
+            <div class="alert alert-danger mt-1">
+                {% for error in form.location.errors %}
+                <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=3) }}
+            {% if form.description.errors %}
+            <div class="alert alert-danger mt-1">
+                {% for error in form.description.errors %}
+                <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.price_per_night.label(class="form-label") }}
+            {{ form.price_per_night(class="form-control") }}
+            {% if form.price_per_night.errors %}
+            <div class="alert alert-danger mt-1">
+                {% for error in form.price_per_night.errors %}
+                <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.host_name.label(class="form-label") }}
+            {{ form.host_name(class="form-control") }}
+            {% if form.host_name.errors %}
+            <div class="alert alert-danger mt-1">
+                {% for error in form.host_name.errors %}
+                <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.image.label(class="form-label") }}
+            {{ form.image(class="form-control") }}
+            {% if form.image.errors %}
+            <div class="alert alert-danger mt-1">
+                {% for error in form.image.errors %}
+                <small>{{ error }}</small>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-bd-green">Add Listing</button>
+        <a href="{{ url_for('main.listings') }}" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %} 

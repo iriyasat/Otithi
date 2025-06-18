@@ -1,0 +1,209 @@
+/* Otithi Modern Bangladeshi Theme */
+:root {
+    --bd-green: #006a4e;
+    --bd-red: #f42a41;
+    --bd-gold: #ffd700;
+    --bd-white: #ffffff;
+    --bd-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    --bd-radius: 1rem;
+}
+
+body {
+    background: var(--bd-white);
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    color: #222;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar */
+.navbar-bd {
+    background: var(--bd-green) !important;
+    box-shadow: var(--bd-shadow);
+}
+.navbar-brand {
+    color: var(--bd-gold) !important;
+    font-weight: bold;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+}
+.logo-bd {
+    background: var(--bd-white);
+    color: var(--bd-green);
+    border-radius: 50%;
+    font-size: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    border: 2px solid var(--bd-gold);
+}
+.navbar-nav .nav-link {
+    color: var(--bd-white) !important;
+    font-weight: 500;
+    border-radius: 2rem;
+    margin: 0 0.2rem;
+    transition: background 0.2s, color 0.2s;
+}
+.navbar-nav .nav-link.active, .navbar-nav .nav-link:focus, .navbar-nav .nav-link:hover {
+    background: var(--bd-gold);
+    color: var(--bd-green) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, rgba(0,106,78,0.92) 70%, rgba(244,42,65,0.85) 100%), url('/static/images/hero-bg.jpg') center/cover no-repeat;
+    color: var(--bd-white);
+    border-radius: var(--bd-radius);
+    box-shadow: var(--bd-shadow);
+    padding: 4rem 2rem 3rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+.hero-section h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--bd-gold);
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+.hero-section p {
+    font-size: 1.25rem;
+    color: #f8f9fa;
+    margin-bottom: 2rem;
+}
+.hero-section .btn {
+    font-size: 1.2rem;
+    padding: 0.75rem 2.5rem;
+    margin: 0 0.5rem;
+}
+
+/* Buttons */
+.btn-bd-green {
+    background: var(--bd-green);
+    color: var(--bd-white);
+    border-radius: 2rem;
+    font-weight: 600;
+    border: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,106,78,0.08);
+}
+.btn-bd-green:hover, .btn-bd-green:focus {
+    background: #00513b;
+    color: var(--bd-gold);
+}
+.btn-bd-gold {
+    background: var(--bd-gold);
+    color: var(--bd-green);
+    border-radius: 2rem;
+    font-weight: 600;
+    border: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(255,215,0,0.08);
+}
+.btn-bd-gold:hover, .btn-bd-gold:focus {
+    background: #e6c200;
+    color: var(--bd-red);
+}
+.btn-bd-red {
+    background: var(--bd-red);
+    color: var(--bd-white);
+    border-radius: 2rem;
+    font-weight: 600;
+    border: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(244,42,65,0.08);
+}
+.btn-bd-red:hover, .btn-bd-red:focus {
+    background: #c71c2a;
+    color: var(--bd-gold);
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-top: 4px solid var(--bd-green);
+    border-radius: var(--bd-radius);
+    box-shadow: var(--bd-shadow);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    background: var(--bd-white);
+}
+.card:hover {
+    box-shadow: 0 4px 24px rgba(0,106,78,0.13);
+    border-top: 4px solid var(--bd-gold);
+}
+.card-title {
+    color: var(--bd-green);
+    font-weight: bold;
+}
+.card-subtitle {
+    color: #888;
+}
+.card .btn {
+    min-width: 90px;
+}
+.card-img-top {
+    border-top-left-radius: var(--bd-radius);
+    border-top-right-radius: var(--bd-radius);
+    object-fit: cover;
+    height: 200px;
+}
+
+/* Forms */
+form {
+    background: var(--bd-white);
+    border-radius: var(--bd-radius);
+    box-shadow: var(--bd-shadow);
+    padding: 2rem 2rem 1.5rem 2rem;
+    margin-bottom: 2rem;
+}
+.form-label {
+    color: var(--bd-green);
+    font-weight: 500;
+}
+.form-control {
+    border-radius: 2rem;
+    border: 1.5px solid var(--bd-green);
+    box-shadow: none;
+    transition: border-color 0.2s;
+}
+.form-control:focus {
+    border-color: var(--bd-gold);
+    box-shadow: 0 0 0 0.1rem rgba(0,106,78,0.08);
+}
+.alert-danger {
+    border-radius: 1rem;
+}
+
+/* Footer */
+.footer-bd {
+    background: var(--bd-green);
+    color: var(--bd-white);
+    text-align: center;
+    padding: 1.2rem 0 1rem 0;
+    margin-top: 3rem;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    border-top: 2px solid var(--bd-gold);
+}
+
+/* Responsive Tweaks */
+@media (max-width: 767px) {
+    .hero-section {
+        padding: 2rem 1rem;
+    }
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    .navbar-brand {
+        font-size: 1.3rem;
+    }
+    .footer-bd {
+        font-size: 0.95rem;
+    }
+} 
