@@ -158,6 +158,14 @@ def edit_listing(id):
 @login_required
 def delete_listing(id):
     listing = Listing.query.get_or_404(id)
+    # Delete associated image file if it exists
+    if listing.image_filename:
+        image_path = os.path.join(current_app.root_path, 'static', 'images', listing.image_filename)
+        try:
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        except Exception as e:
+            flash(f'Image file could not be deleted: {e}', 'warning')
     db.session.delete(listing)
     db.session.commit()
     flash('Listing deleted successfully!')

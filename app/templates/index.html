@@ -3,18 +3,18 @@
 {% block title %}Welcome to Otithi{% endblock %}
 
 {% block content %}
-<div class="hero-section text-center py-5" style="background: linear-gradient(135deg, #e6f2ed 60%, #f8d7da 100%); border-radius: 1rem; box-shadow: 0 2px 16px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
-    <div style="position: absolute; left: 2rem; top: 2rem; opacity: 0.12; font-size: 7rem; color: #006a4e;">
+<div class="hero-section text-center py-5 position-relative">
+    <div class="position-absolute start-0 top-0 opacity-25 display-1 text-green" style="left:2rem;top:2rem;font-size:7rem;">
         <span>পট</span>
     </div>
-    <div style="position: absolute; right: 2rem; bottom: 2rem; opacity: 0.12; font-size: 7rem; color: #f42a41;">
+    <div class="position-absolute end-0 bottom-0 opacity-25 display-1 text-red" style="right:2rem;bottom:2rem;font-size:7rem;">
         <span>নকশি</span>
     </div>
-    <h1 class="display-4 fw-bold mb-3" style="color: #006a4e;">Experience Bangladeshi Hospitality</h1>
-    <p class="lead mb-4" style="color: #333;">Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.</p>
+    <h1 class="display-4 fw-bold mb-3 text-gold">Experience Bangladeshi Hospitality</h1>
+    <p class="lead mb-4">Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.</p>
     <div class="d-flex justify-content-center gap-3">
-        <a href="/listings" class="btn btn-lg" style="background-color: #006a4e; color: #fff; font-weight: 600; border-radius: 2rem; min-width: 180px;">Find a Stay</a>
-        <a href="/add-listing" class="btn btn-lg" style="background-color: #f42a41; color: #fff; font-weight: 600; border-radius: 2rem; min-width: 180px;">Become a Host</a>
+        <a href="/listings" class="btn btn-lg btn-bd-green">Find a Stay</a>
+        <a href="/add-listing" class="btn btn-lg btn-bd-red">Become a Host</a>
     </div>
 </div>
 {% endblock %} 

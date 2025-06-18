@@ -3,48 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Otithi{% endblock %}</title>
+    <title>{% if title %}{{ title }} | অ. Otithi — Experience Bangladeshi Hospitality{% else %}অ. Otithi — Experience Bangladeshi Hospitality{% endif %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Otithi is a Bangladeshi home-sharing platform connecting guests and hosts with authentic hospitality. Discover unique stays and warm hosts across Bangladesh.">
+    <meta name="keywords" content="Otithi, Bangladesh, home sharing, hospitality, guesthouse, travel, listings, Bangladeshi stays, অ. Otithi">
+    <meta name="author" content="Otithi Team">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="অ. Otithi — Experience Bangladeshi Hospitality">
+    <meta property="og:description" content="Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/og-image.png', _external=True) }}">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="অ. Otithi — Experience Bangladeshi Hospitality">
+    <meta name="twitter:description" content="Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/og-image.png', _external=True) }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        .navbar-bd {
-            background: linear-gradient(90deg, #006a4e 70%, #f42a41 30%);
-        }
-        .navbar-brand {
-            font-weight: bold;
-            color: gold !important;
-            font-size: 1.7rem;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-        }
-        .logo-bd {
-            background: #fff;
-            color: #006a4e;
-            border-radius: 50%;
-            font-size: 2rem;
-            width: 2.5rem;
-            height: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 0.5rem;
-            border: 2px solid gold;
-        }
-        .navbar-nav .nav-link {
-            color: #fff !important;
-            font-weight: 500;
-        }
-        .navbar-nav .nav-link.active, .navbar-nav .nav-link:focus {
-            color: gold !important;
-        }
-    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-bd">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
-                <span class="logo-bd">অ.</span> Otithi
+                <span class="logo-bd bangla-logo">অ.</span><span class="otithi-logo ms-2">Otithi</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -79,10 +66,13 @@
             </div>
         </div>
     </nav>
-    <div class="container mt-4">
+    <main id="main-content" class="container mt-4 section-fade">
         {% block content %}{% endblock %}
-    </div>
+    </main>
+    <footer class="footer-bd">
+        &copy; {{ 2024 }} Otithi. All rights reserved.
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
-</html> 
 </html> 

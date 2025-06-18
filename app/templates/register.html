@@ -6,9 +6,9 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0" style="border-radius: 1rem;">
+            <div class="card shadow-lg border-0">
                 <div class="card-body p-5">
-                    <h2 class="text-center mb-4" style="color: #006a4e;">Register</h2>
+                    <h2 class="text-center mb-4 text-green">Register</h2>
                     
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
@@ -25,41 +25,41 @@
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
                             {{ form.username.label(class="form-label") }}
-                            {{ form.username(class="form-control", style="border-radius: 0.5rem;") }}
+                            {{ form.username(class="form-control") }}
                             {% for error in form.username.errors %}
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>
                         <div class="mb-3">
                             {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control", style="border-radius: 0.5rem;") }}
+                            {{ form.email(class="form-control") }}
                             {% for error in form.email.errors %}
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control", style="border-radius: 0.5rem;") }}
+                            {{ form.password(class="form-control") }}
                             {% for error in form.password.errors %}
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>
                         <div class="mb-4">
                             {{ form.confirm_password.label(class="form-label") }}
-                            {{ form.confirm_password(class="form-control", style="border-radius: 0.5rem;") }}
+                            {{ form.confirm_password(class="form-control") }}
                             {% for error in form.confirm_password.errors %}
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-success btn-lg" style="background-color: #006a4e; border: none; border-radius: 0.5rem;">
+                            <button type="submit" class="btn btn-bd-green btn-lg">
                                 Register
                             </button>
                         </div>
                     </form>
                     <div class="text-center mt-4">
                         <p class="mb-0">Already have an account? 
-                            <a href="{{ url_for('main.login') }}" class="text-decoration-none" style="color: #f42a41;">Login here</a>
+                            <a href="{{ url_for('main.login') }}" class="text-decoration-none text-red">Login here</a>
                         </p>
                     </div>
                 </div>

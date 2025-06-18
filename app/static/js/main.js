@@ -32,4 +32,74 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // Navbar shadow/color on scroll
+    const navbar = document.querySelector('.navbar-bd');
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 10) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // --- Airbnb-style Mobile Menu Toggle ---
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navMenu = document.querySelector('.navbar-nav');
+    if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', function () {
+            navMenu.classList.toggle('open');
+            menuToggle.classList.toggle('open');
+        });
+    }
+
+    // --- Airbnb-style Section Fade-in with Intersection Observer ---
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.section-fade').forEach(section => {
+            observer.observe(section);
+        });
+    } else {
+        // fallback to scroll event
+        function revealSections() {
+            const sections = document.querySelectorAll('.section-fade');
+            const trigger = window.innerHeight * 0.92;
+            sections.forEach(section => {
+                const rect = section.getBoundingClientRect();
+                if (rect.top < trigger) {
+                    section.classList.add('visible');
+                }
+            });
+        }
+        window.addEventListener('scroll', revealSections);
+        revealSections();
+    }
+
+    // --- Airbnb-style Search Bar Animation ---
+    const searchBar = document.querySelector('.search-bar-animated');
+    if (searchBar) {
+        searchBar.addEventListener('focus', function () {
+            searchBar.classList.add('active');
+        });
+        searchBar.addEventListener('blur', function () {
+            searchBar.classList.remove('active');
+        });
+    }
+
+    // Button ripple/hover effect
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mouseenter', function () {
+            btn.classList.add('fade-in');
+        });
+        btn.addEventListener('mouseleave', function () {
+            btn.classList.remove('fade-in');
+        });
+    });
 }); 
