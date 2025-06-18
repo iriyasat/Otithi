@@ -549,13 +549,9 @@ def review_booking(booking_id):
     if current_user.id != booking.guest_id and current_user.id != booking.listing.host_id:
         abort(403)
     
-    # Check if review is allowed using the new logic
-    if not booking.can_be_reviewed():
-        if booking.actual_checkout:
-            flash('You can only review this booking after checking out.', 'warning')
-        else:
-            days_until_checkout = (booking.check_out - date.today()).days
-            flash(f'You can only leave a review after checkout. {days_until_checkout} days remaining.', 'warning')
+    # Check if review is allowed - allow for checked_out status immediately
+    if booking.status != 'checked_out':
+        flash('You can only review this booking after checking out.', 'warning')
         return redirect(url_for('main.my_bookings'))
     
     form = ReviewForm()
