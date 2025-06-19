@@ -59,7 +59,7 @@ body::before, body::after {
   z-index: 0;
   pointer-events: none;
   border-radius: 50%;
-  opacity: 0.10;
+  opacity: 0.25;  /* Keep the increased opacity */
   animation: floatShape 18s ease-in-out infinite alternate;
 }
 body::before {
@@ -87,14 +87,14 @@ body::after {
   top: 0;
   width: 100%;
   background: var(--primary-green);
-  color: var(--white);
+  color: var(--white);  /* Restore white text for better contrast */
   box-shadow: var(--shadow);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.7rem 2rem;
-  transition: background var(--transition), box-shadow var(--transition);
+  transition: background var(--transition), box-shadow var(--transition);  /* Fix transition property */
 }
 .logo {
   font-size: 2rem;
@@ -115,16 +115,16 @@ body::after {
   padding: 0;
 }
 .nav-link {
-  color: var(--white);
+  color: var(--white);  /* Restore white text for better contrast */
   font-weight: 600;
   text-decoration: none;
   border-radius: 2rem;
   padding: 0.5rem 1.2rem;
-  transition: background var(--transition), color var(--transition);
+  transition: background var(--transition), color var(--transition);  /* Fix transition property */
 }
 .nav-link:hover, .nav-link.active {
   background: var(--accent-red);
-  color: var(--white);
+  color: var(--white);  /* Keep white text on red background for better contrast */
 }
 
 /* Mobile nav toggle */
@@ -1158,22 +1158,32 @@ a:hover {
 }
 
 .navbar-nav-center .nav-link {
-    color: var(--text-dark) !important; /* Enhanced contrast */
-    font-weight: 600; /* Improved readability */
-    padding: var(--space-3) var(--space-5);
-    border-radius: var(--radius-full);
-    transition: var(--transition-fast);
-    border: none;
-    background: transparent;
-    text-shadow: none;
+    color: rgba(255, 255, 255, 0.85);  /* Improved contrast for inactive links */
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);  /* Subtle text shadow for better readability */
 }
 
 .navbar-nav-center .nav-link:hover,
 .navbar-nav-center .nav-link.active {
-    color: var(--otithi-white) !important;
-    background: var(--otithi-green) !important;
-    transform: translateY(-1px);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Better text visibility on green */
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);  /* Added shadow for active state */
+    transform: translateY(-1px);  /* Subtle lift effect */
+}
+
+.navbar-nav-center .nav-link.active {
+    background: var(--primary-green);  /* Keep the dark green for active tab */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);  /* Stronger shadow for active state */
+}
+
+/* Ensure text remains visible during loading */
+.navbar-nav-center .nav-link {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
 }
 
 /* User Actions */
@@ -1371,16 +1381,15 @@ a:hover {
 /* Primary Button (Otithi Green) - Enhanced Contrast */
 .btn-otithi {
     background: var(--otithi-green);
-    color: var(--otithi-white) !important;
-    border: 2px solid var(--otithi-green);
+    color: var(--otithi-text-light) !important;
+    border: none;
     font-weight: 600;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-otithi:hover {
     background: var(--otithi-green-light);
-    border-color: var(--otithi-green-light);
-    color: var(--otithi-white) !important;
+    color: var(--otithi-text-light) !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -1402,7 +1411,7 @@ a:hover {
 
 .btn-outline-otithi:hover {
     background: var(--otithi-green) !important;
-    color: var(--otithi-white) !important;
+    color: var(--otithi-text-light) !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -1411,14 +1420,14 @@ a:hover {
 /* Danger Button */
 .btn-danger {
     background: var(--otithi-red);
-    color: var(--otithi-white);
+    color: var(--otithi-text-light);
     border: 2px solid var(--otithi-red);
 }
 
 .btn-danger:hover {
     background: var(--otithi-red-light);
     border-color: var(--otithi-red-light);
-    color: var(--otithi-white);
+    color: var(--otithi-text-light);
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
 }
@@ -1426,14 +1435,14 @@ a:hover {
 /* Success Button */
 .btn-success {
     background: var(--otithi-success);
-    color: var(--otithi-white);
+    color: var(--otithi-text-light);
     border: 2px solid var(--otithi-success);
 }
 
 .btn-success:hover {
     background: #059669;
     border-color: #059669;
-    color: var(--otithi-white);
+    color: var(--otithi-text-light);
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
 }
@@ -1515,7 +1524,6 @@ a:hover {
 .form-control:focus {
     border-color: var(--otithi-green);
     box-shadow: 0 0 0 3px rgb(0 106 78 / 0.1);
-    outline: none;
 }
 
 .form-label {
@@ -1709,10 +1717,13 @@ a:hover {
 /* ===============================
    UTILITIES
    =============================== */
-.text-otithi-green { color: var(--otithi-green) !important; }
-.text-otithi-red { color: var(--otithi-red) !important; }
-.bg-otithi-green { background-color: var(--otithi-green) !important; }
-.bg-otithi-red { background-color: var(--otithi-red) !important; }
+.text-otithi {
+    color: var(--otithi-green);
+}
+
+.border-otithi {
+    border-color: var(--otithi-green);
+}
 
 /* ===============================
    RESPONSIVE DESIGN
@@ -2348,5 +2359,163 @@ img[src=""], img:not([src]) {
         width: 36px;
         height: 36px;
         font-weight: 700;
+    }
+}
+
+/* Navbar Scroll Effect */
+.navbar {
+    transition: all 0.3s ease;
+    padding: 1rem 0;
+}
+
+.navbar-scrolled {
+    background: var(--otithi-primary);
+    padding: 0.5rem 0;
+    box-shadow: var(--otithi-shadow-md);
+}
+
+/* Image Loading Animation */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"].img-loaded {
+    opacity: 1;
+}
+
+/* Mobile Menu Styles */
+.offcanvas {
+    background: var(--otithi-gray-100);
+}
+
+.offcanvas-header {
+    background: var(--otithi-primary);
+    color: var(--otithi-text-light);
+}
+
+.offcanvas-title {
+    font-weight: 600;
+}
+
+.offcanvas .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Brand Styles */
+.brand-container {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.brand-bangla {
+    font-family: 'Noto Serif Bengali', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.brand-english {
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* Profile Button Styles */
+.btn-profile {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--otithi-text-light);
+    padding: 0;
+}
+
+.profile-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--otithi-gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0.75rem;
+}
+
+.profile-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
+.profile-role {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Main Content Spacing */
+.main-content {
+    padding-top: 4.5rem;
+    min-height: calc(100vh - 20rem);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+    .navbar-nav-center {
+        display: none !important;
+    }
+    
+    .navbar-actions {
+        margin-left: auto;
+    }
+    
+    .profile-info {
+        display: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .brand-bangla {
+        font-size: 1.25rem;
+    }
+    
+    .brand-english {
+        font-size: 0.75rem;
+    }
+    
+    .main-content {
+        padding-top: 4rem;
     }
 }

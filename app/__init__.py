@@ -20,8 +20,7 @@ def create_app(config_class=Config):
     # Load config from config.py
     app.config.from_object(config_class)
     
-    # Override database URI for development
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///othiti_uuid.db'
+    # Security and CSRF settings
     app.config['SECRET_KEY'] = secrets.token_hex(16)
     app.config['WTF_CSRF_ENABLED'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = None  # Disable CSRF token timeout for development
@@ -31,6 +30,7 @@ def create_app(config_class=Config):
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['PROFILE_PIC_FOLDER'], exist_ok=True)
 
+    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)  # <-- Register Flask-Migrate
     login_manager.init_app(app)
@@ -84,9 +84,9 @@ def create_app(config_class=Config):
     
     # Add current year to template context
     @app.context_processor
-    def inject_year():
+    def inject_now():
         from datetime import datetime
-        return {'current_year': datetime.now().year}
+        return {'now': datetime.utcnow()}
 
     @app.cli.command('init-db')
     def init_db_command():

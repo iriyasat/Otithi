@@ -318,4 +318,112 @@ document.head.appendChild(styleSheet);
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
     new OtithiApp();
+});
+
+// Navbar Scroll Effect
+document.addEventListener('DOMContentLoaded', function() {
+    const navbar = document.querySelector('.navbar');
+    
+    function handleScroll() {
+        if (window.scrollY > 20) {
+            navbar.classList.add('navbar-scrolled');
+        } else {
+            navbar.classList.remove('navbar-scrolled');
+        }
+    }
+    
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+});
+
+// Dropdown Menu Hover Effect
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('mouseenter', function() {
+            if (window.innerWidth >= 992) { // Only on desktop
+                this.querySelector('.dropdown-menu').classList.add('show');
+            }
+        });
+        
+        dropdown.addEventListener('mouseleave', function() {
+            if (window.innerWidth >= 992) { // Only on desktop
+                this.querySelector('.dropdown-menu').classList.remove('show');
+            }
+        });
+    });
+});
+
+// Flash Message Auto-Dismiss
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert');
+    
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000); // Auto dismiss after 5 seconds
+    });
+});
+
+// Form Validation Styling
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+});
+
+// Smooth Scroll for Anchor Links
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+
+// Image Loading Animation
+document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('img[loading="lazy"]');
+    
+    images.forEach(img => {
+        img.addEventListener('load', function() {
+            this.classList.add('img-loaded');
+        });
+    });
+});
+
+// Mobile Menu Close on Click Outside
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        document.addEventListener('click', function(event) {
+            const isClickInside = mobileMenu.contains(event.target);
+            const isMenuOpen = mobileMenu.classList.contains('show');
+            const isToggler = event.target.closest('.navbar-toggler');
+            
+            if (!isClickInside && !isToggler && isMenuOpen) {
+                const bsOffcanvas = bootstrap.Offcanvas.getInstance(mobileMenu);
+                if (bsOffcanvas) {
+                    bsOffcanvas.hide();
+                }
+            }
+        });
+    }
 }); 
