@@ -62,7 +62,7 @@
                                 {% endif %}
                                 <div class="text-start">
                                     <div class="fw-bold">{{ reviewed_user.username }}</div>
-                                    <small class="text-muted">{{ reviewed_user.role.title() }}</small>
+                                    <small class="text-muted">{{ reviewed_user.get_role_label() }}</small>
                                 </div>
                             </div>
                         </div>

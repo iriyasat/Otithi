@@ -8,7 +8,7 @@
             <a href="{{ url_for('main.my_bookings') }}" class="btn btn-outline-primary">
                 <i class="fas fa-calendar-check me-1"></i>View Booking Requests
             </a>
-            {% if current_user.role == 'host' or current_user.is_admin %}
+            {% if current_user.role.value == 'host' or current_user.is_admin %}
             <a href="{{ url_for('main.add_listing') }}" class="btn btn-success">
                 <i class="fas fa-plus me-1"></i>Add New Listing
             </a>
@@ -51,7 +51,7 @@
                     {% endif %}
                     
                     <!-- Booking Request Status -->
-                    {% if current_user.role == 'host' and listing.approved %}
+                    {% if current_user.role.value == 'host' and listing.approved %}
                     {% set pending_bookings = listing.bookings|selectattr('status', 'equalto', 'pending')|list %}
                     {% set confirmed_bookings = listing.bookings|selectattr('status', 'equalto', 'confirmed')|list %}
                     <div class="mb-2">
@@ -73,7 +73,7 @@
                     </div>
                     {% endif %}
                     
-                    {% if not listing.approved and current_user.role == 'host' %}
+                    {% if not listing.approved and current_user.role.value == 'host' %}
                     <div class="alert alert-info alert-sm py-2 mb-2">
                         <small><i class="fas fa-info-circle me-1"></i>This listing is pending admin approval and is not visible to guests yet.</small>
                     </div>
@@ -161,7 +161,7 @@
             <div class="card bg-light border-0 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">
-                        <i class="fas fa-chart-bar me-2"></i>{{ 'Listing & Booking Summary' if current_user.role == 'host' else 'Listing Summary' }}
+                        <i class="fas fa-chart-bar me-2"></i>{{ 'Listing & Booking Summary' if current_user.role.value == 'host' else 'Listing Summary' }}
                     </h5>
                     <div class="row text-center">
                         <div class="col-md-3">
@@ -172,7 +172,7 @@
                             <h4 class="text-success">{{ listings|selectattr('approved')|list|length }}</h4>
                             <p class="text-muted">Approved & Live</p>
                         </div>
-                        {% if current_user.role == 'host' %}
+                        {% if current_user.role.value == 'host' %}
                         <div class="col-md-3">
                             {% set total_pending = 0 %}
                             {% for listing in listings %}
@@ -200,7 +200,7 @@
                         </div>
                         {% endif %}
                     </div>
-                    {% if current_user.role == 'host' %}
+                    {% if current_user.role.value == 'host' %}
                     <div class="text-center mt-3">
                         <a href="{{ url_for('main.my_bookings') }}" class="btn btn-primary">
                             <i class="fas fa-calendar-check me-1"></i>Manage All Booking Requests

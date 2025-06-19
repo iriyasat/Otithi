@@ -50,7 +50,7 @@
                     <h4 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Book Your Stay</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
                         
                         <div class="row g-3">
@@ -88,6 +88,20 @@
                                     <div class="text-danger small">{{ error }}</div>
                                 {% endfor %}
                                 <small class="form-text text-muted">Maximum {{ listing.guest_capacity }} {{ 'guest' if listing.guest_capacity == 1 else 'guests' }} allowed for this listing</small>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <label for="{{ form.nid_file.id }}" class="form-label">
+                                    <i class="bi bi-card-text me-1"></i>{{ form.nid_file.label.text }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nid_file(class="form-control") }}
+                                {% for error in form.nid_file.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-shield-check text-success me-1"></i>
+                                    Upload your National ID document (JPG, PNG, or PDF only). This is required for security verification and will only be accessible to admins.
+                                </small>
                             </div>
                         </div>
 

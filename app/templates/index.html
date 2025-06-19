@@ -102,7 +102,7 @@
                                                 <div>
                                                     <h6 class="mb-1 text-dark">{{ review.reviewer.username }}</h6>
                                                     <small class="text-secondary">
-                                                        {{ review.reviewer.role.title() }} • {{ review.booking.listing.location }}
+                                                        {{ review.reviewer.get_role_label() }} • {{ review.booking.listing.location }}
                                                     </small>
                                                 </div>
                                             </div>

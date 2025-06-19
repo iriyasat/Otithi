@@ -22,14 +22,14 @@
                 <div class="mb-4">
                     {% if current_user.is_authenticated %}
                     <p class="text-muted">
-                        Your current role (<strong>{{ current_user.role.title() }}</strong>) doesn't have access to this feature.
+                        Your current role (<strong>{{ current_user.get_role_label() }}</strong>) doesn't have access to this feature.
                     </p>
                     
-                    {% if current_user.role == 'guest' %}
+                    {% if current_user.role.value == 'guest' %}
                     <p class="small text-muted">
                         <strong>As a Guest:</strong> You can browse listings, make bookings, and view your booking history.
                     </p>
-                    {% elif current_user.role == 'host' %}
+                    {% elif current_user.role.value == 'host' %}
                     <p class="small text-muted">
                         <strong>As a Host:</strong> You can manage your own listings and booking requests.
                     </p>
@@ -44,21 +44,21 @@
                 
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                     {% if current_user.is_authenticated %}
-                        {% if current_user.role == 'guest' %}
+                        {% if current_user.role.value == 'guest' %}
                         <a href="{{ url_for('main.browse') }}" class="btn btn-primary">
                             <i class="bi bi-search me-1"></i>Browse Listings
                         </a>
                         <a href="{{ url_for('main.my_bookings') }}" class="btn btn-outline-primary">
                             <i class="bi bi-calendar-check me-1"></i>My Bookings
                         </a>
-                        {% elif current_user.role == 'host' %}
+                        {% elif current_user.role.value == 'host' %}
                         <a href="{{ url_for('main.my_listings') }}" class="btn btn-primary">
                             <i class="bi bi-house-door me-1"></i>My Listings
                         </a>
                         <a href="{{ url_for('main.my_bookings') }}" class="btn btn-outline-primary">
                             <i class="bi bi-calendar-check me-1"></i>Booking Requests
                         </a>
-                        {% elif current_user.is_admin %}
+                        {% elif current_user.role.value == 'admin' %}
                         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-primary">
                             <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
                         </a>

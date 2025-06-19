@@ -1,12 +1,12 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, abort, send_file, session
 from werkzeug.utils import secure_filename
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import Listing, User, Booking, Review, Conversation, Message
+from .models import Listing, User, Booking, Review, Conversation, Message, UserRole, BookingStatus, ListingStatus
 from . import db
 from .forms import ListingForm, RegisterForm, LoginForm, BookingForm, ReviewForm, EditUserForm, ProfileSettingsForm, MessageForm
-from .decorators import role_required, admin_required, host_required, guest_required, owns_listing_or_admin
+from .decorators import role_required, admin_required, host_required, guest_required, owns_listing_or_admin, host_required_unverified
 import uuid
 from sqlalchemy import or_, func
 from datetime import date, datetime
@@ -81,6 +81,56 @@ def get_listing_image_url(filename):
             return url_for('static', filename=f'images/listings/{filename}')
     return url_for('static', filename='images/ui/default_listing.jpg')
 
+def save_nid_file(uploaded_file, booking_id):
+    """Save NID document with booking_id naming in static/nid_uploads folder"""
+    # Ensure target directory exists
+    folder = os.path.join(current_app.root_path, 'static', 'nid_uploads')
+    os.makedirs(folder, exist_ok=True)
+
+    # Get file extension
+    original_filename = secure_filename(uploaded_file.filename)
+    file_ext = os.path.splitext(original_filename)[1].lower()
+    
+    # Remove any existing NID file for this booking
+    for ext in ['.jpg', '.jpeg', '.png', '.pdf']:
+        existing_file = os.path.join(folder, f"nid_{booking_id}{ext}")
+        if os.path.exists(existing_file):
+            os.remove(existing_file)
+
+    # Define the secure filename
+    filename = f"nid_{booking_id}{file_ext}"
+    filepath = os.path.join(folder, filename)
+
+    # Save the file
+    uploaded_file.save(filepath)
+
+    return filename
+
+def save_host_nid_file(uploaded_file, user_id):
+    """Save host NID document with user_id naming in static/nid_host_uploads folder"""
+    # Ensure target directory exists
+    folder = os.path.join(current_app.root_path, 'static', 'nid_host_uploads')
+    os.makedirs(folder, exist_ok=True)
+
+    # Get file extension
+    original_filename = secure_filename(uploaded_file.filename)
+    file_ext = os.path.splitext(original_filename)[1].lower()
+    
+    # Remove any existing NID file for this user
+    for ext in ['.jpg', '.jpeg', '.png', '.pdf']:
+        existing_file = os.path.join(folder, f"host_nid_{user_id}{ext}")
+        if os.path.exists(existing_file):
+            os.remove(existing_file)
+
+    # Define the secure filename
+    filename = f"host_nid_{user_id}{file_ext}"
+    filepath = os.path.join(folder, filename)
+
+    # Save the file
+    uploaded_file.save(filepath)
+
+    return filename
+
 @main.route('/')
 def home():
     # Get real reviews for homepage (latest 2 reviews with good ratings)
@@ -148,26 +198,25 @@ def register():
                 user = User(
                     username=form.username.data,
                     email=form.email.data,
-                    role=form.account_type.data,
-                    is_admin=False,  # Explicitly set to False for security
-                    password_hash=generate_password_hash(form.password.data)
+                    role=UserRole.GUEST if form.account_type.data == 'guest' else UserRole.HOST
                 )
+                user.set_password(form.password.data)
                 
                 db.session.add(user)
                 db.session.commit()
                 
-                flash(f'Registration successful as a {form.account_type.data.title()}! Please log in.', 'success')
+                flash('Registration successful! Please log in.', 'success')
                 return redirect(url_for('main.login'))
                 
             except Exception as e:
                 db.session.rollback()
-                print(f"DEBUG: Database error during registration: {str(e)}")
-                flash('An error occurred during registration. Please try again.', 'danger')
-                return render_template('register.html', form=form)
+                print(f"DEBUG: Registration error: {e}")
+                flash('Registration failed. Please try again.', 'danger')
         else:
-            # Form validation failed - show specific errors
-            print(f"DEBUG: Form validation failed with errors: {form.errors}")
-            flash('Please correct the errors below and try again.', 'danger')
+            # Form validation failed
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f'{field}: {error}', 'danger')
     
     return render_template('register.html', form=form)
 
@@ -175,30 +224,41 @@ def register():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
+    
     form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user and check_password_hash(user.password_hash, form.password.data):
-            login_user(user)
-            flash('Login successful. Welcome back, {}!'.format(current_user.username), 'success')
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            # Role-based redirect after login
-            if current_user.is_admin:
-                return redirect(url_for('main.admin_dashboard'))
-            elif current_user.role == 'host':
-                return redirect(url_for('main.host_dashboard'))
+    print(f"DEBUG: Request method: {request.method}")
+    print(f"DEBUG: Form data: {request.form}")
+    print(f"DEBUG: Session: {session}")
+    
+    if request.method == 'POST':
+        print(f"DEBUG: Form validation status: {form.validate()}")
+        print(f"DEBUG: Form errors: {form.errors}")
+        print(f"DEBUG: CSRF token in form: {form.csrf_token.data}")
+        print(f"DEBUG: CSRF token in session: {session.get('csrf_token')}")
+        
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user and user.check_password(form.password.data):
+                login_user(user)
+                flash('Login successful. Welcome back, {}!'.format(user.username), 'success')
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                # Role-based redirect after login
+                if user.is_admin:
+                    return redirect(url_for('main.admin_dashboard'))
+                elif user.is_host:
+                    return redirect(url_for('main.host_dashboard'))
+                else:
+                    return redirect(url_for('main.browse'))
             else:
-                return redirect(url_for('main.browse'))
+                flash('Invalid username or password.', 'danger')
         else:
-            flash('Invalid username or password.', 'danger')
-    else:
-        # Debug: Show form validation errors if form doesn't validate
-        if request.method == 'POST':
+            # Debug: Show form validation errors if form doesn't validate
             for field_name, errors in form.errors.items():
                 for error in errors:
                     flash(f'{field_name}: {error}', 'danger')
+    
     return render_template('login.html', form=form)
 
 @main.route('/logout')
@@ -218,7 +278,7 @@ def profile():
     return render_template('profile.html', title='Profile', Review=Review, form=form)
 
 @main.route('/my-listings')
-@role_required('host', 'admin')
+@host_required_unverified
 def my_listings():
     if current_user.is_admin:
         # Admin can see all listings
@@ -260,6 +320,16 @@ def update_profile():
                     # Use the new save_profile_picture function
                     picture_file = save_profile_picture(pic, current_user.id)
                     current_user.profile_picture = picture_file
+            
+            # Handle host NID upload
+            if form.nid_file.data and form.nid_file.data.filename and current_user.role == 'host':
+                try:
+                    nid_filename = save_host_nid_file(form.nid_file.data, current_user.id)
+                    current_user.nid_filename = nid_filename
+                    flash('NID document uploaded successfully! Please wait for admin verification.', 'success')
+                except Exception as e:
+                    flash(f'Error uploading NID document: {str(e)}', 'danger')
+                    return redirect(url_for('main.profile'))
             
             # Handle password change if provided
             password_updated = False
@@ -347,7 +417,7 @@ def listings():
     )
 
 @main.route('/add-listing', methods=['GET', 'POST'])
-@role_required('host', 'admin')
+@host_required
 def add_listing():
     form = ListingForm()
     if form.validate_on_submit():
@@ -384,7 +454,7 @@ def add_listing():
         return redirect(url_for('main.my_listings'))
     return render_template('add_listing.html', form=form)
 
-@main.route('/edit-listing/<int:listing_id>', methods=['GET', 'POST'])
+@main.route('/edit-listing/<string:listing_id>', methods=['GET', 'POST'])
 @owns_listing_or_admin
 def edit_listing(listing_id):
     listing = Listing.query.get_or_404(listing_id)
@@ -400,7 +470,7 @@ def edit_listing(listing_id):
         return redirect(url_for('main.listings'))
     return render_template('edit_listing.html', form=form, listing=listing)
 
-@main.route('/delete-listing/<int:listing_id>', methods=['POST'])
+@main.route('/delete-listing/<string:listing_id>', methods=['POST'])
 @owns_listing_or_admin
 def delete_listing(listing_id):
     listing = Listing.query.get_or_404(listing_id)
@@ -417,233 +487,193 @@ def delete_listing(listing_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting listing: {str(e)}', 'danger')
+    
     return redirect(url_for('main.my_listings'))
 
-@main.route('/listing/<int:listing_id>/book', methods=['GET', 'POST'])
+@main.route('/listing/<string:listing_id>/book', methods=['GET', 'POST'])
 @login_required
 def book_listing(listing_id):
     # Only guests can book listings
-    if current_user.role != 'guest':
-        flash('Only guests can book listings!', 'danger')
-        return redirect(url_for('main.browse'))
+    if current_user.role != UserRole.GUEST:
+        flash('Only guests can book listings.', 'warning')
+        return redirect(url_for('main.listings'))
     
-    form = BookingForm()
     listing = Listing.query.get_or_404(listing_id)
     
     # Check if listing is approved
     if not listing.approved:
-        flash('This listing is not available for booking.', 'danger')
-        return redirect(url_for('main.browse'))
+        flash('This listing is not available for booking.', 'warning')
+        return redirect(url_for('main.listings'))
     
-    # Check if user is trying to book their own listing
-    if listing.host_id == current_user.id:
-        flash('You cannot book your own listing!', 'danger')
-        return redirect(url_for('main.browse'))
+    form = BookingForm()
     
     if form.validate_on_submit():
-        # Validate check-in and check-out dates
-        if form.check_out.data <= form.check_in.data:
-            flash('Check-out date must be after check-in date!', 'danger')
-            return render_template('book.html', form=form, listing=listing)
-        
-        # Validate check-in is not in the past
-        if form.check_in.data < date.today():
-            flash('Check-in date cannot be in the past!', 'danger')
-            return render_template('book.html', form=form, listing=listing)
-        
-        # Validate guest count doesn't exceed listing capacity
-        if form.guest_count.data > listing.guest_capacity:
-            flash(f'This listing can accommodate maximum {listing.guest_capacity} guests. Please reduce the number of guests.', 'danger')
-            return render_template('book.html', form=form, listing=listing)
-        
-        # Check for conflicting bookings
-        existing_booking = Booking.query.filter(
-            Booking.listing_id == listing.id,
-            Booking.status.in_(['pending', 'confirmed']),
-            Booking.check_in < form.check_out.data,
-            Booking.check_out > form.check_in.data
-        ).first()
-        
-        if existing_booking:
-            flash('These dates are not available. Please select different dates.', 'danger')
-            return render_template('book.html', form=form, listing=listing)
-        
-        # Calculate cost
-        days = (form.check_out.data - form.check_in.data).days
-        total_cost = days * listing.price_per_night
-        
-        # Create booking
-        booking = Booking(
-            guest_id=current_user.id,
-            listing_id=listing.id,
-            check_in=form.check_in.data,
-            check_out=form.check_out.data,
-            guest_count=form.guest_count.data
-        )
-        db.session.add(booking)
-        db.session.commit()
-        
-        flash(f'Booking request sent for {form.guest_count.data} guests, {days} nights (৳{total_cost:.2f} total)! The host will review your request.', 'success')
-        return redirect(url_for('main.my_bookings'))
-
+        try:
+            # Calculate total price
+            from datetime import date
+            nights = (form.check_out_date.data - form.check_in_date.data).days
+            total_price = float(listing.price_per_night) * nights
+            
+            # Create booking
+            booking = Booking(
+                guest_id=current_user.id,
+                listing_id=listing.id,
+                check_in_date=form.check_in_date.data,
+                check_out_date=form.check_out_date.data,
+                guest_count=form.guest_count.data,
+                total_price=total_price,
+                status=BookingStatus.PENDING
+            )
+            
+            # Handle NID upload if provided
+            if form.nid_file.data and form.nid_file.data.filename:
+                nid_filename = save_nid_file(form.nid_file.data, booking.id)
+                booking.nid_filename = nid_filename
+            
+            db.session.add(booking)
+            db.session.commit()
+            
+            flash('Booking submitted successfully! Please wait for host confirmation.', 'success')
+            return redirect(url_for('main.booking_confirmation', booking_id=booking.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating booking: {str(e)}', 'danger')
+    
     return render_template('book.html', form=form, listing=listing)
 
-@main.route('/booking/<int:booking_id>/confirmation')
+@main.route('/booking/<string:booking_id>/confirmation')
 @login_required
 def booking_confirmation(booking_id):
-    """Show booking confirmation page"""
     booking = Booking.query.get_or_404(booking_id)
-    
-    # Only the guest who made the booking can view this
-    if booking.guest_id != current_user.id:
+    if booking.guest_id != current_user.id and not current_user.is_admin:
         abort(403)
-    
     return render_template('booking_confirmation.html', booking=booking)
 
 @main.route('/my-bookings')
 @role_required('guest', 'host')
 def my_bookings():
-    if current_user.role == 'guest':
-        # Show bookings made by this guest
+    if current_user.role == UserRole.GUEST:
+        # Guests see their own bookings
         bookings = Booking.query.filter_by(guest_id=current_user.id).order_by(Booking.created_at.desc()).all()
-        title = "My Bookings"
+        title = 'My Bookings'
     else:
-        # Show bookings for listings owned by this host using proper join
-        bookings = Booking.query \
-            .join(Listing, Booking.listing_id == Listing.id) \
-            .filter(Listing.host_id == current_user.id) \
-            .order_by(Booking.created_at.desc()) \
-            .all()
-        title = "Booking Requests"
+        # Hosts see bookings for their listings
+        bookings = Booking.query.join(Listing).filter(Listing.host_id == current_user.id).order_by(Booking.created_at.desc()).all()
+        title = 'My Listings - Bookings'
     
-    # Pass current date for template logic
-    today = date.today()
-    return render_template('my_bookings.html', bookings=bookings, title=title, today=today)
+    return render_template('my_bookings.html', bookings=bookings, title=title)
 
-@main.route('/booking/<int:booking_id>/update-status', methods=['POST'])
-@role_required('host', 'admin')
+@main.route('/booking/<string:booking_id>/update-status', methods=['POST'])
+@host_required
 def update_booking_status(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    listing = booking.listing
     
-    # Only the host of the listing or admin can update booking status
-    if not current_user.is_admin and listing.host_id != current_user.id:
-        abort(403)
+    # Verify this booking belongs to a listing owned by the current host
+    if booking.listing.host_id != current_user.id:
+        flash('You can only update bookings for your own listings.', 'danger')
+        return redirect(url_for('main.my_bookings'))
     
     new_status = request.form.get('status')
-    if new_status in ['confirmed', 'cancelled']:
-        old_status = booking.status
-        booking.status = new_status
-        db.session.commit()
-        
-        # Notify guest about status change
-        action = "confirmed" if new_status == 'confirmed' else "cancelled"
-        flash(f'Booking request {action} successfully! Guest will be notified.', 'success')
-        
-        # Add notification logic here if needed
-        
-    else:
-        flash('Invalid status update!', 'danger')
     
+    if new_status == 'confirmed':
+        booking.status = BookingStatus.CONFIRMED
+        booking.confirmed_at = datetime.utcnow()
+        flash('Booking confirmed!', 'success')
+    elif new_status == 'cancelled':
+        booking.status = BookingStatus.CANCELLED
+        flash('Booking cancelled.', 'warning')
+    else:
+        flash('Invalid status.', 'danger')
+    
+    db.session.commit()
     return redirect(url_for('main.my_bookings'))
 
-@main.route('/booking/<int:booking_id>/checkin', methods=['POST'])
+@main.route('/booking/<string:booking_id>/checkin', methods=['POST'])
 @login_required
 def checkin(booking_id):
-    """Allow guest to check in to their booking"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Only the guest can check in
-    if booking.guest_id != current_user.id:
-        abort(403)
-    
-    # Check if check-in is allowed
-    if not booking.can_check_in():
-        flash('Check-in is not available for this booking. Please ensure it is confirmed and within the check-in period.', 'warning')
+    # Only host can check in guests
+    if booking.listing.host_id != current_user.id:
+        flash('Only the host can perform check-in.', 'danger')
         return redirect(url_for('main.my_bookings'))
     
-    booking.status = 'checked_in'
-    db.session.commit()
-    flash('You have checked in successfully! Enjoy your stay.', 'success')
+    if booking.status == BookingStatus.CONFIRMED:
+        booking.status = BookingStatus.CHECKED_IN
+        booking.checked_in_at = datetime.utcnow()
+        db.session.commit()
+        flash('Guest checked in successfully!', 'success')
+    else:
+        flash('Booking must be confirmed before check-in.', 'warning')
+    
     return redirect(url_for('main.my_bookings'))
 
-@main.route('/booking/<int:booking_id>/checkout', methods=['POST'])
+@main.route('/booking/<string:booking_id>/checkout', methods=['POST'])
 @login_required
 def checkout(booking_id):
-    """Allow guest to check out of their booking"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Only the guest can check out
-    if booking.guest_id != current_user.id:
-        abort(403)
-    
-    # Check if check-out is allowed
-    if not booking.can_check_out():
-        flash('Check-out is not available. You must be checked in first.', 'warning')
+    # Only host can check out guests
+    if booking.listing.host_id != current_user.id:
+        flash('Only the host can perform check-out.', 'danger')
         return redirect(url_for('main.my_bookings'))
     
-    booking.status = 'checked_out'
-    booking.actual_checkout = datetime.utcnow()
-    db.session.commit()
-    flash('You have checked out successfully! Thank you for your stay. Please consider leaving a review.', 'success')
+    if booking.status == BookingStatus.CHECKED_IN:
+        booking.status = BookingStatus.CHECKED_OUT
+        booking.checked_out_at = datetime.utcnow()
+        db.session.commit()
+        flash('Guest checked out successfully!', 'success')
+    else:
+        flash('Guest must be checked in before check-out.', 'warning')
+    
     return redirect(url_for('main.my_bookings'))
 
-@main.route('/review/<int:booking_id>', methods=['GET', 'POST'])
+@main.route('/review/<string:booking_id>', methods=['GET', 'POST'])
 @login_required
 def review_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     
-    # Verify user is either guest or host of this booking
-    if current_user.id != booking.guest_id and current_user.id != booking.listing.host_id:
-        abort(403)
+    # Only the guest can review their booking
+    if booking.guest_id != current_user.id:
+        flash('You can only review your own bookings.', 'danger')
+        return redirect(url_for('main.my_bookings'))
     
-    # Check if review is allowed - allow for checked_out status immediately
-    if booking.status != 'checked_out':
-        flash('You can only review this booking after checking out.', 'warning')
+    # Check if booking is completed and can be reviewed
+    if booking.status != BookingStatus.CHECKED_OUT:
+        flash('You can only review completed bookings.', 'warning')
+        return redirect(url_for('main.my_bookings'))
+    
+    # Check if review already exists
+    existing_review = Review.query.filter_by(booking_id=booking.id).first()
+    if existing_review:
+        flash('You have already reviewed this booking.', 'info')
         return redirect(url_for('main.my_bookings'))
     
     form = ReviewForm()
-
+    
     if form.validate_on_submit():
-        # Prevent duplicate reviews for same booking and same direction
-        existing = Review.query.filter_by(booking_id=booking.id, reviewer_id=current_user.id).first()
-        if existing:
-            flash('You already submitted a review for this booking.', 'info')
+        try:
+            review = Review(
+                reviewer_id=current_user.id,
+                reviewee_id=booking.listing.host_id,
+                listing_id=booking.listing.id,
+                booking_id=booking.id,
+                rating=form.rating.data,
+                comment=form.comment.data
+            )
+            
+            db.session.add(review)
+            db.session.commit()
+            
+            flash('Review submitted successfully!', 'success')
             return redirect(url_for('main.my_bookings'))
-
-        # Determine who is being reviewed
-        if current_user.id == booking.guest_id:
-            # Guest is reviewing the host
-            reviewed_user_id = booking.listing.host_id
-            reviewer_type = 'guest'
-            reviewed_type = 'host'
-        else:
-            # Host is reviewing the guest
-            reviewed_user_id = booking.guest_id
-            reviewer_type = 'host'
-            reviewed_type = 'guest'
-
-        review = Review(
-            reviewer_id=current_user.id,
-            reviewed_id=reviewed_user_id,
-            booking_id=booking.id,
-            rating=form.rating.data,
-            comment=form.comment.data
-        )
-        db.session.add(review)
-        db.session.commit()
-        flash(f'Review submitted successfully! You rated the {reviewed_type}.', 'success')
-        return redirect(url_for('main.my_bookings'))
-
-    # Determine who is being reviewed for display
-    if current_user.id == booking.guest_id:
-        reviewed_user = booking.listing.host
-        review_target = 'host'
-    else:
-        reviewed_user = booking.guest
-        review_target = 'guest'
-
-    return render_template('review.html', form=form, booking=booking, reviewed_user=reviewed_user, review_target=review_target)
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error submitting review: {str(e)}', 'danger')
+    
+    return render_template('review.html', form=form, booking=booking)
 
 @main.route('/admin/dashboard')
 @admin_required
@@ -664,12 +694,25 @@ def admin_dashboard():
     pagination = user_query.paginate(page=page, per_page=per_page, error_out=False)
     users = pagination.items
     # Split users into hosts and guests for tables
-    hosts = [u for u in users if u.role == 'host']
-    guests = [u for u in users if u.role == 'guest']
+    hosts = [u for u in users if u.role == UserRole.HOST]
+    guests = [u for u in users if u.role == UserRole.GUEST]
     # Analytics
     total_users = User.query.count()
-    total_hosts = User.query.filter_by(role='host').count()
+    total_hosts = User.query.filter_by(role=UserRole.HOST).count()
     total_listings = Listing.query.count()
+    total_bookings = Booking.query.count()
+    
+    # Get recent bookings for admin review
+    recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(10).all()
+    
+    # Get host verification data
+    pending_hosts_count = User.query.filter_by(role=UserRole.HOST, is_verified=False).count()
+    verified_hosts_count = User.query.filter_by(role=UserRole.HOST, is_verified=True).count()
+    
+    # Get host NID upload statistics
+    hosts_with_nid = User.query.filter_by(role=UserRole.HOST).filter(User.nid_filename.isnot(None)).count()
+    hosts_without_nid = User.query.filter_by(role=UserRole.HOST).filter(User.nid_filename.is_(None)).count()
+    
     # Host/guest data for tables
     host_data = [
         {
@@ -677,7 +720,9 @@ def admin_dashboard():
             'username': u.username,
             'email': u.email,
             'role': 'Host',
-            'total_listings': Listing.query.filter_by(host_id=u.id).count()
+            'total_listings': Listing.query.filter_by(host_id=u.id).count(),
+            'is_verified': u.is_verified,
+            'nid_filename': u.nid_filename
         } for u in hosts
     ]
     guest_data = [
@@ -696,7 +741,13 @@ def admin_dashboard():
         q=q,
         total_users=total_users,
         total_hosts=total_hosts,
-        total_listings=total_listings
+        total_listings=total_listings,
+        total_bookings=total_bookings,
+        recent_bookings=recent_bookings,
+        pending_hosts_count=pending_hosts_count,
+        verified_hosts_count=verified_hosts_count,
+        hosts_with_nid=hosts_with_nid,
+        hosts_without_nid=hosts_without_nid
     )
 
 @main.route('/admin/listings/pending')
@@ -712,17 +763,18 @@ def admin_pending_listings():
                          approved_count=approved_count,
                          pending_count=pending_count)
 
-@main.route('/admin/listing/<int:listing_id>/approve', methods=['POST'])
+@main.route('/admin/listing/<string:listing_id>/approve', methods=['POST'])
 @admin_required
 def admin_approve_listing(listing_id):
     """Approve a pending listing"""
     listing = Listing.query.get_or_404(listing_id)
     listing.approved = True
+    listing.status = ListingStatus.APPROVED
     db.session.commit()
     flash(f'Listing "{listing.name}" has been approved and is now live!', 'success')
     return redirect(url_for('main.admin_pending_listings'))
 
-@main.route('/admin/listing/<int:listing_id>/reject', methods=['POST'])
+@main.route('/admin/listing/<string:listing_id>/reject', methods=['POST'])
 @admin_required  
 def admin_reject_listing(listing_id):
     """Reject/delete a pending listing"""
@@ -732,20 +784,20 @@ def admin_reject_listing(listing_id):
     try:
         # Delete associated image file if it exists
         if listing.image_filename:
-            image_path = os.path.join(current_app.root_path, 'static', 'images', listing.image_filename)
+            image_path = os.path.join(current_app.root_path, 'static', 'images', 'listings', listing.image_filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
         
-        db.session.delete(listing)
+        listing.status = ListingStatus.REJECTED
         db.session.commit()
-        flash(f'Listing "{listing_name}" has been rejected and removed.', 'warning')
+        flash(f'Listing "{listing_name}" has been rejected.', 'warning')
     except Exception as e:
         db.session.rollback()
         flash(f'Error rejecting listing: {str(e)}', 'danger')
     
     return redirect(url_for('main.admin_pending_listings'))
 
-@main.route('/admin/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@main.route('/admin/user/<string:user_id>/edit', methods=['GET', 'POST'])
 @admin_required
 def admin_edit_user(user_id):
     user = User.query.get_or_404(user_id)
@@ -753,7 +805,7 @@ def admin_edit_user(user_id):
     
     if form.validate_on_submit():
         user.email = form.email.data
-        user.role = form.role.data
+        user.role = UserRole(form.role.data)
         try:
             db.session.commit()
             flash('User updated successfully!', 'success')
@@ -769,7 +821,7 @@ def admin_edit_user(user_id):
     
     return render_template('edit_user.html', user=user, form=form)
 
-@main.route('/admin/user/<int:user_id>/delete', methods=['POST'])
+@main.route('/admin/user/<string:user_id>/delete', methods=['POST'])
 @admin_required
 def admin_delete_user(user_id):
     user = User.query.get_or_404(user_id)
@@ -794,6 +846,118 @@ def admin_delete_user(user_id):
         flash(f'Error deleting user: {str(e)}', 'danger')
     
     return redirect(url_for('main.admin_dashboard', q=request.args.get('q', '')))
+
+@main.route('/admin/hosts/pending')
+@admin_required
+def admin_pending_hosts():
+    """Admin route to view pending host verifications"""
+    pending_hosts = User.query.filter_by(role=UserRole.HOST, is_verified=False).order_by(User.created_at.desc()).all()
+    verified_hosts = User.query.filter_by(role=UserRole.HOST, is_verified=True).count()
+    
+    return render_template('admin/pending_hosts.html', 
+                         pending_hosts=pending_hosts,
+                         verified_hosts=verified_hosts,
+                         pending_count=len(pending_hosts))
+
+@main.route('/admin/host/<string:host_id>/verify', methods=['POST'])
+@admin_required
+def admin_verify_host(host_id):
+    """Admin route to verify a host"""
+    host = User.query.get_or_404(host_id)
+    
+    # Security check: only verify hosts
+    if host.role != UserRole.HOST:
+        flash('This user is not a host account.', 'danger')
+        return redirect(url_for('main.admin_pending_hosts'))
+    
+    # Verify the host
+    host.is_verified = True
+    db.session.commit()
+    
+    flash(f'Host "{host.username}" has been verified successfully!', 'success')
+    return redirect(url_for('main.admin_pending_hosts'))
+
+@main.route('/admin/host/<string:host_id>/unverify', methods=['POST'])
+@admin_required
+def admin_unverify_host(host_id):
+    """Admin route to remove verification from a host"""
+    host = User.query.get_or_404(host_id)
+    
+    # Security check: only unverify hosts
+    if host.role != UserRole.HOST:
+        flash('This user is not a host account.', 'danger')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    # Remove verification
+    host.is_verified = False
+    db.session.commit()
+    
+    flash(f'Host "{host.username}" verification has been removed.', 'warning')
+    return redirect(url_for('main.admin_dashboard'))
+
+@main.route('/admin/nid/<string:booking_id>')
+@admin_required
+def admin_view_nid(booking_id):
+    """Admin route to view NID document for a booking"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if not booking.nid_filename:
+        flash('No NID document uploaded for this booking.', 'warning')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    # Construct file path
+    file_path = os.path.join(current_app.root_path, 'static', 'nid_uploads', booking.nid_filename)
+    
+    if not os.path.exists(file_path):
+        flash('NID document file not found.', 'danger')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    # Determine file type and serve appropriately
+    file_ext = os.path.splitext(booking.nid_filename)[1].lower()
+    
+    if file_ext in ['.jpg', '.jpeg', '.png']:
+        # For images, serve inline
+        return send_file(file_path, mimetype='image/' + file_ext[1:])
+    elif file_ext == '.pdf':
+        # For PDFs, serve as download
+        return send_file(file_path, as_attachment=True, download_name=booking.nid_filename)
+    else:
+        flash('Unsupported file type.', 'danger')
+        return redirect(url_for('main.admin_dashboard'))
+
+@main.route('/admin/host-nid/<string:user_id>')
+@admin_required
+def admin_view_host_nid(user_id):
+    """Admin route to view NID document for a host"""
+    user = User.query.get_or_404(user_id)
+    
+    if user.role != UserRole.HOST:
+        flash('This user is not a host.', 'warning')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    if not user.nid_filename:
+        flash('No NID document uploaded for this host.', 'warning')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    # Construct file path
+    file_path = os.path.join(current_app.root_path, 'static', 'nid_host_uploads', user.nid_filename)
+    
+    if not os.path.exists(file_path):
+        flash('NID document file not found.', 'danger')
+        return redirect(url_for('main.admin_dashboard'))
+    
+    # Determine file type and serve appropriately
+    file_ext = os.path.splitext(user.nid_filename)[1].lower()
+    
+    if file_ext in ['.jpg', '.jpeg', '.png']:
+        # For images, serve inline
+        return send_file(file_path, mimetype='image/' + file_ext[1:])
+    elif file_ext == '.pdf':
+        # For PDFs, serve as download
+        return send_file(file_path, as_attachment=True, download_name=user.nid_filename)
+    else:
+        flash('Unsupported file type.', 'danger')
+        return redirect(url_for('main.admin_dashboard'))
 
 # Role-based redirect routes
 @main.route('/host/dashboard')
@@ -853,7 +1017,7 @@ def messages():
     
     return render_template('messages.html', conversations=conversations, total_unread=total_unread)
 
-@main.route('/messages/<int:conversation_id>')
+@main.route('/messages/<string:conversation_id>')
 @login_required
 def view_conversation(conversation_id):
     """Display messages for a specific conversation"""
@@ -875,12 +1039,12 @@ def view_conversation(conversation_id):
     form = MessageForm()
     
     return render_template('conversation.html', 
-                         conversation=conversation, 
-                         messages=messages, 
-                         other_user=other_user, 
+                         conversation=conversation,
+                         messages=messages,
+                         other_user=other_user,
                          form=form)
 
-@main.route('/messages/<int:conversation_id>/send', methods=['POST'])
+@main.route('/messages/<string:conversation_id>/send', methods=['POST'])
 @login_required
 def send_message(conversation_id):
     """Send a message in a conversation"""
@@ -893,56 +1057,69 @@ def send_message(conversation_id):
     form = MessageForm()
     
     if form.validate_on_submit():
-        # Determine recipient
-        recipient_id = conversation.user2_id if conversation.user1_id == current_user.id else conversation.user1_id
-        
-        # Create new message
-        message = Message(
-            conversation_id=conversation.id,
-            sender_id=current_user.id,
-            recipient_id=recipient_id,
-            content=form.content.data
-        )
-        
-        # Update conversation last message time
-        conversation.last_message_at = datetime.utcnow()
-        
-        db.session.add(message)
-        db.session.commit()
-        
-        flash('Message sent successfully!', 'success')
-    else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'{error}', 'danger')
+        try:
+            # Determine recipient
+            recipient_id = conversation.user2_id if conversation.user1_id == current_user.id else conversation.user1_id
+            
+            # Create message
+            message = Message(
+                conversation_id=conversation.id,
+                sender_id=current_user.id,
+                recipient_id=recipient_id,
+                content=form.content.data
+            )
+            
+            db.session.add(message)
+            
+            # Update conversation's last_message_at
+            conversation.last_message_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            flash('Message sent successfully!', 'success')
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error sending message: {str(e)}', 'danger')
     
     return redirect(url_for('main.view_conversation', conversation_id=conversation_id))
 
-@main.route('/start-conversation/<int:user_id>')
+@main.route('/start-conversation/<string:user_id>')
 @login_required
 def start_conversation(user_id):
     """Start a new conversation with another user"""
     other_user = User.query.get_or_404(user_id)
     
-    # Don't allow messaging yourself
+    # Prevent starting conversation with yourself
     if other_user.id == current_user.id:
-        flash('You cannot message yourself!', 'danger')
+        flash('You cannot start a conversation with yourself.', 'warning')
         return redirect(url_for('main.messages'))
     
     # Check if conversation already exists
-    existing_conversation = current_user.get_conversation_with(other_user.id)
+    existing_conversation = Conversation.query.filter(
+        or_(
+            and_(Conversation.user1_id == current_user.id, Conversation.user2_id == other_user.id),
+            and_(Conversation.user1_id == other_user.id, Conversation.user2_id == current_user.id)
+        )
+    ).first()
     
     if existing_conversation:
         return redirect(url_for('main.view_conversation', conversation_id=existing_conversation.id))
     
     # Create new conversation
-    conversation = Conversation(
-        user1_id=min(current_user.id, other_user.id),  # Keep user1_id as the smaller ID for consistency
-        user2_id=max(current_user.id, other_user.id)
-    )
-    
-    db.session.add(conversation)
-    db.session.commit()
-    
-    flash(f'Started conversation with {other_user.username}!', 'success')
-    return redirect(url_for('main.view_conversation', conversation_id=conversation.id))
+    try:
+        conversation = Conversation(
+            user1_id=current_user.id,
+            user2_id=other_user.id
+        )
+        
+        db.session.add(conversation)
+        db.session.commit()
+        
+        flash(f'Started conversation with {other_user.username}!', 'success')
+        return redirect(url_for('main.view_conversation', conversation_id=conversation.id))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error starting conversation: {str(e)}', 'danger')
+        return redirect(url_for('main.messages'))

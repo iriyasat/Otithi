@@ -20,9 +20,7 @@
                              onerror="this.src='{{ url_for('static', filename='images/ui/default_avatar.png') }}'">
                         <div>
                             <h4 class="mb-0">{{ other_user.username }}</h4>
-                            <span class="badge bg-{{ 'primary' if other_user.role == 'host' else 'success' }}">
-                                {{ other_user.role.title() }}
-                            </span>
+                            <small class="text-muted">{{ other_user.get_role_label() }}</small>
                         </div>
                     </div>
                 </div>

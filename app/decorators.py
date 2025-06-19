@@ -37,7 +37,7 @@ def admin_required(f):
 
 def host_required(f):
     """
-    Decorator that requires the current user to be a host.
+    Decorator that requires the current user to be a verified host.
     """
     @wraps(f)
     def wrapped(*args, **kwargs):
@@ -48,6 +48,28 @@ def host_required(f):
         if current_user.role != 'host':
             flash('Access denied. Host privileges required.', 'danger')
             return redirect(url_for('main.home'))
+        
+        if not current_user.is_verified:
+            flash('Please complete verification before accessing host features.', 'warning')
+            return redirect(url_for('main.profile'))
+        
+        return f(*args, **kwargs)
+    return wrapped
+
+def host_required_unverified(f):
+    """
+    Decorator that requires the current user to be a host (verified or not).
+    """
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Please login to access this page.', 'warning')
+            return redirect(url_for('main.login', next=request.url))
+        
+        if current_user.role != 'host':
+            flash('Access denied. Host privileges required.', 'danger')
+            return redirect(url_for('main.home'))
+        
         return f(*args, **kwargs)
     return wrapped
 

@@ -6,6 +6,7 @@ from flask_login import LoginManager
 import os
 import secrets
 from flask_wtf.csrf import CSRFProtect
+from config import Config
 
 # Global extensions
 db = SQLAlchemy()
@@ -13,16 +14,15 @@ migrate = Migrate()  # <-- Ensure this is global
 login_manager = LoginManager()
 csrf = CSRFProtect()
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
     
     # Load config from config.py
-    from config import Config
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
     
     # Override database URI for development
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3307/otithi_db'
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-for-otithi-platform')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///othiti_uuid.db'
+    app.config['SECRET_KEY'] = secrets.token_hex(16)
     app.config['WTF_CSRF_ENABLED'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = None  # Disable CSRF token timeout for development
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'images')
@@ -36,13 +36,15 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
     login_manager.login_view = 'main.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
 
-    from .models import User
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        from app.models import User
+        return User.query.get(user_id)
 
-    from .routes import main as main_blueprint, get_profile_image_url, get_listing_image_url
+    from app.routes import main as main_blueprint, get_profile_image_url, get_listing_image_url
     app.register_blueprint(main_blueprint)
 
     # Register custom Jinja2 filters
@@ -57,19 +59,15 @@ def create_app():
     app.jinja_env.filters['nl2br'] = nl2br
 
     # Add helper functions to template context
-    @app.context_processor
-    def inject_image_helpers():
-        return {
-            'get_profile_image_url': get_profile_image_url,
-            'get_listing_image_url': get_listing_image_url
-        }
+    app.jinja_env.globals.update(get_profile_image_url=get_profile_image_url)
+    app.jinja_env.globals.update(get_listing_image_url=get_listing_image_url)
     
     # Add message notification count to template context
     @app.context_processor
     def inject_unread_message_count():
         from flask_login import current_user
         if current_user.is_authenticated:
-            from .models import Message, Conversation
+            from app.models import Message, Conversation
             # Only count messages that are part of actual conversations
             unread_count = (db.session.query(Message)
                           .join(Conversation)

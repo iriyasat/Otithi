@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, DecimalField, PasswordField, SubmitField, SelectField, DateField, IntegerField
 from wtforms.validators import DataRequired, Length, NumberRange, Email, EqualTo, ValidationError, Optional
 from flask_wtf.file import FileField, FileAllowed
-from .models import User
+from .models import User, UserRole
 
 class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
@@ -32,11 +32,11 @@ class LoginForm(FlaskForm):
 class ListingForm(FlaskForm):
     name = StringField('Name', validators=[
         DataRequired(),
-        Length(min=3, max=120, message='Name must be between 3 and 120 characters')
+        Length(min=3, max=200, message='Name must be between 3 and 200 characters')
     ])
     location = StringField('Location', validators=[
         DataRequired(),
-        Length(min=3, max=120, message='Location must be between 3 and 120 characters')
+        Length(min=3, max=200, message='Location must be between 3 and 200 characters')
     ])
     description = TextAreaField('Description', validators=[
         DataRequired(),
@@ -50,26 +50,24 @@ class ListingForm(FlaskForm):
         DataRequired(),
         NumberRange(min=1, max=20, message='Guest capacity must be between 1 and 20')
     ])
-    host_name = StringField('Host Name', validators=[
-        DataRequired(),
-        Length(min=2, max=120, message='Host name must be between 2 and 120 characters')
-    ])
     image = FileField('Listing Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'JPG and PNG images only!')])
+    submit = SubmitField('Add Listing')
 
 class BookingForm(FlaskForm):
-    check_in = DateField('Check-in Date', validators=[DataRequired()])
-    check_out = DateField('Check-out Date', validators=[DataRequired()])
+    check_in_date = DateField('Check-in Date', validators=[DataRequired()])
+    check_out_date = DateField('Check-out Date', validators=[DataRequired()])
     guest_count = IntegerField('Number of Guests', validators=[
         DataRequired(),
         NumberRange(min=1, max=20, message='Number of guests must be between 1 and 20')
     ])
+    nid_file = FileField('National ID Document', validators=[
+        Optional(),
+        FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Only JPG, PNG, and PDF files are allowed!')
+    ])
     submit = SubmitField('Request Booking')
 
 class ReviewForm(FlaskForm):
-    rating = IntegerField('Rating', validators=[
-        DataRequired(message='Please select a rating'),
-        NumberRange(min=1, max=5, message='Rating must be between 1 and 5 stars')
-    ])
+    rating = SelectField('Rating', choices=[(5, '5 Stars'), (4, '4 Stars'), (3, '3 Stars'), (2, '2 Stars'), (1, '1 Star')], coerce=int, validators=[DataRequired()])
     comment = TextAreaField('Comment', validators=[
         Length(max=500, message='Comment must be less than 500 characters')
     ])
@@ -80,6 +78,9 @@ class ProfileSettingsForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
     profile_picture = FileField('Upload Profile Picture', validators=[
         FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')
+    ])
+    nid_file = FileField('Upload NID Document (Hosts Only)', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'JPG, PNG, and PDF files only!')
     ])
     current_password = PasswordField('Current Password', validators=[Optional()])
     new_password = PasswordField('New Password', validators=[Optional(), Length(min=6)])
@@ -102,7 +103,11 @@ class ProfileSettingsForm(FlaskForm):
 
 class EditUserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
-    role = SelectField('Role', choices=[('guest', 'Guest'), ('host', 'Host')], validators=[DataRequired()])
+    role = SelectField('Role', choices=[
+        (UserRole.GUEST.value, 'Guest'),
+        (UserRole.HOST.value, 'Host'),
+        (UserRole.ADMIN.value, 'Admin')
+    ], validators=[DataRequired()])
     submit = SubmitField('Save Changes')
     
     def __init__(self, original_email=None, *args, **kwargs):

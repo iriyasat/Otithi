@@ -31,8 +31,8 @@
                                         <div class="col-md-8">
                                             <h5 class="mb-1">
                                                 {{ other_user.username }}
-                                                <span class="badge bg-{{ 'primary' if other_user.role == 'host' else 'success' }} ms-2">
-                                                    {{ other_user.role.title() }}
+                                                <span class="badge bg-{{ 'primary' if other_user.role.value == 'host' else 'success' }} ms-2">
+                                                    {{ other_user.get_role_label() }}
                                                 </span>
                                                 {% if unread_count > 0 %}
                                                     <span class="badge bg-danger ms-1">{{ unread_count }} new</span>

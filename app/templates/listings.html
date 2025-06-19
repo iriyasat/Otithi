@@ -169,7 +169,7 @@
                                             </button>
                                         </form>
                                     </div>
-                                {% elif current_user.role == 'guest' %}
+                                {% elif current_user.role.value == 'guest' %}
                                     <!-- Guest Actions -->
                                     <div class="d-flex gap-2">
                                         <a href="{{ url_for('main.start_conversation', user_id=listing.host_id) }}" 
