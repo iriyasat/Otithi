@@ -45,33 +45,33 @@
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                     {% if current_user.is_authenticated %}
                         {% if current_user.role.value == 'guest' %}
-                        <a href="{{ url_for('main.browse') }}" class="btn btn-primary">
+                        <a href="{{ url_for('listings.listings') }}" class="btn btn-primary">
                             <i class="bi bi-search me-1"></i>Browse Listings
                         </a>
-                        <a href="{{ url_for('main.my_bookings') }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('user.my_bookings') }}" class="btn btn-outline-primary">
                             <i class="bi bi-calendar-check me-1"></i>My Bookings
                         </a>
                         {% elif current_user.role.value == 'host' %}
-                        <a href="{{ url_for('main.my_listings') }}" class="btn btn-primary">
+                        <a href="{{ url_for('host.my_listings') }}" class="btn btn-primary">
                             <i class="bi bi-house-door me-1"></i>My Listings
                         </a>
-                        <a href="{{ url_for('main.my_bookings') }}" class="btn btn-outline-primary">
+                        <a href="{{ url_for('user.my_bookings') }}" class="btn btn-outline-primary">
                             <i class="bi bi-calendar-check me-1"></i>Booking Requests
                         </a>
                         {% elif current_user.role.value == 'admin' %}
-                        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-primary">
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary">
                             <i class="bi bi-speedometer2 me-1"></i>Admin Dashboard
                         </a>
                         {% endif %}
                         
-                        <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">
+                        <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-house me-1"></i>Go Home
                         </a>
                     {% else %}
-                    <a href="{{ url_for('main.login') }}" class="btn btn-primary">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Login
                     </a>
-                    <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-house me-1"></i>Go Home
                     </a>
                     {% endif %}

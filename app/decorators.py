@@ -12,7 +12,7 @@ def role_required(*roles):
         def wrapped(*args, **kwargs):
             if not current_user.is_authenticated:
                 flash('Please login to access this page.', 'warning')
-                return redirect(url_for('main.login', next=request.url))
+                return redirect(url_for('auth.login', next=request.url))
             
             if current_user.role not in roles:
                 abort(403)
@@ -28,7 +28,7 @@ def admin_required(f):
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please login to access this page.', 'warning')
-            return redirect(url_for('main.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.url))
         
         if not current_user.is_admin:
             abort(403)
@@ -43,15 +43,15 @@ def host_required(f):
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please login to access this page.', 'warning')
-            return redirect(url_for('main.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.url))
         
         if current_user.role != 'host':
             flash('Access denied. Host privileges required.', 'danger')
-            return redirect(url_for('main.home'))
+            return redirect(url_for('public.home'))
         
         if not current_user.is_verified:
             flash('Please complete verification before accessing host features.', 'warning')
-            return redirect(url_for('main.profile'))
+            return redirect(url_for('user.profile'))
         
         return f(*args, **kwargs)
     return wrapped
@@ -64,11 +64,11 @@ def host_required_unverified(f):
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please login to access this page.', 'warning')
-            return redirect(url_for('main.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.url))
         
         if current_user.role != 'host':
             flash('Access denied. Host privileges required.', 'danger')
-            return redirect(url_for('main.home'))
+            return redirect(url_for('public.home'))
         
         return f(*args, **kwargs)
     return wrapped
@@ -81,11 +81,11 @@ def guest_required(f):
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please login to access this page.', 'warning')
-            return redirect(url_for('main.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.url))
         
         if current_user.role != 'guest':
             flash('Access denied. Guest privileges required.', 'danger')
-            return redirect(url_for('main.home'))
+            return redirect(url_for('public.home'))
         return f(*args, **kwargs)
     return wrapped
 
@@ -100,7 +100,7 @@ def owns_listing_or_admin(f):
         
         if not current_user.is_authenticated:
             flash('Please login to access this page.', 'warning')
-            return redirect(url_for('main.login', next=request.url))
+            return redirect(url_for('auth.login', next=request.url))
         
         # Get listing_id from kwargs or args
         listing_id = kwargs.get('listing_id') or kwargs.get('id')

@@ -1,0 +1,104 @@
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container-xl">
+        <a class="navbar-brand" href="{{ url_for('public.index') }}">
+            <i class="fas fa-home text-primary me-2"></i>
+            Othiti
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('public.index') }}">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('listings.listings') }}">
+                        <i class="fas fa-search me-1"></i>Explore
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('public.about') }}">
+                        <i class="fas fa-info-circle me-1"></i>About
+                    </a>
+                </li>
+            </ul>
+            
+            <ul class="navbar-nav">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                                <i class="fas fa-cog me-1"></i>Admin
+                            </a>
+                        </li>
+                    {% elif current_user.role == 'host' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('host.dashboard') }}">
+                                <i class="fas fa-user-tie me-1"></i>Host Dashboard
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('user.profile') }}">
+                                <i class="fas fa-user me-1"></i>Profile
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="nav-item dropdown avatar-dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {% if current_user.profile_picture %}
+                                <img src="{{ url_for('static', filename='uploads/' + current_user.profile_picture) }}" 
+                                     alt="Profile" class="avatar">
+                            {% else %}
+                                <img src="https://via.placeholder.com/40x40/006A4E/FFFFFF?text={{ current_user.username[0].upper() }}" 
+                                     alt="Profile" class="avatar">
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('user.profile') }}">
+                                <i class="fas fa-user me-2"></i>My Profile
+                            </a></li>
+                            {% if current_user.role == 'host' %}
+                            <li><a class="dropdown-item" href="{{ url_for('host.my_listings') }}">
+                                <i class="fas fa-list me-2"></i>My Listings
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('host.bookings') }}">
+                                <i class="fas fa-calendar me-2"></i>Bookings
+                            </a></li>
+                            {% else %}
+                            <li><a class="dropdown-item" href="{{ url_for('user.my_bookings') }}">
+                                <i class="fas fa-calendar me-2"></i>My Bookings
+                            </a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('messages.messages') }}">
+                                <i class="fas fa-envelope me-2"></i>Messages
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-outline-primary me-2" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus me-1"></i>Register
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav> 

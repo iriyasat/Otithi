@@ -25,6 +25,8 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     csrf.init_app(app)  # Enable CSRF protection globally
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
 
     from .models import User
     @login_manager.user_loader

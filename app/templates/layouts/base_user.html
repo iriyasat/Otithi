@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% include 'partials/navbar.html' %}
+    {% include 'partials/flash_messages.html' %}
+    <main>
+        {% block user_content %}{% endblock %}
+    </main>
+    {% include 'partials/footer.html' %}
+{% endblock %} 

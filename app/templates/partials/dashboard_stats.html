@@ -1,0 +1,31 @@
+{% macro render_stat_card(title, value, icon, color="primary", size="col-md-3") %}
+    <div class="{{ size }} mb-3">
+        <div class="card bg-{{ color }} text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">{{ value }}</h4>
+                        <p class="card-text">{{ title }}</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="{{ icon }} fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro render_host_stat_card(title, value, icon) %}
+    <div class="dashboard-card host">
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4 class="card-title">{{ value }}</h4>
+                <p class="card-text">{{ title }}</p>
+            </div>
+            <div class="align-self-center">
+                <i class="{{ icon }} fa-2x"></i>
+            </div>
+        </div>
+    </div>
+{% endmacro %} 

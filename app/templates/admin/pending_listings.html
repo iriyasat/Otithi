@@ -17,7 +17,7 @@
                         <p class="text-muted mb-0">Review and moderate host-submitted listings</p>
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-secondary rounded-pill">
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary rounded-pill">
                             <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
                         </a>
                     </div>
@@ -143,7 +143,7 @@
                                                     </button>
                                                     
                                                     <!-- Approve Button -->
-                                                    <form method="POST" action="{{ url_for('main.admin_approve_listing', listing_id=listing.id) }}" 
+                                                    <form method="POST" action="{{ url_for('admin.approve_listing', listing_id=listing.id) }}" 
                                                           class="d-inline me-1" onsubmit="return confirm('Approve this listing?')">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                         <button type="submit" class="btn btn-sm btn-success rounded-pill">
@@ -152,7 +152,7 @@
                                                     </form>
                                                     
                                                     <!-- Reject Button -->
-                                                    <form method="POST" action="{{ url_for('main.admin_reject_listing', listing_id=listing.id) }}" 
+                                                    <form method="POST" action="{{ url_for('admin.reject_listing', listing_id=listing.id) }}" 
                                                           class="d-inline" onsubmit="return confirm('Reject and delete this listing? This cannot be undone.')">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">
@@ -212,7 +212,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <form method="POST" action="{{ url_for('main.admin_approve_listing', listing_id=listing.id) }}" 
+                                                        <form method="POST" action="{{ url_for('admin.approve_listing', listing_id=listing.id) }}" 
                                                               class="d-inline" onsubmit="return confirm('Approve this listing?')">
                                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                             <button type="submit" class="btn btn-success">
@@ -235,7 +235,7 @@
                             <i class="fas fa-check-circle text-success fs-1 mb-3"></i>
                             <h4 class="text-muted">All Caught Up!</h4>
                             <p class="text-muted">No listings pending review at the moment.</p>
-                            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-primary">
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-primary">
                                 <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
                             </a>
                         </div>

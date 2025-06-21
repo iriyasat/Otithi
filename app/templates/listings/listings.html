@@ -48,11 +48,11 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="btn-group" role="group">
-                <a href="{{ url_for('listings.listings', search=search, sort='asc') }}"
+                <a href="{{ url_for('listings.listings', search=search, sort='price_asc') }}"
                    class="btn btn-outline-primary {% if sort == 'price_asc' %}active{% endif %}">
                     <i class="fas fa-sort-amount-up"></i> Price: Low to High
                 </a>
-                <a href="{{ url_for('listings.listings', search=search, sort='desc') }}"
+                <a href="{{ url_for('listings.listings', search=search, sort='price_desc') }}"
                    class="btn btn-outline-primary {% if sort == 'price_desc' %}active{% endif %}">
                     <i class="fas fa-sort-amount-down"></i> Price: High to Low
                 </a>
@@ -97,7 +97,7 @@
                             <i class="fas fa-bath me-1"></i>{{ listing.bathrooms }} baths
                         </span>
                         <span class="listing-feature">
-                            <i class="fas fa-users me-1"></i>{{ listing.max_guests }} guests
+                            <i class="fas fa-users me-1"></i>{{ listing.guest_capacity }} guests
                         </span>
                     </div>
                     <div class="listing-actions">
@@ -112,7 +112,7 @@
     </div>
 
     <!-- Pagination -->
-    {% if pagination.pages > 1 %}
+    {% if pagination and pagination.pages > 1 %}
     <nav aria-label="Listings pagination">
         <ul class="pagination justify-content-center">
             {% if pagination.has_prev %}

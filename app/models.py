@@ -9,13 +9,19 @@ class BookingStatus(Enum):
     CHECKED_IN = 'CHECKED_IN'
     CHECKED_OUT = 'CHECKED_OUT'
     CANCELLED = 'CANCELLED'
+    COMPLETED = 'COMPLETED'
 
 class ListingStatus(Enum):
     DRAFT = 'DRAFT'
-    PENDING_APPROVAL = 'PENDING_APPROVAL'
+    PENDING = 'PENDING'
     APPROVED = 'APPROVED'
     REJECTED = 'REJECTED'
     INACTIVE = 'INACTIVE'
+
+class UserRole(Enum):
+    GUEST = 'guest'
+    HOST = 'host'
+    ADMIN = 'admin'
 
 class User(UserMixin, db.Model):
     """User model for authentication and user management"""
@@ -23,7 +29,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(20))  # 'admin', 'host', 'guest'
+    role = db.Column(db.String(20), default='guest')  # 'admin', 'host', 'guest'
     is_verified = db.Column(db.Boolean, default=False)
     phone = db.Column(db.String(20))
     profile_image = db.Column(db.String(255))
@@ -31,14 +37,33 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    listings = db.relationship('Listing', backref='owner', lazy=True)
-    bookings = db.relationship('Booking', backref='guest', foreign_keys='Booking.guest_id', lazy=True)
+    listings = db.relationship('Listing', backref='user', lazy=True)
+    bookings = db.relationship('Booking', backref='user', foreign_keys='Booking.user_id', lazy=True)
     sent_messages = db.relationship('Message', backref='sender', foreign_keys='Message.sender_id', lazy=True)
     received_messages = db.relationship('Message', backref='recipient', foreign_keys='Message.recipient_id', lazy=True)
-    reviews_written = db.relationship('Review', backref='reviewer', foreign_keys='Review.guest_id', lazy=True)
+    reviews = db.relationship('Review', backref='user', foreign_keys='Review.user_id', lazy=True)
+    
+    # Conversation relationships
+    conversations_as_user1 = db.relationship('Conversation', backref='user1', foreign_keys='Conversation.user1_id', lazy=True)
+    conversations_as_user2 = db.relationship('Conversation', backref='user2', foreign_keys='Conversation.user2_id', lazy=True)
 
     def __repr__(self):
         return f'<User {self.username}>'
+
+    @property
+    def is_admin(self):
+        """Check if user is an admin"""
+        return self.role == 'admin'
+
+    @property
+    def is_host(self):
+        """Check if user is a host"""
+        return self.role == 'host'
+
+    @property
+    def is_guest(self):
+        """Check if user is a guest"""
+        return self.role == 'guest'
 
 class Listing(db.Model):
     """Listing model for property listings"""
@@ -77,13 +102,27 @@ class Booking(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=False)
-    guest_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     # Relationships
     messages = db.relationship('Message', backref='booking', lazy=True)
 
     def __repr__(self):
         return f'<Booking {self.id} for {self.listing.title}>'
+
+class Conversation(db.Model):
+    """Conversation model for organizing messages between users"""
+    id = db.Column(db.Integer, primary_key=True)
+    user1_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user2_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    messages = db.relationship('Message', backref='conversation', lazy=True)
+
+    def __repr__(self):
+        return f'<Conversation between {self.user1.username} and {self.user2.username}>'
 
 class Message(db.Model):
     """Message model for communication between guests and hosts"""
@@ -93,6 +132,7 @@ class Message(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'), nullable=False)
     booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
 
     def __repr__(self):
@@ -110,12 +150,11 @@ class ListingImage(db.Model):
 class Review(db.Model):
     """Review model for guest and host reviews"""
     id = db.Column(db.Integer, primary_key=True)
-    guest_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     listing_id = db.Column(db.Integer, db.ForeignKey('listing.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # 1 to 5
     comment = db.Column(db.Text)
-    reviewed_by_host = db.Column(db.Boolean, default=False)  # If false = guest review, if true = host review
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<Review {self.id} by {self.reviewer.username} for listing {self.listing_id}>' 
+        return f'<Review {self.id} by {self.user.username} for listing {self.listing_id}>' 

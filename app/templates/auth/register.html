@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register - Othiti{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -10,85 +10,58 @@
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4 text-green">Register</h2>
                     
-                    <!-- General Form Errors -->
-                    {% if form.errors %}
-                    <div class="alert alert-danger" role="alert">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-exclamation-triangle me-2"></i>Please fix the following errors:
-                        </h6>
-                        <ul class="mb-0">
-                            {% for field_name, field_errors in form.errors.items() %}
-                                {% for error in field_errors %}
-                                    <li><strong>{{ form[field_name].label.text }}:</strong> {{ error }}</li>
-                                {% endfor %}
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
                             {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
+                        {% endif %}
+                    {% endwith %}
                     
-                    <form method="POST" action="">
+                    <form method="POST" action="{{ url_for('auth.register') }}">
                         {{ form.hidden_tag() }}
+                        
                         <div class="mb-3">
                             {{ form.username.label(class="form-label") }}
-                            {{ form.username(class="form-control") }}
+                            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Choose a username") }}
                             {% for error in form.username.errors %}
-                                <span class="text-danger">{{ error }}</span>
+                                <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-3">
                             {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control") }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
                             {% for error in form.email.errors %}
-                                <span class="text-danger">{{ error }}</span>
+                                <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="mb-3">
-                            <label for="account_type" class="form-label">
-                                <i class="fas fa-user-tag me-2 text-muted"></i>Account Type
-                            </label>
-                            {{ form.account_type(class="form-select", id="account_type") }}
-                            <div class="form-text">
-                                <small>
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    <strong>Guest:</strong> Browse and book accommodations | 
-                                    <strong>Host:</strong> List your properties and welcome guests
-                                </small>
-                            </div>
-                            {% for error in form.account_type.errors %}
-                                <span class="text-danger">{{ error }}</span>
-                            {% endfor %}
-                        </div>
+                        
                         <div class="mb-3">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control") }}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Create a password") }}
                             {% for error in form.password.errors %}
-                                <span class="text-danger">{{ error }}</span>
+                                <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-4">
                             {{ form.confirm_password.label(class="form-label") }}
-                            {{ form.confirm_password(class="form-control") }}
+                            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else ""), placeholder="Confirm your password") }}
                             {% for error in form.confirm_password.errors %}
-                                <span class="text-danger">{{ error }}</span>
+                                <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
-                        <div class="mb-4">
-                            {{ form.role.label(class="form-label") }}
-                            {{ form.role(class="form-control") }}
-                            {% for error in form.role.errors %}
-                                <span class="text-danger">{{ error }}</span>
-                            {% endfor %}
-                            <small class="form-text text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                <strong>Guest:</strong> Browse and book listings | <strong>Host:</strong> Create and manage your own listings
-                            </small>
-                        </div>
+                        
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-bd-green btn-lg">
-                                Register
-                            </button>
+                            {{ form.submit(class="btn btn-bd-green btn-lg") }}
                         </div>
                     </form>
+                    
                     <div class="text-center mt-4">
                         <p class="mb-0">Already have an account? 
                             <a href="{{ url_for('auth.login') }}" class="text-decoration-none text-red">Login here</a>

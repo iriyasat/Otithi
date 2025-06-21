@@ -1,92 +1,118 @@
 {% extends "base.html" %}
 
-{% block title %}Profile - {{ current_user.username }}{% endblock %}
+{% block title %}My Profile - Othiti{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container py-5">
     <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+        <!-- Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-body text-center p-4">
+                    <div class="profile-avatar mb-3">
+                        {% if current_user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}" 
+                                 alt="{{ current_user.username }}" class="rounded-circle" width="120" height="120">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/ui/default_avatar.png') }}" 
+                                 alt="{{ current_user.username }}" class="rounded-circle" width="120" height="120">
+                        {% endif %}
                     </div>
-                    <h4 class="card-title">{{ current_user.username }}</h4>
-                    <p class="text-muted">{{ current_user.email }}</p>
-                    <p class="text-muted">
-                        <small>Member since {{ current_user.created_at.strftime('%B %Y') }}</small>
-                    </p>
-                    {% if current_user.role == 'admin' %}
-                    <span class="badge bg-danger">Administrator</span>
-                    {% else %}
-                    <span class="badge bg-primary">User</span>
+                    
+                    <h4 class="text-otithi mb-2">{{ current_user.username }}</h4>
+                    <p class="text-muted mb-3">{{ current_user.email }}</p>
+                    
+                    <div class="badge bg-{{ 'success' if current_user.role == 'host' else 'primary' }} mb-3">
+                        {{ current_user.role.title() }}
+                    </div>
+                    
+                    {% if current_user.is_verified %}
+                        <div class="badge bg-success mb-3">
+                            <i class="fas fa-check-circle me-1"></i>Verified
+                        </div>
                     {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('user.edit_profile') }}" class="btn btn-outline-otithi">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        {% if current_user.role == 'guest' %}
+                            <a href="{{ url_for('host.become_host') }}" class="btn btn-success">
+                                <i class="fas fa-home me-2"></i>Become a Host
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
+        <!-- Profile Details -->
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Profile Information
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('host.my_listings') }}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-list"></i> My Listings
-                            </a>
+                            <label class="form-label text-muted">Username</label>
+                            <p class="form-control-plaintext">{{ current_user.username }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('host.add_listing') }}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-plus"></i> Add New Listing
-                            </a>
+                            <label class="form-label text-muted">Email</label>
+                            <p class="form-control-plaintext">{{ current_user.email }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('listings.listings') }}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-search me-2"></i>Browse Listings
-                            </a>
+                            <label class="form-label text-muted">Role</label>
+                            <p class="form-control-plaintext">{{ current_user.role.title() }}</p>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger w-100">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </a>
+                            <label class="form-label text-muted">Member Since</label>
+                            <p class="form-control-plaintext">{{ current_user.created_at.strftime('%B %Y') }}</p>
                         </div>
+                        {% if current_user.phone %}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted">Phone</label>
+                            <p class="form-control-plaintext">{{ current_user.phone }}</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="mb-0">Account Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <p><strong>Username:</strong> {{ current_user.username }}</p>
-                        </div>
-                        <div class="col-sm-6">
-                            <p><strong>Email:</strong> {{ current_user.email }}</p>
-                        </div>
-                        <div class="col-sm-6">
-                            <p><strong>Role:</strong> 
-                                {% if current_user.role == 'admin' %}
-                                    Administrator
-                                {% else %}
-                                    Regular User
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-sm-6">
-                            <p><strong>Joined:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
-                        </div>
-                        <div class="col-12 mt-3">
-                            <p><strong>Listings Created:</strong> {{ current_user.listings|length }}</p>
+            <!-- Quick Stats -->
+            <div class="row mt-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3 class="mb-1">{{ current_user.bookings|length }}</h3>
+                            <p class="mb-0">My Bookings</p>
                         </div>
                     </div>
                 </div>
+                {% if current_user.role == 'host' %}
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3 class="mb-1">{{ current_user.listings|length }}</h3>
+                            <p class="mb-0">My Listings</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h3 class="mb-1">{{ current_user.reviews_written|length }}</h3>
+                            <p class="mb-0">Reviews</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %} 
 {% endblock %} 

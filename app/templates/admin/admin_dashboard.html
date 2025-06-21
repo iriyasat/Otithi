@@ -1,76 +1,107 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - {{ current_user.username }}{% endblock %}
+{% block title %}Admin Dashboard - Othiti{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Header -->
+<div class="container-fluid py-4">
+    <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-3">
-                <i class="fas fa-tachometer-alt text-primary me-2"></i>Admin Dashboard
-            </h2>
-            <p class="text-muted">Welcome back, {{ current_user.username }}! Here's an overview of the platform.</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                    </h1>
+                    <p class="text-muted mb-0">Welcome back, {{ current_user.username }}! Here's what's happening with Othiti.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.manage_users') }}" class="btn btn-primary">
+                        <i class="fas fa-users me-2"></i>Manage Users
+                    </a>
+                    <a href="{{ url_for('admin.manage_listings') }}" class="btn btn-success">
+                        <i class="fas fa-home me-2"></i>Manage Listings
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ total_users }}</h4>
-                            <p class="card-text">Total Users</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                            <div class="text-xs text-muted">+{{ monthly_users }} this month</div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ total_listings }}</h4>
-                            <p class="card-text">Total Listings</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Listings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_listings }}</div>
+                            <div class="text-xs text-muted">+{{ monthly_listings }} this month</div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-home fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-home fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ total_bookings }}</h4>
-                            <p class="card-text">Total Bookings</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total Bookings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_bookings }}</div>
+                            <div class="text-xs text-muted">+{{ monthly_bookings }} this month</div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-calendar-check fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning text-white">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4 class="card-title">{{ verified_hosts }}</h4>
-                            <p class="card-text">Verified Hosts</p>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Earnings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">৳{{ "%.0f"|format(total_earnings) }}</div>
+                            <div class="text-xs text-muted">From confirmed bookings</div>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-user-check fa-2x"></i>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -78,87 +109,68 @@
         </div>
     </div>
 
-    <!-- Detailed Statistics -->
+    <!-- User Breakdown -->
     <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-home me-2"></i>Listing Statistics</h5>
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">User Breakdown</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <h4 class="text-success">{{ approved_listings }}</h4>
-                            <small class="text-muted">Approved</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-warning">{{ pending_listings }}</h4>
-                            <small class="text-muted">Pending</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-danger">{{ rejected_listings }}</h4>
-                            <small class="text-muted">Rejected</small>
-                        </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Hosts</span>
+                        <span class="badge bg-success">{{ total_hosts }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Guests</span>
+                        <span class="badge bg-primary">{{ total_guests }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Admins</span>
+                        <span class="badge bg-danger">{{ total_users - total_hosts - total_guests }}</span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Booking Statistics</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <h4 class="text-success">{{ confirmed_bookings }}</h4>
-                            <small class="text-muted">Confirmed</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-warning">{{ pending_bookings }}</h4>
-                            <small class="text-muted">Pending</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-info">{{ total_hosts }}</h4>
-                            <small class="text-muted">Hosts</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Admin Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-cogs me-2"></i>Admin Actions
-                    </h5>
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Pending Items</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-users me-2"></i>Manage Users
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin.manage_listings') }}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-home me-2"></i>Manage Listings
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin.nid_verifications') }}" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-id-card me-2"></i>NID Verifications
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin.cache_stats') }}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-chart-bar me-2"></i>Cache Stats
-                            </a>
-                        </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Pending Listings</span>
+                        <span class="badge bg-warning text-dark">{{ pending_listings }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Pending Bookings</span>
+                        <span class="badge bg-warning text-dark">{{ pending_bookings }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Reviews</span>
+                        <span class="badge bg-info">{{ total_reviews }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.manage_listings') }}?status=PENDING" class="btn btn-warning btn-sm">
+                            <i class="fas fa-clock me-1"></i>Review Pending Listings
+                        </a>
+                        <a href="{{ url_for('admin.manage_bookings') }}?status=PENDING" class="btn btn-info btn-sm">
+                            <i class="fas fa-calendar me-1"></i>Review Pending Bookings
+                        </a>
+                        <a href="{{ url_for('admin.manage_users') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-users me-1"></i>Manage Users
+                        </a>
                     </div>
                 </div>
             </div>
@@ -167,47 +179,38 @@
 
     <!-- Recent Activity -->
     <div class="row">
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Listings</h5>
-                </div>
-                <div class="card-body">
-                    {% if recent_listings %}
-                        {% for listing in recent_listings %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ listing.title }}</strong>
-                                <br><small class="text-muted">{{ listing.location }}</small>
-                            </div>
-                            <span class="badge bg-{{ 'success' if listing.status.value == 'approved' else 'warning' if listing.status.value == 'pending_approval' else 'danger' }}">
-                                {{ listing.status.value.replace('_', ' ').title() }}
-                            </span>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted">No recent listings</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Recent Users</h5>
+        <!-- Recent Users -->
+        <div class="col-xl-4 col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Users</h6>
                 </div>
                 <div class="card-body">
                     {% if recent_users %}
                         {% for user in recent_users %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>{{ user.username }}</strong>
-                                <br><small class="text-muted">{{ user.email }}</small>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                {% if user.profile_image %}
+                                    <img src="{{ url_for('static', filename='profiles/' + user.profile_image) }}" 
+                                         class="rounded-circle" width="40" height="40" alt="{{ user.username }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/ui/default_avatar.png') }}" 
+                                         class="rounded-circle" width="40" height="40" alt="Default avatar">
+                                {% endif %}
                             </div>
-                            <span class="badge bg-{{ 'primary' if user.role == 'admin' else 'success' if user.role == 'host' else 'info' }}">
-                                {{ user.role.title() }}
-                            </span>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">{{ user.username }}</h6>
+                                <small class="text-muted">
+                                    {% if user.role == 'host' %}
+                                        <span class="badge bg-success">Host</span>
+                                    {% elif user.role == 'admin' %}
+                                        <span class="badge bg-danger">Admin</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">Guest</span>
+                                    {% endif %}
+                                    • {{ user.created_at.strftime('%b %d') }}
+                                </small>
+                            </div>
                         </div>
                         {% endfor %}
                     {% else %}
@@ -216,31 +219,106 @@
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Recent Bookings</h5>
+
+        <!-- Recent Listings -->
+        <div class="col-xl-4 col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Listings</h6>
                 </div>
                 <div class="card-body">
-                    {% if recent_bookings %}
-                        {% for booking in recent_bookings %}
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>Booking #{{ booking.id }}</strong>
-                                <br><small class="text-muted">{{ booking.listing.title }}</small>
+                    {% if recent_listings %}
+                        {% for listing in recent_listings %}
+                        <div class="mb-3">
+                            <h6 class="mb-1">{{ listing.title }}</h6>
+                            <p class="text-muted mb-1 small">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ listing.location }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">৳{{ listing.price_per_night }}/night</small>
+                                {% if listing.status.value == 'APPROVED' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif listing.status.value == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif listing.status.value == 'REJECTED' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
                             </div>
-                            <span class="badge bg-{{ 'success' if booking.status.value == 'confirmed' else 'warning' if booking.status.value == 'pending' else 'danger' }}">
-                                {{ booking.status.value.title() }}
-                            </span>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted">No recent bookings</p>
+                        <p class="text-muted">No recent listings</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performing Listings -->
+        <div class="col-xl-4 col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Top Performing Listings</h6>
+                </div>
+                <div class="card-body">
+                    {% if top_listings %}
+                        {% for listing, booking_count, avg_rating in top_listings %}
+                        <div class="mb-3">
+                            <h6 class="mb-1">{{ listing.title }}</h6>
+                            <p class="text-muted mb-1 small">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ listing.location }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ booking_count }} bookings
+                                </small>
+                                {% if avg_rating %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-star text-warning me-1"></i>{{ "%.1f"|format(avg_rating) }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No data available</p>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+
+.text-xs {
+    font-size: 0.7rem;
+}
+</style>
 {% endblock %} 

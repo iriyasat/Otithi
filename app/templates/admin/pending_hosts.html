@@ -14,7 +14,7 @@
                     </h1>
                     <p class="text-muted mb-0">Review and verify host accounts</p>
                 </div>
-                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
                 </a>
             </div>
@@ -95,7 +95,7 @@
                                                 <span class="badge bg-success me-2">
                                                     <i class="fas fa-file-upload me-1"></i>Uploaded
                                                 </span>
-                                                <a href="{{ url_for('main.admin_view_host_nid', user_id=host.id) }}" 
+                                                <a href="{{ url_for('admin.view_nid', user_id=host.id) }}" 
                                                    class="btn btn-outline-primary btn-sm" 
                                                    target="_blank"
                                                    title="View NID Document">
@@ -119,7 +119,7 @@
                                     <td class="py-3">
                                         <div class="btn-group" role="group">
                                             {% if host.nid_filename %}
-                                            <form action="{{ url_for('main.admin_verify_host', host_id=host.id) }}" 
+                                            <form action="{{ url_for('admin.verify_host', host_id=host.id) }}" 
                                                   method="post" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <button type="submit" class="btn btn-success btn-sm" 
@@ -133,7 +133,7 @@
                                                 <i class="fas fa-clock me-1"></i>Awaiting NID
                                             </button>
                                             {% endif %}
-                                            <a href="{{ url_for('main.admin_edit_user', user_id=host.id) }}" 
+                                            <a href="{{ url_for('admin.edit_user', user_id=host.id) }}" 
                                                class="btn btn-outline-primary btn-sm ms-1">
                                                 <i class="fas fa-edit"></i>
                                             </a>

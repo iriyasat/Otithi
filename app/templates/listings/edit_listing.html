@@ -1,157 +1,124 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Edit Listing{% endblock %}
+{% block title %}Edit Listing - Othiti{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-green text-white">
-                    <h4 class="mb-0">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
                         <i class="fas fa-edit me-2"></i>Edit Listing
-                    </h4>
+                    </h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Current Image Preview -->
+                    {% if listing.image_filename %}
+                    <div class="mb-4">
+                        <label class="form-label">Current Image</label>
+                        <div class="text-center">
+                            <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" 
+                                 alt="{{ listing.title }}" class="img-fluid rounded" style="max-height: 200px;">
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <form method="POST" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
                         
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 {{ form.title.label(class="form-label") }}
-                                {{ form.title(class="form-control", placeholder="Enter listing title") }}
-                                {% if form.title.errors %}
-                                    {% for error in form.title.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
+                                {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="Enter listing title") }}
+                                {% for error in form.title.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             
                             <div class="col-md-6 mb-3">
                                 {{ form.location.label(class="form-label") }}
-                                {{ form.location(class="form-control", placeholder="Search for location...", id="location-input") }}
-                                {% if form.location.errors %}
-                                    {% for error in form.location.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.description.label(class="form-label") }}
-                            {{ form.description(class="form-control", rows=4, placeholder="Describe your property...") }}
-                            {% if form.description.errors %}
-                                {% for error in form.description.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
+                                {{ form.location(class="form-control" + (" is-invalid" if form.location.errors else ""), placeholder="City, District") }}
+                                {% for error in form.location.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
-                            {% endif %}
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
                                 {{ form.price_per_night.label(class="form-label") }}
-                                <div class="input-group">
-                                    <span class="input-group-text">৳</span>
-                                    {{ form.price_per_night(class="form-control", placeholder="0.00") }}
-                                </div>
-                                {% if form.price_per_night.errors %}
-                                    {% for error in form.price_per_night.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
+                                {{ form.price_per_night(class="form-control" + (" is-invalid" if form.price_per_night.errors else ""), placeholder="৳") }}
+                                {% for error in form.price_per_night.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="4", placeholder="Describe your property, amenities, and what makes it special...") }}
+                                {% for error in form.description.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             
                             <div class="col-md-4 mb-3">
                                 {{ form.guest_capacity.label(class="form-label") }}
-                                {{ form.guest_capacity(class="form-control", placeholder="1") }}
-                                {% if form.guest_capacity.errors %}
-                                    {% for error in form.guest_capacity.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
+                                {{ form.guest_capacity(class="form-control" + (" is-invalid" if form.guest_capacity.errors else "")) }}
+                                {% for error in form.guest_capacity.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
                             </div>
                             
                             <div class="col-md-4 mb-3">
                                 {{ form.bedrooms.label(class="form-label") }}
-                                {{ form.bedrooms(class="form-control", placeholder="1") }}
-                                {% if form.bedrooms.errors %}
-                                    {% for error in form.bedrooms.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
+                                {{ form.bedrooms(class="form-control" + (" is-invalid" if form.bedrooms.errors else "")) }}
+                                {% for error in form.bedrooms.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
                             </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                            
+                            <div class="col-md-4 mb-3">
                                 {{ form.bathrooms.label(class="form-label") }}
-                                {{ form.bathrooms(class="form-control", placeholder="1") }}
-                                {% if form.bathrooms.errors %}
-                                    {% for error in form.bathrooms.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                {{ form.image.label(class="form-label") }}
-                                {{ form.image(class="form-control") }}
-                                {% if form.image.errors %}
-                                    {% for error in form.image.errors %}
-                                        <div class="text-danger small">{{ error }}</div>
-                                    {% endfor %}
-                                {% endif %}
-                                {% if listing and listing.image_filename %}
-                                <div class="mt-2">
-                                    <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" 
-                                         alt="Current Image" class="img-fluid rounded shadow img-max-180">
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- Location Picker with Places Autocomplete -->
-                        <div class="mb-4">
-                            <label class="form-label">
-                                <i class="fas fa-map-marker-alt me-2"></i>Update Location
-                            </label>
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Type a location above or click on the map below to update the location of your property.
-                            </div>
-                            <div id="map" class="map-container"></div>
-                            
-                            <!-- Hidden coordinate fields -->
-                            {{ form.latitude(class="d-none", id="latitude-input") }}
-                            {{ form.longitude(class="d-none", id="longitude-input") }}
-                        </div>
-                        
-                        <div class="mb-3">
-                            {{ form.amenities.label(class="form-label") }}
-                            {{ form.amenities(class="form-control", rows=3, placeholder="WiFi&#10;Air Conditioning&#10;Kitchen&#10;Parking") }}
-                            <div class="form-text">Enter each amenity on a new line</div>
-                            {% if form.amenities.errors %}
-                                {% for error in form.amenities.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
+                                {{ form.bathrooms(class="form-control" + (" is-invalid" if form.bathrooms.errors else "")) }}
+                                {% for error in form.bathrooms.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-4">
-                            {{ form.house_rules.label(class="form-label") }}
-                            {{ form.house_rules(class="form-control", rows=3, placeholder="No smoking&#10;No pets&#10;Quiet hours after 10 PM") }}
-                            <div class="form-text">Enter each rule on a new line</div>
-                            {% if form.house_rules.errors %}
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                {{ form.house_rules.label(class="form-label") }}
+                                {{ form.house_rules(class="form-control" + (" is-invalid" if form.house_rules.errors else ""), rows="3", placeholder="House rules, check-in/out times, pet policy, etc.") }}
                                 {% for error in form.house_rules.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
+                                    <div class="invalid-feedback">{{ error }}</div>
                                 {% endfor %}
-                            {% endif %}
+                            </div>
+                            
+                            <div class="col-md-12 mb-4">
+                                {{ form.image.label(class="form-label") }}
+                                {{ form.image(class="form-control" + (" is-invalid" if form.image.errors else "")) }}
+                                <div class="form-text">Upload a new image to replace the current one (JPG, PNG)</div>
+                                {% for error in form.image.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
                         </div>
                         
-                        <div class="d-flex gap-2">
-                            {{ form.submit(class="btn btn-bd-green") }}
-                            <a href="{{ url_for('host.my_listings') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-warning btn-lg", value="Update Listing") }}
+                            <a href="{{ url_for('host.my_listings') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to My Listings
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -159,126 +126,4 @@
         </div>
     </div>
 </div>
-
-<!-- Google Maps Integration with Places Autocomplete -->
-<script src="https://maps.googleapis.com/maps/api/js?key={{ config.GOOGLE_MAPS_API_KEY }}&libraries=places&callback=initMap" async defer></script>
-<script>
-let map, marker, autocomplete;
-
-function initMap() {
-    // Use existing coordinates or default to Dhaka
-    const defaultCenter = { 
-        lat: {{ listing.latitude if listing.latitude else 23.8103 }}, 
-        lng: {{ listing.longitude if listing.longitude else 90.4125 }} 
-    };
-    
-    map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 15,
-        center: defaultCenter,
-        styles: [
-            {
-                "featureType": "all",
-                "elementType": "geometry.fill",
-                "stylers": [{"color": "#f5f5f5"}]
-            },
-            {
-                "featureType": "water",
-                "elementType": "geometry",
-                "stylers": [{"color": "#006a4e"}]
-            }
-        ]
-    });
-    
-    // Create marker at existing location
-    marker = new google.maps.Marker({
-        position: defaultCenter,
-        map: map,
-        draggable: true,
-        title: "Drag to set location",
-        icon: {
-            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="16" cy="16" r="12" fill="#f42a41" stroke="#fff" stroke-width="2"/>
-                    <circle cx="16" cy="16" r="6" fill="#fff"/>
-                </svg>
-            `),
-            scaledSize: new google.maps.Size(32, 32),
-            anchor: new google.maps.Point(16, 16)
-        }
-    });
-    
-    // Initialize Places Autocomplete
-    autocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('location-input'),
-        {
-            types: ['geocode'],
-            componentRestrictions: { country: 'bd' } // Restrict to Bangladesh
-        }
-    );
-    
-    // When user selects a place from autocomplete
-    autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
-        
-        if (!place.geometry) {
-            alert("No location found for: '" + place.name + "'");
-            return;
-        }
-        
-        // If the place has a geometry, then present it on a map.
-        if (place.geometry.viewport) {
-            map.fitBounds(place.geometry.viewport);
-        } else {
-            map.setCenter(place.geometry.location);
-            map.setZoom(17);
-        }
-        
-        // Update marker position
-        marker.setPosition(place.geometry.location);
-        
-        // Update hidden coordinate fields
-        document.getElementById('latitude-input').value = place.geometry.location.lat().toFixed(6);
-        document.getElementById('longitude-input').value = place.geometry.location.lng().toFixed(6);
-        
-        // Update location input with formatted address
-        document.getElementById('location-input').value = place.formatted_address;
-    });
-    
-    // Update coordinates when marker is dragged
-    marker.addListener('dragend', function() {
-        const position = marker.getPosition();
-        document.getElementById('latitude-input').value = position.lat().toFixed(6);
-        document.getElementById('longitude-input').value = position.lng().toFixed(6);
-        
-        // Reverse geocode to get address
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: position }, function(results, status) {
-            if (status === 'OK' && results[0]) {
-                document.getElementById('location-input').value = results[0].formatted_address;
-            }
-        });
-    });
-    
-    // Update coordinates when map is clicked
-    map.addListener('click', function(event) {
-        const position = event.latLng;
-        marker.setPosition(position);
-        
-        document.getElementById('latitude-input').value = position.lat().toFixed(6);
-        document.getElementById('longitude-input').value = position.lng().toFixed(6);
-        
-        // Reverse geocode to get address
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: position }, function(results, status) {
-            if (status === 'OK' && results[0]) {
-                document.getElementById('location-input').value = results[0].formatted_address;
-            }
-        });
-    });
-    
-    // Initialize coordinates with existing values
-    document.getElementById('latitude-input').value = defaultCenter.lat.toFixed(6);
-    document.getElementById('longitude-input').value = defaultCenter.lng.toFixed(6);
-}
-</script>
 {% endblock %} 

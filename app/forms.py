@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, DecimalField, PasswordField, SubmitField, SelectField, IntegerField, DateField, BooleanField
+from wtforms import StringField, TextAreaField, DecimalField, PasswordField, SubmitField, SelectField, IntegerField, DateField, BooleanField, FloatField
 from wtforms.validators import DataRequired, Length, NumberRange, Email, EqualTo, Optional
 from flask_wtf.file import FileField, FileAllowed
 from datetime import date, timedelta
@@ -19,7 +19,7 @@ class RegisterForm(FlaskForm):
 
 class LoginForm(FlaskForm):
     """Form for user login"""
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
@@ -27,7 +27,7 @@ class ListingForm(FlaskForm):
     """Form for creating and editing listings"""
     title = StringField('Title', validators=[
         DataRequired(),
-        Length(min=3, max=120, message='Title must be between 3 and 120 characters')
+        Length(min=5, max=120, message='Title must be between 5 and 120 characters')
     ])
     location = StringField('Location', validators=[
         DataRequired(),
@@ -35,11 +35,11 @@ class ListingForm(FlaskForm):
     ])
     description = TextAreaField('Description', validators=[
         DataRequired(),
-        Length(min=10, message='Description must be at least 10 characters')
+        Length(min=20, max=1000, message='Description must be between 20 and 1000 characters')
     ])
-    price_per_night = DecimalField('Price per Night (৳)', validators=[
+    price_per_night = FloatField('Price per Night (৳)', validators=[
         DataRequired(),
-        NumberRange(min=0, message='Price must be positive')
+        NumberRange(min=100, max=50000, message='Price must be between 100 and 50000')
     ])
     guest_capacity = IntegerField('Guest Capacity', validators=[
         DataRequired(),
@@ -53,19 +53,19 @@ class ListingForm(FlaskForm):
         DataRequired(),
         NumberRange(min=1, max=10, message='Bathrooms must be between 1 and 10')
     ])
-    house_rules = TextAreaField('House Rules', validators=[Optional()])
+    house_rules = TextAreaField('House Rules', validators=[Length(max=500)])
     image = FileField('Listing Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'JPG and PNG images only!')])
     submit = SubmitField('Save Listing')
 
 class BookingForm(FlaskForm):
     """Form for creating bookings"""
-    check_in_date = DateField('Check-in Date', validators=[DataRequired()])
-    check_out_date = DateField('Check-out Date', validators=[DataRequired()])
+    check_in_date = StringField('Check-in Date', validators=[DataRequired()])
+    check_out_date = StringField('Check-out Date', validators=[DataRequired()])
     guest_count = IntegerField('Number of Guests', validators=[
         DataRequired(),
         NumberRange(min=1, max=20, message='Guest count must be between 1 and 20')
     ])
-    special_requests = TextAreaField('Special Requests (Optional)', validators=[Optional()])
+    special_requests = TextAreaField('Special Requests', validators=[Length(max=500)])
     submit = SubmitField('Book Now')
 
     def validate_check_in_date(self, field):
@@ -75,6 +75,11 @@ class BookingForm(FlaskForm):
     def validate_check_out_date(self, field):
         if field.data <= self.check_in_date.data:
             raise ValueError('Check-out date must be after check-in date')
+
+class ReviewForm(FlaskForm):
+    rating = SelectField('Rating', choices=[(5, '5 - Excellent'), (4, '4 - Very Good'), (3, '3 - Good'), (2, '2 - Fair'), (1, '1 - Poor')], coerce=int, validators=[DataRequired()])
+    comment = TextAreaField('Review Comment', validators=[DataRequired(), Length(min=10, max=500)])
+    submit = SubmitField('Submit Review')
 
 class MessageForm(FlaskForm):
     """Form for sending messages"""

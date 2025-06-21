@@ -1,0 +1,61 @@
+{% import 'partials/form_field.html' as forms %}
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-6">
+            {{ forms.render_field(form.title, placeholder="Enter listing title") }}
+        </div>
+        <div class="col-md-6">
+            {{ forms.render_field(form.location, placeholder="Search for location...", extra_classes="", input_group_prepend="") }}
+        </div>
+    </div>
+    {{ forms.render_textarea_field(form.description, placeholder="Describe your property...", rows=4) }}
+    <div class="row">
+        <div class="col-md-4">
+            {{ forms.render_field(form.price_per_night, placeholder="0.00", input_group_prepend="৳") }}
+        </div>
+        <div class="col-md-4">
+            {{ forms.render_field(form.guest_capacity, placeholder="1") }}
+        </div>
+        <div class="col-md-4">
+            {{ forms.render_field(form.bedrooms, placeholder="1") }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            {{ forms.render_field(form.bathrooms, placeholder="1") }}
+        </div>
+        <div class="col-md-6">
+            {{ forms.render_file_field(form.image, accept=".jpg,.jpeg,.png") }}
+            {% if listing and listing.image_filename %}
+            <div class="mt-2">
+                <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" 
+                     alt="Current Image" class="img-fluid rounded shadow img-max-180">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="mb-4">
+        <label class="form-label">
+            <i class="fas fa-map-marker-alt me-2"></i>{% if is_edit %}Update{% else %}Select{% endif %} Location
+        </label>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Type a location above or click on the map below to set the exact location of your property.
+        </div>
+        <div id="map" class="map-container"></div>
+        {{ form.latitude(class="d-none", id="latitude-input") }}
+        {{ form.longitude(class="d-none", id="longitude-input") }}
+    </div>
+    {{ forms.render_textarea_field(form.amenities, placeholder="WiFi\nAir Conditioning\nKitchen\nParking", rows=3) }}
+    <div class="form-text">Enter each amenity on a new line</div>
+    {{ forms.render_textarea_field(form.house_rules, placeholder="No smoking\nNo pets\nQuiet hours after 10 PM", rows=3) }}
+    <div class="form-text">Enter each rule on a new line</div>
+    <div class="d-grid mt-4">
+        {{ form.submit(class="btn btn-bd-green btn-lg", value=submit_label) }}
+        {% if is_edit %}
+        <a href="{{ url_for('host.my_listings') }}" class="btn btn-outline-secondary mt-2">Cancel</a>
+        {% endif %}
+    </div>
+</form> 

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Login - Othiti{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -8,28 +10,42 @@
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4 text-green">Login</h2>
                     
-                    <form method="POST" action="{{ url_for('main.login') }}">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" action="{{ url_for('auth.login') }}">
                         {{ form.hidden_tag() }}
+                        
                         <div class="mb-3">
-                            {{ form.username.label(class="form-label") }}
-                            {{ form.username(class="form-control") }}
-                            {% for error in form.username.errors %}
-                                <span class="text-danger">{{ error }}</span>
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
+                            {% for error in form.email.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="mb-4">
                             {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control") }}
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password") }}
                             {% for error in form.password.errors %}
-                                <span class="text-danger">{{ error }}</span>
+                                <div class="invalid-feedback">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-bd-green btn-lg">
-                                Login
-                            </button>
+                            {{ form.submit(class="btn btn-bd-green btn-lg") }}
                         </div>
                     </form>
+                    
                     <div class="text-center mt-4">
                         <p class="mb-0">Don't have an account? 
                             <a href="{{ url_for('auth.register') }}" class="text-decoration-none text-red">Register here</a>
