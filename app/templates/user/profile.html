@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - {{ current_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <h4 class="card-title">{{ current_user.username }}</h4>
+                    <p class="text-muted">{{ current_user.email }}</p>
+                    <p class="text-muted">
+                        <small>Member since {{ current_user.created_at.strftime('%B %Y') }}</small>
+                    </p>
+                    {% if current_user.role == 'admin' %}
+                    <span class="badge bg-danger">Administrator</span>
+                    {% else %}
+                    <span class="badge bg-primary">User</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('host.my_listings') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-list"></i> My Listings
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('host.add_listing') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-plus"></i> Add New Listing
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('listings.listings') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-search me-2"></i>Browse Listings
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p><strong>Username:</strong> {{ current_user.username }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Email:</strong> {{ current_user.email }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Role:</strong> 
+                                {% if current_user.role == 'admin' %}
+                                    Administrator
+                                {% else %}
+                                    Regular User
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Joined:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <p><strong>Listings Created:</strong> {{ current_user.listings|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

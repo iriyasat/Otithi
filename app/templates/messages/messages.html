@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - Othiti{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-3">Messages</h1>
+            <p class="text-muted">Stay connected with hosts and guests</p>
+        </div>
+    </div>
+
+    <!-- Messages List -->
+    {% if pagination.items %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Conversations</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for message in pagination.items %}
+                    <div class="message-item p-3 border-bottom">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">
+                                        <span class="avatar-initials">
+                                            {% if message.sender_id == current_user.id %}
+                                                {{ message.recipient.username[0].upper() }}
+                                            {% else %}
+                                                {{ message.sender.username[0].upper() }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {% if message.sender_id == current_user.id %}
+                                                {{ message.recipient.username }}
+                                            {% else %}
+                                                {{ message.sender.username }}
+                                            {% endif %}
+                                        </h6>
+                                        <p class="text-muted mb-1">{{ message.content[:100] }}{% if message.content|length > 100 %}...{% endif %}</p>
+                                        <small class="text-muted">{{ message.created_at.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{{ url_for('messages.conversation', user_id=message.sender_id if message.sender_id != current_user.id else message.recipient_id) }}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-reply me-1"></i>Reply
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <nav aria-label="Messages pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('messages.messages', page=pagination.prev_num) }}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            </li>
+            {% endif %}
+
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != pagination.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('messages.messages', page=page_num) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('messages.messages', page=pagination.next_num) }}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- No Messages -->
+    <div class="text-center py-5">
+        <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+        <h3>No messages yet</h3>
+        <p class="text-muted mb-4">Start connecting with hosts and guests by browsing listings and making bookings.</p>
+        <a href="{{ url_for('listings.listings') }}" class="btn btn-primary">
+            <i class="fas fa-search me-2"></i>Browse Listings
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Add Review - {{ booking.listing.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-star text-warning me-2"></i>Add Review
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {% if booking.listing.image_filename %}
+                                <img src="{{ url_for('static', filename='uploads/' + booking.listing.image_filename) }}" 
+                                     alt="{{ booking.listing.title }}" class="img-fluid rounded">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/default-listing.svg') }}" 
+                                     alt="Default listing image" class="img-fluid rounded">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h5>{{ booking.listing.title }}</h5>
+                            <p class="text-muted">{{ booking.listing.location }}</p>
+                            <p><strong>Check-in:</strong> {{ booking.check_in_date.strftime('%B %d, %Y') }}</p>
+                            <p><strong>Check-out:</strong> {{ booking.check_out_date.strftime('%B %d, %Y') }}</p>
+                            <p><strong>Total:</strong> ৳{{ "%.0f"|format(booking.total_price) }}</p>
+                        </div>
+                    </div>
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Rating *</label>
+                            <div class="rating-input">
+                                {% for i in range(1, 6) %}
+                                <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" class="rating-radio" required>
+                                <label for="star{{ i }}" class="rating-star">
+                                    <i class="fas fa-star"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <div class="form-text">Click on a star to rate your experience</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Review Comment *</label>
+                            <textarea name="comment" id="comment" class="form-control" rows="5" 
+                                      placeholder="Share your experience with this accommodation..." required></textarea>
+                            <div class="form-text">Please provide detailed feedback about your stay</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Review
+                            </button>
+                            <a href="{{ url_for('user.my_bookings') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to My Bookings
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating-radio {
+    display: none;
+}
+
+.rating-star {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.rating-star:hover,
+.rating-star:hover ~ .rating-star,
+.rating-radio:checked ~ .rating-star {
+    color: #ffc107;
+}
+
+.rating-star i {
+    transition: transform 0.1s;
+}
+
+.rating-star:hover i,
+.rating-star:hover ~ .rating-star i,
+.rating-radio:checked ~ .rating-star i {
+    transform: scale(1.1);
+}
+</style>
+{% endblock %} 

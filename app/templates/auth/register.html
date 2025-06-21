@@ -51,6 +51,17 @@
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>
+                        <div class="mb-4">
+                            {{ form.role.label(class="form-label") }}
+                            {{ form.role(class="form-control") }}
+                            {% for error in form.role.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Guest:</strong> Browse and book listings | <strong>Host:</strong> Create and manage your own listings
+                            </small>
+                        </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-bd-green btn-lg">
                                 Register
@@ -59,7 +70,7 @@
                     </form>
                     <div class="text-center mt-4">
                         <p class="mb-0">Already have an account? 
-                            <a href="{{ url_for('main.login') }}" class="text-decoration-none text-red">Login here</a>
+                            <a href="{{ url_for('auth.login') }}" class="text-decoration-none text-red">Login here</a>
                         </p>
                     </div>
                 </div>

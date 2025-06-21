@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - {{ current_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-tachometer-alt text-primary me-2"></i>Admin Dashboard
+            </h2>
+            <p class="text-muted">Welcome back, {{ current_user.username }}! Here's an overview of the platform.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_users }}</h4>
+                            <p class="card-text">Total Users</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_listings }}</h4>
+                            <p class="card-text">Total Listings</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-home fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_bookings }}</h4>
+                            <p class="card-text">Total Bookings</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ verified_hosts }}</h4>
+                            <p class="card-text">Verified Hosts</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-home me-2"></i>Listing Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-success">{{ approved_listings }}</h4>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ pending_listings }}</h4>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-danger">{{ rejected_listings }}</h4>
+                            <small class="text-muted">Rejected</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Booking Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-success">{{ confirmed_bookings }}</h4>
+                            <small class="text-muted">Confirmed</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning">{{ pending_bookings }}</h4>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-info">{{ total_hosts }}</h4>
+                            <small class="text-muted">Hosts</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Admin Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users me-2"></i>Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin.manage_listings') }}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-home me-2"></i>Manage Listings
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin.nid_verifications') }}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-id-card me-2"></i>NID Verifications
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin.cache_stats') }}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-chart-bar me-2"></i>Cache Stats
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Recent Listings</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_listings %}
+                        {% for listing in recent_listings %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ listing.title }}</strong>
+                                <br><small class="text-muted">{{ listing.location }}</small>
+                            </div>
+                            <span class="badge bg-{{ 'success' if listing.status.value == 'approved' else 'warning' if listing.status.value == 'pending_approval' else 'danger' }}">
+                                {{ listing.status.value.replace('_', ' ').title() }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent listings</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Recent Users</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                        {% for user in recent_users %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>{{ user.username }}</strong>
+                                <br><small class="text-muted">{{ user.email }}</small>
+                            </div>
+                            <span class="badge bg-{{ 'primary' if user.role == 'admin' else 'success' if user.role == 'host' else 'info' }}">
+                                {{ user.role.title() }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent users</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_bookings %}
+                        {% for booking in recent_bookings %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>Booking #{{ booking.id }}</strong>
+                                <br><small class="text-muted">{{ booking.listing.title }}</small>
+                            </div>
+                            <span class="badge bg-{{ 'success' if booking.status.value == 'confirmed' else 'warning' if booking.status.value == 'pending' else 'danger' }}">
+                                {{ booking.status.value.title() }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent bookings</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

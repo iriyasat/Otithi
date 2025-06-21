@@ -3,96 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if title %}{{ title }} | অ. Otithi — Experience Bangladeshi Hospitality{% else %}অ. Otithi — Experience Bangladeshi Hospitality{% endif %}</title>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Otithi is a Bangladeshi home-sharing platform connecting guests and hosts with authentic hospitality. Discover unique stays and warm hosts across Bangladesh.">
-    <meta name="keywords" content="Otithi, Bangladesh, home sharing, hospitality, guesthouse, travel, listings, Bangladeshi stays, অ. Otithi">
-    <meta name="author" content="Otithi Team">
-    <!-- Open Graph / Facebook -->
-    <meta property="og:title" content="অ. Otithi — Experience Bangladeshi Hospitality">
-    <meta property="og:description" content="Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.">
-    <meta property="og:image" content="{{ url_for('static', filename='images/og-image.png', _external=True) }}">
-    <meta property="og:url" content="{{ request.url }}">
-    <meta property="og:type" content="website">
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="অ. Otithi — Experience Bangladeshi Hospitality">
-    <meta name="twitter:description" content="Discover unique stays and warm hosts across Bangladesh. Otithi connects travelers and hosts in the spirit of tradition and welcome.">
-    <meta name="twitter:image" content="{{ url_for('static', filename='images/og-image.png', _external=True) }}">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>{% block title %}Othiti - Bangladeshi Hospitality Platform{% endblock %}</title>
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    {% if request.endpoint and 'admin' in request.endpoint %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% endif %}
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Sticky Header with Logo and Navigation -->
-    <header class="header">
-        <a href="{{ url_for('main.home') }}" class="logo" aria-label="Otithi Home">
-            <!-- Logo text or image -->
-            <span style="color:#F42A41;">&#9679;</span> Otithi
-        </a>
-        <!-- Mobile menu toggle button (accessible) -->
-        <button class="menu-toggle" aria-label="Open navigation menu" aria-controls="main-nav" aria-expanded="false">
-            &#9776;
-        </button>
-        <!-- Navigation links -->
-        <nav>
-            <ul class="nav" id="main-nav">
-                <li><a class="nav-link" href="#home">Home</a></li>
-                <li><a class="nav-link" href="#about">About</a></li>
-                <li><a class="nav-link" href="#listings">Listings</a></li>
-                <li><a class="nav-link" href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-xl">
+            <a class="navbar-brand" href="{{ url_for('public.index') }}">
+                <i class="fas fa-home text-primary me-2"></i>
+                Othiti
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public.index') }}">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('listings.listings') }}">
+                            <i class="fas fa-search me-1"></i>Explore
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public.about') }}">
+                            <i class="fas fa-info-circle me-1"></i>About
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                                    <i class="fas fa-cog me-1"></i>Admin
+                                </a>
+                            </li>
+                        {% elif current_user.role == 'host' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('host.dashboard') }}">
+                                    <i class="fas fa-user-tie me-1"></i>Host Dashboard
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('user.profile') }}">
+                                    <i class="fas fa-user me-1"></i>Profile
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="nav-item dropdown avatar-dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                {% if current_user.profile_picture %}
+                                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_picture) }}" 
+                                         alt="Profile" class="avatar">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/40x40/006A4E/FFFFFF?text={{ current_user.username[0].upper() }}" 
+                                         alt="Profile" class="avatar">
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ url_for('user.profile') }}">
+                                    <i class="fas fa-user me-2"></i>My Profile
+                                </a></li>
+                                {% if current_user.role == 'host' %}
+                                <li><a class="dropdown-item" href="{{ url_for('host.my_listings') }}">
+                                    <i class="fas fa-list me-2"></i>My Listings
+                                </a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('host.bookings') }}">
+                                    <i class="fas fa-calendar me-2"></i>Bookings
+                                </a></li>
+                                {% else %}
+                                <li><a class="dropdown-item" href="{{ url_for('user.my_bookings') }}">
+                                    <i class="fas fa-calendar me-2"></i>My Bookings
+                                </a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ url_for('messages.messages') }}">
+                                    <i class="fas fa-envelope me-2"></i>Messages
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-primary me-2" href="{{ url_for('auth.login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary" href="{{ url_for('auth.register') }}">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-    <!-- Hero Section with Gradient Background -->
-    <section class="hero section-fade" id="home">
-        <h1>Experience Bangladeshi Hospitality</h1>
-        <p>Discover unique stays and warm welcomes across Bangladesh.</p>
-        <a href="#listings" class="hero-btn btn">Browse Listings</a>
-    </section>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container-xl mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
-    <!-- Responsive Card Grid Section -->
+    <!-- Main Content -->
     <main>
-        <section class="card-grid section-fade" id="listings" aria-label="Featured Listings">
-            <!-- Card 1 -->
-            <article class="card">
-                <img src="{{ url_for('static', filename='images/card1.jpg') }}" class="card-img-top" alt="Cultural homestay in Dhaka">
-                <div class="card-body">
-                    <h2 class="card-title">Cultural Homestay</h2>
-                    <p class="card-subtitle">Dhaka, Bangladesh</p>
-                    <p>Stay with a local family and experience authentic Bangladeshi culture in the heart of Dhaka.</p>
-                </div>
-            </article>
-            <!-- Card 2 -->
-            <article class="card">
-                <img src="{{ url_for('static', filename='images/card2.jpg') }}" class="card-img-top" alt="Tea garden retreat in Sylhet">
-                <div class="card-body">
-                    <h2 class="card-title">Tea Garden Retreat</h2>
-                    <p class="card-subtitle">Sylhet, Bangladesh</p>
-                    <p>Relax in a serene tea garden bungalow surrounded by lush greenery and rolling hills.</p>
-                </div>
-            </article>
-            <!-- Card 3 -->
-            <article class="card">
-                <img src="{{ url_for('static', filename='images/card3.jpg') }}" class="card-img-top" alt="Riverside cottage in Barisal">
-                <div class="card-body">
-                    <h2 class="card-title">Riverside Cottage</h2>
-                    <p class="card-subtitle">Barisal, Bangladesh</p>
-                    <p>Enjoy peaceful river views and fresh air in this charming riverside cottage getaway.</p>
-                </div>
-            </article>
-        </section>
+        {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer-bd">
-        &copy; {{ 2024 }} Otithi. All rights reserved.
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container-xl">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Othiti</h4>
+                    <p>Experience authentic Bangladeshi hospitality with our community-driven accommodation platform.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{{ url_for('public.index') }}">Home</a></li>
+                        <li><a href="{{ url_for('listings.listings') }}">Explore</a></li>
+                        <li><a href="{{ url_for('public.about') }}">About</a></li>
+                        <li><a href="{{ url_for('auth.register') }}">Become a Host</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Safety Guidelines</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#"><i class="fab fa-facebook me-2"></i>Facebook</a></li>
+                        <li><a href="#"><i class="fab fa-twitter me-2"></i>Twitter</a></li>
+                        <li><a href="#"><i class="fab fa-instagram me-2"></i>Instagram</a></li>
+                        <li><a href="#"><i class="fab fa-linkedin me-2"></i>LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Othiti. All rights reserved. Made with ❤️ in Bangladesh</p>
+            </div>
+        </div>
     </footer>
+
+    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html> 

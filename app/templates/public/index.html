@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Othiti - Experience Authentic Bangladeshi Hospitality{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container-xl">
+        <div class="hero-content">
+            <h1>Experience Authentic Bangladeshi Hospitality</h1>
+            <p>Discover unique accommodations hosted by local families. Experience the warmth, culture, and authentic hospitality that makes Bangladesh special.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('listings.listings') }}" class="btn btn-outline-white btn-lg">
+                    <i class="fas fa-search me-2"></i>Explore Listings
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-accent btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Become a Host
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search Section -->
+<section class="search-section">
+    <div class="container-xl">
+        <div class="search-container">
+            <form method="GET" action="{{ url_for('listings.listings') }}" class="search-form">
+                <h3>Find Your Perfect Stay</h3>
+                <div class="search-row">
+                    <div class="search-input-group">
+                        <label for="location">Where</label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="Enter destination">
+                    </div>
+                    <div class="search-input-group">
+                        <label for="check_in">Check-in</label>
+                        <input type="date" class="form-control" id="check_in" name="check_in">
+                    </div>
+                    <div class="search-input-group">
+                        <label for="check_out">Check-out</label>
+                        <input type="date" class="form-control" id="check_out" name="check_out">
+                    </div>
+                    <div class="search-input-group">
+                        <label for="guests">Guests</label>
+                        <select class="form-select" id="guests" name="guests">
+                            <option value="">Any</option>
+                            <option value="1">1 Guest</option>
+                            <option value="2">2 Guests</option>
+                            <option value="3">3 Guests</option>
+                            <option value="4">4+ Guests</option>
+                        </select>
+                    </div>
+                    <div class="search-input-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary search-submit">
+                            <i class="fas fa-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Listings Section -->
+<section class="featured-section">
+    <div class="container-xl">
+        <div class="section-header">
+            <h2 class="section-title">Featured Listings</h2>
+            <p class="section-subtitle">Discover handpicked accommodations that showcase the best of Bangladeshi hospitality</p>
+        </div>
+        
+        <div class="listings-grid">
+            {% for listing in featured_listings %}
+            <div class="listing-card">
+                <div class="listing-image">
+                    {% if listing.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" alt="{{ listing.title }}">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/default-listing.svg') }}" alt="{{ listing.title }}">
+                    {% endif %}
+                    <div class="listing-price">৳{{ listing.price_per_night }}/night</div>
+                </div>
+                <div class="listing-content">
+                    <h3 class="listing-title">{{ listing.title }}</h3>
+                    <div class="listing-location">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ listing.location }}
+                    </div>
+                    <div class="listing-rating">
+                        <div class="listing-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="listing-rating-count">(4.8)</span>
+                    </div>
+                    <div class="listing-features">
+                        <span class="listing-feature">
+                            <i class="fas fa-bed me-1"></i>{{ listing.bedrooms }} beds
+                        </span>
+                        <span class="listing-feature">
+                            <i class="fas fa-bath me-1"></i>{{ listing.bathrooms }} baths
+                        </span>
+                        <span class="listing-feature">
+                            <i class="fas fa-users me-1"></i>{{ listing.max_guests }} guests
+                        </span>
+                    </div>
+                    <div class="listing-actions">
+                        <a href="{{ url_for('listings.listing_detail', id=listing.id) }}" class="btn btn-primary w-100">
+                            <i class="fas fa-eye me-2"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center">
+            <a href="{{ url_for('listings.listings') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-search me-2"></i>View All Listings
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container-xl">
+        <div class="section-header">
+            <h2 class="section-title">Why Choose Othiti?</h2>
+            <p class="section-subtitle">Experience the difference of authentic local hospitality</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h3 class="feature-title">Authentic Experience</h3>
+                <p class="feature-description">Stay with local families and experience genuine Bangladeshi culture, traditions, and warm hospitality.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">Safe & Verified</h3>
+                <p class="feature-description">All hosts are verified and listings are carefully reviewed to ensure your safety and comfort.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <h3 class="feature-title">Personal Touch</h3>
+                <p class="feature-description">Enjoy personalized attention and local insights that you won't find in traditional hotels.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <h3 class="feature-title">Affordable Prices</h3>
+                <p class="feature-description">Get excellent value for money with competitive prices and no hidden fees.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container-xl">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number">{{ total_listings }}+</div>
+                <div class="stat-label">Unique Listings</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ total_hosts }}+</div>
+                <div class="stat-label">Verified Hosts</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ total_guests }}+</div>
+                <div class="stat-label">Happy Guests</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">4.8★</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container-xl">
+        <div class="cta-content">
+            <h2 class="cta-title">Ready to Experience Authentic Hospitality?</h2>
+            <p class="cta-description">Join thousands of travelers who have discovered the warmth and culture of Bangladesh through local homestays.</p>
+            <div class="cta-buttons">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-white btn-lg">
+                    <i class="fas fa-user-plus me-2"></i>Start Your Journey
+                </a>
+                <a href="{{ url_for('listings.listings') }}" class="btn btn-outline-white btn-lg">
+                    <i class="fas fa-search me-2"></i>Browse Listings
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

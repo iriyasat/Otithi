@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Book {{ listing.title }} - Otithi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('listings.listings') }}">Listings</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('listings.listing_detail', id=listing.id) }}">{{ listing.title }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Book</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Booking Form -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Book Your Stay</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.check_in_date.label(class="form-label") }}
+                                {{ form.check_in_date(class="form-control", type="date") }}
+                                {% for error in form.check_in_date.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.check_out_date.label(class="form-label") }}
+                                {{ form.check_out_date(class="form-control", type="date") }}
+                                {% for error in form.check_out_date.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.guest_count.label(class="form-label") }}
+                            {{ form.guest_count(class="form-control", min=1, max=listing.guest_capacity) }}
+                            <small class="form-text text-muted">
+                                Maximum {{ listing.guest_capacity }} guests allowed
+                            </small>
+                            {% for error in form.guest_count.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.special_requests.label(class="form-label") }}
+                            {{ form.special_requests(class="form-control", rows=4, placeholder="Any special requests or requirements...") }}
+                            {% for error in form.special_requests.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-bd-green btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="col-lg-4">
+            <div class="card sticky-top-20">
+                <div class="card-header">
+                    <h5 class="mb-0">Booking Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Listing Info -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            {% if listing.image_filename %}
+                            <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" 
+                                 class="rounded img-60x60" alt="{{ listing.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/default-listing.svg') }}" 
+                                 class="rounded img-60x60" alt="Default Image">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ listing.title }}</h6>
+                            <p class="text-muted mb-0 small">{{ listing.location }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Property Details -->
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="small text-muted">Guests</div>
+                            <div class="fw-bold">{{ listing.guest_capacity }}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="small text-muted">Bedrooms</div>
+                            <div class="fw-bold">{{ listing.bedrooms }}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="small text-muted">Bathrooms</div>
+                            <div class="fw-bold">{{ listing.bathrooms }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Price per night:</span>
+                            <span>৳{{ "%.0f"|format(listing.price_per_night) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Number of nights:</span>
+                            <span id="nights-count">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Number of guests:</span>
+                            <span id="guests-count">-</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span id="total-price">৳{{ "%.0f"|format(listing.price_per_night) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Important Notes -->
+                    <div class="alert alert-info mt-3">
+                        <h6 class="alert-heading">Important Information</h6>
+                        <ul class="mb-0 small">
+                            <li>Booking requests are sent to the host for approval</li>
+                            <li>You'll receive a confirmation once approved</li>
+                            <li>Payment details will be provided after confirmation</li>
+                            <li>Cancellation policy applies as per host rules</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple JavaScript for dynamic price calculation
+document.addEventListener('DOMContentLoaded', function() {
+    const checkInInput = document.querySelector('input[name="check_in_date"]');
+    const checkOutInput = document.querySelector('input[name="check_out_date"]');
+    const guestCountInput = document.querySelector('input[name="guest_count"]');
+    const pricePerNight = {{ listing.price_per_night }};
+    
+    function updatePrice() {
+        const checkIn = new Date(checkInInput.value);
+        const checkOut = new Date(checkOutInput.value);
+        const guestCount = parseInt(guestCountInput.value) || 1;
+        
+        if (checkIn && checkOut && checkOut > checkIn) {
+            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+            const totalPrice = pricePerNight * nights;
+            
+            document.getElementById('nights-count').textContent = nights;
+            document.getElementById('guests-count').textContent = guestCount;
+            document.getElementById('total-price').textContent = '৳' + totalPrice.toFixed(0);
+        } else {
+            document.getElementById('nights-count').textContent = '-';
+            document.getElementById('guests-count').textContent = '-';
+            document.getElementById('total-price').textContent = '৳' + pricePerNight.toFixed(0);
+        }
+    }
+    
+    checkInInput.addEventListener('change', updatePrice);
+    checkOutInput.addEventListener('change', updatePrice);
+    guestCountInput.addEventListener('change', updatePrice);
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    checkInInput.setAttribute('min', today);
+    checkOutInput.setAttribute('min', today);
+});
+</script>
+{% endblock %} 

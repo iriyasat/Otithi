@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="text-green mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>Reservations
+                </h1>
+                <a href="{{ url_for('host.dashboard') }}" class="btn btn-outline-green">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+            
+            {% if pagination.items %}
+                <div class="row">
+                    {% for booking in pagination.items %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0 text-green">{{ booking.listing.title }}</h5>
+                                    <span class="badge {% if booking.status == 'CONFIRMED' %}bg-success{% elif booking.status == 'PENDING' %}bg-warning{% elif booking.status == 'CANCELLED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ booking.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">Guest</small>
+                                        <p class="mb-0 fw-bold">{{ booking.guest.username }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Guests</small>
+                                        <p class="mb-0">{{ booking.guest_count }} people</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">Check-in</small>
+                                        <p class="mb-0">{{ booking.check_in_date.strftime('%b %d, %Y') }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Check-out</small>
+                                        <p class="mb-0">{{ booking.check_out_date.strftime('%b %d, %Y') }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">Total Price</small>
+                                        <p class="mb-0 fw-bold text-green">৳{{ "%.0f"|format(booking.total_price) }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Booked On</small>
+                                        <p class="mb-0">{{ booking.created_at.strftime('%b %d, %Y') }}</p>
+                                    </div>
+                                </div>
+                                
+                                {% if booking.special_requests %}
+                                <div class="mb-3">
+                                    <small class="text-muted">Special Requests</small>
+                                    <p class="mb-0">{{ booking.special_requests }}</p>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex gap-2">
+                                    {% if booking.status == 'PENDING' %}
+                                    <form action="{{ url_for('host.update_booking_status', id=booking.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="status" value="CONFIRMED">
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-check me-1"></i>Confirm
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('host.update_booking_status', id=booking.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="status" value="CANCELLED">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this reservation?')">
+                                            <i class="fas fa-times me-1"></i>Cancel
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    
+                                    <a href="{{ url_for('user.send_message', recipient_id=booking.guest.id) }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-envelope me-1"></i>Message
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if pagination.pages > 1 %}
+                <nav aria-label="Reservation pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('host.bookings', page=pagination.prev_num) }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != pagination.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('host.bookings', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('host.bookings', page=pagination.next_num) }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-calendar-times text-muted icon-4x"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">No Reservations Yet</h3>
+                    <p class="text-muted mb-4">When guests book your listings, they will appear here for your review.</p>
+                    <a href="{{ url_for('host.my_listings') }}" class="btn btn-bd-green">
+                        <i class="fas fa-list me-2"></i>View My Listings
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 
