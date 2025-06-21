@@ -1,0 +1,18 @@
+<svg width="150" height="150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with Bangladesh green -->
+  <circle cx="75" cy="75" r="75" fill="#006A4E"/>
+  
+  <!-- User icon in white -->
+  <g fill="#FFFFFF" transform="translate(37.5, 30)">
+    <!-- Head -->
+    <circle cx="37.5" cy="25" r="18"/>
+    
+    <!-- Body -->
+    <path d="M15 75 Q15 60 25 55 Q37.5 50 50 55 Q60 60 60 75 L60 90 L15 90 Z"/>
+  </g>
+  
+  <!-- Optional: Add "অতিথি" text -->
+  <text x="75" y="130" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="14" font-weight="bold">
+    User
+  </text>
+</svg> 
