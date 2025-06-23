@@ -170,26 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =========================
-    // Dropdown Enhancements
-    // =========================
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            const dropdown = this.nextElementSibling;
-            dropdown.classList.toggle('show');
-        });
-    });
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.matches('.dropdown-toggle')) {
-            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                menu.classList.remove('show');
-            });
-        }
-    });
-
-    // =========================
     // Modal Enhancements
     // =========================
     document.querySelectorAll('[data-bs-toggle="modal"]').forEach(trigger => {
@@ -198,8 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const modal = document.querySelector(target);
             if (modal) {
                 modal.classList.add('show');
-                modal.style.display = 'block';
-                document.body.classList.add('modal-open');
             }
         });
     });

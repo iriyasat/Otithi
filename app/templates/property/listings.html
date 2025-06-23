@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Properties - Othiti{% endblock %}
+
+{% block content %}
+<div class="page-heading header-text">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <span class="breadcrumb"><a href="{{ url_for('public.index') }}">Home</a> / Properties</span>
+        <h3>Properties</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section properties">
+  <div class="container">
+    <ul class="properties-filter">
+      <li>
+        <a class="is_active" href="#!" data-filter="*">Show All</a>
+      </li>
+      <li>
+        <a href="#!" data-filter=".apartment">Apartment</a>
+      </li>
+      <li>
+        <a href="#!" data-filter=".house">House</a>
+      </li>
+      <li>
+        <a href="#!" data-filter=".room">Private Room</a>
+      </li>
+    </ul>
+    <div class="row properties-box">
+      {% for listing in listings %}
+      <div class="col-lg-4 col-md-6 align-self-center mb-30 properties-items col-md-6 
+        {% if listing.property_type == 'apartment' %}apartment{% elif listing.property_type == 'house' %}house{% else %}room{% endif %}">
+        <div class="item">
+          <a href="{{ url_for('listings.listing_detail', id=listing.id) }}">
+            {% if listing.image_filename %}
+              <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" alt="{{ listing.title }}">
+            {% else %}
+              <img src="{{ url_for('static', filename='images/default-listing.jpg') }}" alt="{{ listing.title }}">
+            {% endif %}
+          </a>
+          <span class="category">{{ listing.property_type or 'Local Home' }}</span>
+          <h6>৳{{ listing.price_per_night }}/night</h6>
+          <h4><a href="{{ url_for('listings.listing_detail', id=listing.id) }}">{{ listing.title }}</a></h4>
+          <ul>
+            <li>Bedrooms: <span>{{ listing.bedrooms }}</span></li>
+            <li>Bathrooms: <span>{{ listing.bathrooms }}</span></li>
+            <li>Area: <span>{{ listing.size or 'N/A' }}m2</span></li>
+            <li>Guests: <span>{{ listing.max_guests }}</span></li>
+            <li>Location: <span>{{ listing.location }}</span></li>
+          </ul>
+          <div class="main-button">
+            <a href="{{ url_for('listings.listing_detail', id=listing.id) }}">View Details</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %} 

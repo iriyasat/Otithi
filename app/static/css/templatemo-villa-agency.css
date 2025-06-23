@@ -1,0 +1,517 @@
+/* Villa Agency CSS */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900");
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #1e1e1e;
+  margin: 0;
+  font-weight: 700;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  font-size: 14px;
+  line-height: 28px;
+  color: #4a4a4a;
+}
+
+img {
+  width: 100%;
+}
+
+/* Global Styles */
+.section {
+  margin-top: 120px;
+}
+
+.section-heading {
+  margin-bottom: 70px;
+}
+
+.section-heading h2 {
+  font-size: 40px;
+  font-weight: 700;
+  margin-top: 20px;
+  line-height: 56px;
+}
+
+.section-heading h6 {
+  color: #ee626b;
+  font-size: 15px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.main-button a {
+  display: inline-block;
+  background-color: #1e1e1e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 30px;
+  border-radius: 25px;
+  transition: all .3s;
+}
+
+.main-button a:hover {
+  background-color: #f35525;
+  color: #fff;
+}
+
+/* Header */
+.sub-header {
+  background-color: #fff;
+  padding: 10px 0px;
+  border-bottom: 1px solid #eee;
+}
+
+.sub-header ul li {
+  display: inline-block;
+}
+
+.sub-header ul.social-links {
+  text-align: right;
+}
+
+.sub-header ul.social-links li {
+  margin-left: 8px;
+}
+
+.sub-header ul.social-links li a {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background-color: #cdcdcd;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 30px;
+  color: #fff;
+  font-size: 14px;
+  transition: all .3s;
+}
+
+.sub-header ul.social-links li a:hover {
+  background-color: #f35525;
+}
+
+.sub-header ul.info li {
+  font-size: 14px;
+  color: #7a7a7a;
+  border-right: 1px solid #eee;
+  margin-right: 25px;
+  padding-right: 25px;
+}
+
+.sub-header ul.info li:last-child {
+  margin-right: 0px;
+  padding-right: 0px;
+  border-right: none;
+}
+
+.sub-header ul.info li i {
+  font-size: 20px;
+  color: #f35525;
+  margin-right: 8px;
+}
+
+.header-area {
+  position: relative;
+  background-color: #fff;
+  height: 100px;
+  z-index: 100;
+  transition: all .5s ease 0s;
+}
+
+.header-area .main-nav {
+  background: transparent;
+  display: flex;
+}
+
+.header-area .main-nav .logo h1 {
+  line-height: 100px;
+  font-size: 28px;
+  text-transform: uppercase;
+  color: #1e1e1e;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.header-area .main-nav ul.nav {
+  flex-basis: 100%;
+  margin-top: 30px;
+  justify-content: right;
+  transition: all 0.3s ease 0s;
+  position: relative;
+  z-index: 999;
+}
+
+.header-area .main-nav .nav li {
+  padding-left: 10px;
+  padding-right: 10px;
+  height: 100px;
+  line-height: 100px;
+}
+
+.header-area .main-nav .nav li a {
+  display: block;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-weight: 500;
+  font-size: 15px;
+  height: 40px;
+  line-height: 40px;
+  text-transform: capitalize;
+  color: #1e1e1e;
+  transition: all 0.4s ease 0s;
+  border: transparent;
+  letter-spacing: .25px;
+}
+
+.header-area .main-nav .nav li:hover a {
+  color: #f35525;
+}
+
+.header-area .main-nav .nav li a.active {
+  color: #f35525;
+}
+
+/* Banner */
+.main-banner .item {
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 220px 20% 320px 20%;
+  margin-top: 0px;
+}
+
+.main-banner .item-1 {
+  background-image: url(../images/banner-01.jpg);
+}
+
+.main-banner .item-2 {
+  background-image: url(../images/banner-02.jpg);
+}
+
+.main-banner .item-3 {
+  background-image: url(../images/banner-03.jpg);
+}
+
+.main-banner .item span.category {
+  background-color: #fff;
+  color: #1e1e1e;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: capitalize;
+  padding: 6px 15px;
+  display: inline-block;
+  margin-bottom: 30px;
+}
+
+.main-banner .item span.category em {
+  font-style: normal;
+  color: #f35525;
+}
+
+.main-banner .item h2 {
+  font-size: 62px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 72px;
+  width: 50%;
+  margin-bottom: 0px;
+}
+
+/* Features */
+.features-post {
+  margin-bottom: 30px;
+}
+
+.content-show {
+  background-color: #fafafa;
+  border-radius: 10px;
+  padding: 25px 30px;
+  cursor: pointer;
+  transition: all .3s;
+}
+
+.content-show:hover {
+  background-color: #f35525;
+}
+
+.content-show:hover h4 {
+  color: #fff;
+}
+
+.content-show:hover h4 i {
+  color: #fff;
+}
+
+.content-show h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e1e1e;
+  margin-bottom: 0px;
+  transition: all .3s;
+}
+
+.content-show h4 i {
+  color: #f35525;
+  margin-right: 15px;
+  transition: all .3s;
+}
+
+.content-hide {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 25px 30px;
+  margin-top: 15px;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.15);
+  display: none;
+}
+
+.content-hide p {
+  margin-bottom: 0px;
+  color: #4a4a4a;
+  line-height: 28px;
+}
+
+/* Properties */
+.properties .item {
+  background-color: #fafafa;
+  border-radius: 10px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.properties .item img {
+  border-radius: 10px;
+}
+
+.properties .item span.category {
+  background-color: #fbd9cf;
+  font-weight: 500;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #1e1e1e;
+  padding: 5px 12px;
+  display: inline-block;
+  margin-top: 25px;
+}
+
+.properties .item h4 {
+  font-size: 19px;
+  margin: 25px 0px;
+}
+
+.properties .item h4 a {
+  color: #1e1e1e;
+}
+
+.properties .item ul li {
+  display: inline-block;
+  font-size: 15px;
+  color: #4a4a4a;
+  margin-right: 20px;
+}
+
+.properties .item ul li span {
+  font-weight: 600;
+  color: #1e1e1e;
+}
+
+.properties .item ul {
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+}
+
+.properties .item h6 {
+  font-size: 20px;
+  color: #f35525;
+  margin-top: 6px;
+  display: inline-block;
+  float: right;
+  margin-top: 30px;
+}
+
+.properties .item .main-button {
+  text-align: center;
+}
+
+/* Testimonials */
+.owl-testimonials {
+  margin-top: 0px;
+}
+
+.owl-testimonials .item {
+  background-color: #fafafa;
+  border-radius: 10px;
+  padding: 30px;
+  margin: 15px;
+}
+
+.testimonial-item {
+  text-align: center;
+}
+
+.testimonial-item .content h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e1e1e;
+  margin-bottom: 15px;
+}
+
+.testimonial-item .content h4 i {
+  color: #f35525;
+  margin-right: 10px;
+}
+
+.testimonial-item .content .author {
+  font-size: 14px;
+  color: #f35525;
+  font-weight: 600;
+  margin-right: 10px;
+}
+
+.testimonial-item .content .category {
+  font-size: 14px;
+  color: #aaa;
+  font-weight: 400;
+}
+
+.testimonial-item .content p {
+  margin-top: 20px;
+  font-style: italic;
+  color: #4a4a4a;
+  line-height: 28px;
+}
+
+/* Contact Form */
+.contact-form {
+  border-radius: 10px;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.15);
+  padding: 35px 30px;
+  background-color: #fff;
+}
+
+.contact-form input {
+  width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  background-color: #f6f6f6;
+  border: none;
+  margin-bottom: 30px;
+  font-size: 14px;
+  padding: 0px 15px;
+}
+
+.contact-form textarea {
+  width: 100%;
+  height: 150px;
+  max-height: 180px;
+  border-radius: 22px;
+  background-color: #f6f6f6;
+  border: none;
+  margin-bottom: 40px;
+  font-size: 14px;
+  padding: 15px 15px;
+}
+
+.main-button-icon {
+  background-color: #1e1e1e;
+  height: 44px;
+  border-radius: 22px;
+  padding: 0px 20px;
+  color: #fff;
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all .5s;
+}
+
+.main-button-icon:hover {
+  background-color: #f35525;
+}
+
+.main-button-icon i {
+  margin-left: 10px;
+}
+
+/* Footer */
+footer {
+  margin-top: 150px;
+  background-color: #1e1e1e;
+  min-height: 100px;
+}
+
+footer p {
+  text-align: center;
+  line-height: 100px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+footer p a {
+  color: #fff;
+  transition: all .3s;
+}
+
+footer p a:hover {
+  opacity: 0.75;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .header-area .main-nav .logo h1 {
+    line-height: 80px !important;
+  }
+  
+  .main-banner .item h2 {
+    width: 100%;
+    font-size: 40px;
+    line-height: 50px;
+  }
+  
+  .section-heading h2 {
+    font-size: 30px;
+    line-height: 40px;
+  }
+}
+
+@media (max-width: 992px) {
+  .sub-header {
+    display: none;
+  }
+  
+  .header-area .main-nav .logo h1 {
+    line-height: 100px;
+  }
+  
+  .header-area .main-nav .nav li a {
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+}

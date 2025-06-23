@@ -35,7 +35,7 @@ def dashboard():
     pending_listings = Listing.query.filter_by(status=ListingStatus.PENDING).count()
     pending_bookings = Booking.query.filter_by(status=BookingStatus.PENDING).count()
     
-    # Get recent activity
+    # Get recent activity (enhanced with more details)
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     recent_listings = Listing.query.order_by(Listing.created_at.desc()).limit(5).all()
     recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
@@ -51,13 +51,69 @@ def dashboard():
         Booking.status == BookingStatus.CONFIRMED
     ).scalar() or 0
     
-    # Get top performing listings
+    # Get top performing listings (enhanced query)
     top_listings = db.session.query(
         Listing, 
         func.count(Booking.id).label('booking_count'),
-        func.avg(Review.rating).label('avg_rating')
+        func.avg(Review.rating).label('avg_rating'),
+        func.sum(Booking.total_price).label('total_earnings')
     ).outerjoin(Booking).outerjoin(Review).group_by(Listing.id)\
      .order_by(desc('booking_count')).limit(5).all()
+    
+    # New: Get weekly trends for the last 4 weeks
+    weekly_stats = []
+    for i in range(4):
+        week_start = datetime.now() - timedelta(weeks=i+1)
+        week_end = datetime.now() - timedelta(weeks=i)
+        
+        week_users = User.query.filter(
+            User.created_at >= week_start,
+            User.created_at < week_end
+        ).count()
+        
+        week_listings = Listing.query.filter(
+            Listing.created_at >= week_start,
+            Listing.created_at < week_end
+        ).count()
+        
+        week_bookings = Booking.query.filter(
+            Booking.created_at >= week_start,
+            Booking.created_at < week_end
+        ).count()
+        
+        weekly_stats.append({
+            'week': f"Week {4-i}",
+            'users': week_users,
+            'listings': week_listings,
+            'bookings': week_bookings
+        })
+    
+    # New: Get popular locations
+    popular_locations = db.session.query(
+        Listing.location,
+        func.count(Listing.id).label('listing_count'),
+        func.avg(Listing.price_per_night).label('avg_price')
+    ).group_by(Listing.location)\
+     .order_by(desc('listing_count')).limit(5).all()
+    
+    # New: Get recent reviews for admin review
+    recent_reviews = Review.query.order_by(Review.created_at.desc()).limit(5).all()
+    
+    # Debug logging
+    print("=== ADMIN DASHBOARD DATA ===")
+    print(f"Total Users: {total_users}")
+    print(f"Total Hosts: {total_hosts}")
+    print(f"Total Guests: {total_guests}")
+    print(f"Total Listings: {total_listings}")
+    print(f"Total Bookings: {total_bookings}")
+    print(f"Total Reviews: {total_reviews}")
+    print(f"Pending Listings: {pending_listings}")
+    print(f"Pending Bookings: {pending_bookings}")
+    print(f"Monthly Users: {monthly_users}")
+    print(f"Monthly Listings: {monthly_listings}")
+    print(f"Monthly Bookings: {monthly_bookings}")
+    print(f"Total Earnings: {total_earnings}")
+    print("===========================")
     
     return render_template('admin/admin_dashboard.html',
                          total_users=total_users,
@@ -75,7 +131,10 @@ def dashboard():
                          recent_users=recent_users,
                          recent_listings=recent_listings,
                          recent_bookings=recent_bookings,
-                         top_listings=top_listings)
+                         top_listings=top_listings,
+                         weekly_stats=weekly_stats,
+                         popular_locations=popular_locations,
+                         recent_reviews=recent_reviews)
 
 @admin_bp.route('/manage-users')
 @login_required

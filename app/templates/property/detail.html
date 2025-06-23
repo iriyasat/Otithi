@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}{{ listing.title }} - Othiti{% endblock %}
+
+{% block content %}
+<div class="page-heading header-text">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <span class="breadcrumb"><a href="{{ url_for('public.index') }}">Home</a> / <a href="{{ url_for('listings.listings') }}">Properties</a> / {{ listing.title }}</span>
+        <h3>{{ listing.title }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="single-property section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="main-image">
+          {% if listing.image_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + listing.image_filename) }}" alt="{{ listing.title }}">
+          {% else %}
+            <img src="{{ url_for('static', filename='images/default-listing.jpg') }}" alt="{{ listing.title }}">
+          {% endif %}
+        </div>
+        <div class="main-content">
+          <span class="category">{{ listing.property_type or 'Local Home' }}</span>
+          <h4>{{ listing.title }}</h4>
+          <p>{{ listing.description or 'Experience authentic Bangladeshi hospitality in this beautiful local home. This property offers a unique opportunity to stay with a local family and immerse yourself in the culture and traditions of Bangladesh.' }}
+          
+          <br><br>Located in {{ listing.location }}, this property features {{ listing.bedrooms }} bedrooms and {{ listing.bathrooms }} bathrooms, accommodating up to {{ listing.max_guests }} guests. The space is {{ listing.size or 'comfortable' }} square meters, providing plenty of room for your stay.</p>
+        </div> 
+        <div class="accordion" id="accordionExample">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                What's included in your stay?
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                Your stay includes <strong>comfortable accommodation</strong> in a local family home, authentic cultural experiences, and warm Bangladeshi hospitality. Many hosts also offer home-cooked meals, local insights, and cultural activities to enhance your experience.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwo">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                How does booking work?
+              </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                Booking is simple and secure. Check the availability calendar, select your dates, and book directly through our platform. All payments are processed securely, and you'll receive confirmation immediately. Your host will be notified and can prepare for your arrival.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                What makes this property special?
+              </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                This property offers <strong>authentic local experience</strong> that you won't find in traditional hotels. Stay with a local family, experience genuine Bangladeshi culture, enjoy home-cooked meals, and create lasting memories through personal connections and cultural exchange.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="info-table">
+          <ul>
+            <li>
+              <img src="{{ url_for('static', filename='images/info-icon-01.png') }}" alt="" style="max-width: 52px;">
+              <h4>{{ listing.size or 'N/A' }} m2<br><span>Total Space</span></h4>
+            </li>
+            <li>
+              <img src="{{ url_for('static', filename='images/info-icon-02.png') }}" alt="" style="max-width: 52px;">
+              <h4>৳{{ listing.price_per_night }}<br><span>Per Night</span></h4>
+            </li>
+            <li>
+              <img src="{{ url_for('static', filename='images/info-icon-03.png') }}" alt="" style="max-width: 52px;">
+              <h4>{{ listing.max_guests }}<br><span>Max Guests</span></h4>
+            </li>
+            <li>
+              <img src="{{ url_for('static', filename='images/info-icon-04.png') }}" alt="" style="max-width: 52px;">
+              <h4>Verified<br><span>Host & Property</span></h4>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Booking Section -->
+        <div class="contact-form">
+          <div class="row">
+            <div class="col-lg-12">
+              <h4>Book This Property</h4>
+              <p>Ready to experience authentic Bangladeshi hospitality?</p>
+              <div class="main-button">
+                <a href="{{ url_for('user.book_listing', listing_id=listing.id) }}">Book Now</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section best-deal">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="section-heading">
+          <h6>| Property Details</h6>
+          <h2>Property Information</h2>
+        </div>
+      </div>
+      <div class="col-lg-12">
+        <div class="tabs-content">
+          <div class="row">
+            <div class="nav-wrapper ">
+              <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="true">Details</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="amenities-tab" data-bs-toggle="tab" data-bs-target="#amenities" type="button" role="tab" aria-controls="amenities" aria-selected="false">Amenities</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab" aria-controls="location" aria-selected="false">Location</button>
+                </li>
+              </ul>
+            </div>              
+            <div class="tab-content" id="myTabContent">
+              <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                <div class="row">
+                  <div class="col-lg-3">
+                    <div class="info-table">
+                      <ul>
+                        <li>Property Type <span>{{ listing.property_type or 'Local Home' }}</span></li>
+                        <li>Bedrooms <span>{{ listing.bedrooms }}</span></li>
+                        <li>Bathrooms <span>{{ listing.bathrooms }}</span></li>
+                        <li>Max Guests <span>{{ listing.max_guests }}</span></li>
+                        <li>Price <span>৳{{ listing.price_per_night }}/night</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <img src="{{ url_for('static', filename='images/deal-01.jpg') }}" alt="">
+                  </div>
+                  <div class="col-lg-3">
+                    <h4>About This Property</h4>
+                    <p>{{ listing.description or 'This beautiful local home offers an authentic Bangladeshi experience. Stay with a local family and immerse yourself in the culture and traditions of Bangladesh.' }}
+                    <br><br>Perfect for travelers who want to experience genuine local hospitality and create meaningful connections with local families.</p>
+                    <div class="icon-button">
+                      <a href="{{ url_for('user.book_listing', listing_id=listing.id) }}"><i class="fa fa-calendar"></i> Book This Property</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="amenities" role="tabpanel" aria-labelledby="amenities-tab">
+                <div class="row">
+                  <div class="col-lg-3">
+                    <div class="info-table">
+                      <ul>
+                        <li>WiFi <span>Available</span></li>
+                        <li>Kitchen <span>Shared</span></li>
+                        <li>Laundry <span>Available</span></li>
+                        <li>Parking <span>Street</span></li>
+                        <li>Air Conditioning <span>Yes</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <img src="{{ url_for('static', filename='images/deal-02.jpg') }}" alt="">
+                  </div>
+                  <div class="col-lg-3">
+                    <h4>Available Amenities</h4>
+                    <p>This property offers essential amenities for a comfortable stay, including WiFi, shared kitchen access, laundry facilities, and air conditioning.
+                    <br><br>Many local homes also provide additional cultural experiences like home-cooked meals and local activity recommendations.</p>
+                    <div class="icon-button">
+                      <a href="{{ url_for('user.book_listing', listing_id=listing.id) }}"><i class="fa fa-calendar"></i> Book This Property</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="location" role="tabpanel" aria-labelledby="location-tab">
+                <div class="row">
+                  <div class="col-lg-3">
+                    <div class="info-table">
+                      <ul>
+                        <li>Location <span>{{ listing.location }}</span></li>
+                        <li>Transport <span>Available</span></li>
+                        <li>Shopping <span>Nearby</span></li>
+                        <li>Restaurants <span>Local</span></li>
+                        <li>Attractions <span>Cultural</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <img src="{{ url_for('static', filename='images/deal-03.jpg') }}" alt="">
+                  </div>
+                  <div class="col-lg-3">
+                    <h4>Location & Surroundings</h4>
+                    <p>Located in {{ listing.location }}, this property is conveniently situated near local attractions, restaurants, and shopping areas.
+                    <br><br>The area offers easy access to public transportation and is perfect for exploring the local culture and attractions of Bangladesh.</p>
+                    <div class="icon-button">
+                      <a href="{{ url_for('user.book_listing', listing_id=listing.id) }}"><i class="fa fa-calendar"></i> Book This Property</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

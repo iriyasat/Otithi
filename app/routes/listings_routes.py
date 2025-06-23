@@ -36,25 +36,20 @@ def listings():
     else:  # newest (default)
         query = query.order_by(Listing.created_at.desc())
     
-    # Paginate results
-    pagination = query.paginate(
-        page=page, 
-        per_page=3,  # 3 listings per page (for testing pagination)
-        error_out=False
-    )
+    # Get all listings
+    listings = query.all()
     
-    return render_template('listings/listings.html', 
-                         listings=pagination.items,
-                         pagination=pagination,
+    return render_template('property/listings.html', 
+                         listings=listings,
                          search=search,
                          location=location,
                          sort=sort)
 
-@listings_bp.route('/listing/<int:id>')
-def listing_detail(id):
+@listings_bp.route('/listing/<int:listing_id>')
+def listing_detail(listing_id):
     """Listing detail page"""
-    listing = Listing.query.get_or_404(id)
-    return render_template('listings/listing_detail.html', listing=listing)
+    listing = Listing.query.get_or_404(listing_id)
+    return render_template('property/detail.html', listing=listing)
 
 @listings_bp.route('/search')
 def search():

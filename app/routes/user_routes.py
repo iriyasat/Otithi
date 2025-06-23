@@ -2,8 +2,9 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from datetime import datetime, date
 from ..models import User, Listing, Booking, Review, BookingStatus
-from ..forms import BookingForm, ReviewForm
+from ..forms import BookingForm, ReviewForm, UserProfileForm
 from .. import db
+import os
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -21,6 +22,60 @@ def profile():
                          user=current_user,
                          recent_bookings=user_bookings,
                          recent_reviews=user_reviews)
+
+@user_bp.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    """Edit user profile"""
+    form = UserProfileForm(obj=current_user)
+    
+    if form.validate_on_submit():
+        # Check if email is already taken by another user
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user and existing_user.id != current_user.id:
+            flash('Email address is already registered.', 'error')
+            return render_template('user/edit_profile.html', form=form)
+        
+        # Check if username is already taken by another user
+        existing_user = User.query.filter_by(username=form.username.data).first()
+        if existing_user and existing_user.id != current_user.id:
+            flash('Username is already taken.', 'error')
+            return render_template('user/edit_profile.html', form=form)
+        
+        # Update user information
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        current_user.phone = form.phone.data
+        
+        # Handle profile image upload
+        if form.profile_image.data:
+            file = form.profile_image.data
+            if file.filename:
+                # Generate unique filename
+                import uuid
+                filename = str(uuid.uuid4()) + '.' + file.filename.rsplit('.', 1)[1].lower()
+                filepath = os.path.join(current_app.root_path, 'static', 'uploads', filename)
+                
+                # Save file
+                file.save(filepath)
+                
+                # Delete old profile image if exists
+                if current_user.profile_image:
+                    old_filepath = os.path.join(current_app.root_path, 'static', 'uploads', current_user.profile_image)
+                    if os.path.exists(old_filepath):
+                        os.remove(old_filepath)
+                
+                current_user.profile_image = filename
+        
+        try:
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('user.profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating profile. Please try again.', 'error')
+    
+    return render_template('user/edit_profile.html', form=form)
 
 @user_bp.route('/my-bookings')
 @login_required
@@ -42,12 +97,12 @@ def book_listing(listing_id):
     # Check if listing is approved
     if listing.status.value != 'APPROVED':
         flash('This listing is not available for booking.', 'error')
-        return redirect(url_for('listings.listing_detail', id=listing_id))
+        return redirect(url_for('listings.listing_detail', listing_id=listing_id))
     
     # Check if user is trying to book their own listing
     if listing.user_id == current_user.id:
         flash('You cannot book your own listing.', 'error')
-        return redirect(url_for('listings.listing_detail', id=listing_id))
+        return redirect(url_for('listings.listing_detail', listing_id=listing_id))
     
     form = BookingForm()
     
@@ -146,18 +201,18 @@ def add_review(listing_id):
     """Add a review for a listing"""
     listing = Listing.query.get_or_404(listing_id)
     
-    # Check if user has stayed at this listing
+    # Check if user has booked this listing
     booking = Booking.query.filter_by(
         user_id=current_user.id,
         listing_id=listing_id,
-        status=BookingStatus.COMPLETED
+        status=BookingStatus.CONFIRMED
     ).first()
     
     if not booking:
-        flash('You can only review listings where you have completed a stay.', 'error')
-        return redirect(url_for('listings.listing_detail', id=listing_id))
+        flash('You can only review listings you have booked and stayed at.', 'error')
+        return redirect(url_for('listings.listing_detail', listing_id=listing_id))
     
-    # Check if user already reviewed this listing
+    # Check if user has already reviewed this listing
     existing_review = Review.query.filter_by(
         user_id=current_user.id,
         listing_id=listing_id
@@ -165,7 +220,7 @@ def add_review(listing_id):
     
     if existing_review:
         flash('You have already reviewed this listing.', 'error')
-        return redirect(url_for('listings.listing_detail', id=listing_id))
+        return redirect(url_for('listings.listing_detail', listing_id=listing_id))
     
     form = ReviewForm()
     
@@ -181,7 +236,7 @@ def add_review(listing_id):
             db.session.add(new_review)
             db.session.commit()
             flash('Review submitted successfully!', 'success')
-            return redirect(url_for('listings.listing_detail', id=listing_id))
+            return redirect(url_for('listings.listing_detail', listing_id=listing_id))
         except Exception as e:
             db.session.rollback()
             flash('Error submitting review. Please try again.', 'error')
@@ -197,7 +252,7 @@ def edit_review(review_id):
     # Ensure user owns this review
     if review.user_id != current_user.id:
         flash('Access denied. You can only edit your own reviews.', 'error')
-        return redirect(url_for('listings.listing_detail', id=review.listing_id))
+        return redirect(url_for('listings.listing_detail', listing_id=review.listing_id))
     
     form = ReviewForm(obj=review)
     
@@ -208,12 +263,12 @@ def edit_review(review_id):
         try:
             db.session.commit()
             flash('Review updated successfully!', 'success')
-            return redirect(url_for('listings.listing_detail', id=review.listing_id))
+            return redirect(url_for('listings.listing_detail', listing_id=review.listing_id))
         except Exception as e:
             db.session.rollback()
             flash('Error updating review. Please try again.', 'error')
     
-    return render_template('user/edit_review.html', form=form, review=review)
+    return render_template('user/add_review.html', form=form, listing=review.listing)
 
 @user_bp.route('/delete-review/<int:review_id>', methods=['POST'])
 @login_required
@@ -224,9 +279,7 @@ def delete_review(review_id):
     # Ensure user owns this review
     if review.user_id != current_user.id:
         flash('Access denied. You can only delete your own reviews.', 'error')
-        return redirect(url_for('listings.listing_detail', id=review.listing_id))
-    
-    listing_id = review.listing_id
+        return redirect(url_for('listings.listing_detail', listing_id=review.listing_id))
     
     try:
         db.session.delete(review)
@@ -236,7 +289,7 @@ def delete_review(review_id):
         db.session.rollback()
         flash('Error deleting review. Please try again.', 'error')
     
-    return redirect(url_for('listings.listing_detail', id=listing_id))
+    return redirect(url_for('listings.listing_detail', listing_id=review.listing_id))
 
 @user_bp.route('/send-message/<int:recipient_id>', methods=['GET', 'POST'])
 @login_required
@@ -244,11 +297,38 @@ def send_message(recipient_id):
     """Send a message to another user"""
     recipient = User.query.get_or_404(recipient_id)
     
-    if request.method == 'POST':
-        content = request.form.get('content')
-        if content:
-            # Handle message sending logic here
-            flash('Message sent successfully!', 'success')
-            return redirect(url_for('messages.conversation', user_id=recipient_id))
+    # Prevent sending message to self
+    if recipient.id == current_user.id:
+        flash('You cannot send a message to yourself.', 'error')
+        return redirect(url_for('public.index'))
     
-    return render_template('messages/send_message.html', recipient=recipient) 
+    # Check if conversation exists, create if not
+    conversation = Conversation.query.filter(
+        ((Conversation.user1_id == current_user.id) & (Conversation.user2_id == recipient_id)) |
+        ((Conversation.user1_id == recipient_id) & (Conversation.user2_id == current_user.id))
+    ).first()
+    
+    if not conversation:
+        conversation = Conversation(user1_id=current_user.id, user2_id=recipient_id)
+        db.session.add(conversation)
+        db.session.commit()
+    
+    if request.method == 'POST':
+        content = request.form.get('content', '').strip()
+        if content:
+            message = Message(
+                conversation_id=conversation.id,
+                sender_id=current_user.id,
+                content=content
+            )
+            
+            try:
+                db.session.add(message)
+                db.session.commit()
+                flash('Message sent successfully!', 'success')
+                return redirect(url_for('messages.conversation', conversation_id=conversation.id))
+            except Exception as e:
+                db.session.rollback()
+                flash('Error sending message. Please try again.', 'error')
+    
+    return render_template('user/send_message.html', recipient=recipient, conversation=conversation) 

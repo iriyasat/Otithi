@@ -98,35 +98,45 @@
                                             </a>
                                             
                                             {% if listing.status.value == 'pending_approval' %}
-                                                <a href="{{ url_for('admin.approve_listing', id=listing.id) }}" 
-                                                   class="btn btn-outline-success btn-sm" 
-                                                   onclick="return confirm('Approve this listing?')" title="Approve">
-                                                    <i class="fas fa-check"></i>
-                                                </a>
-                                                <a href="{{ url_for('admin.reject_listing', id=listing.id) }}" 
-                                                   class="btn btn-outline-danger btn-sm" 
-                                                   onclick="return confirm('Reject this listing?')" title="Reject">
-                                                    <i class="fas fa-times"></i>
-                                                </a>
+                                                <form action="{{ url_for('admin.approve_listing', listing_id=listing.id) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-outline-success btn-sm" 
+                                                            onclick="return confirm('Approve this listing?')" title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ url_for('admin.reject_listing', listing_id=listing.id) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                            onclick="return confirm('Reject this listing?')" title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
                                             {% elif listing.status.value == 'rejected' %}
-                                                <a href="{{ url_for('admin.approve_listing', id=listing.id) }}" 
-                                                   class="btn btn-outline-success btn-sm" 
-                                                   onclick="return confirm('Approve this listing?')" title="Approve">
-                                                    <i class="fas fa-check"></i>
-                                                </a>
+                                                <form action="{{ url_for('admin.approve_listing', listing_id=listing.id) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-outline-success btn-sm" 
+                                                            onclick="return confirm('Approve this listing?')" title="Approve">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
                                             {% elif listing.status.value == 'approved' %}
-                                                <a href="{{ url_for('admin.reject_listing', id=listing.id) }}" 
-                                                   class="btn btn-outline-danger btn-sm" 
-                                                   onclick="return confirm('Reject this listing?')" title="Reject">
-                                                    <i class="fas fa-times"></i>
-                                                </a>
+                                                <form action="{{ url_for('admin.reject_listing', listing_id=listing.id) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                            onclick="return confirm('Reject this listing?')" title="Reject">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
                                             {% endif %}
                                             
-                                            <a href="{{ url_for('admin.delete_listing', id=listing.id) }}" 
-                                               class="btn btn-outline-danger btn-sm" 
-                                               onclick="return confirm('Are you sure you want to delete this listing? This action cannot be undone.')" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
+                                            <form action="{{ url_for('admin.delete_listing', listing_id=listing.id) }}" method="post" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to delete this listing? This action cannot be undone.')" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

@@ -171,7 +171,7 @@ def contact_host(listing_id):
     # Check if user is trying to contact themselves
     if listing.user_id == current_user.id:
         flash('You cannot contact yourself.', 'error')
-        return redirect(url_for('listings.listing_detail', id=listing_id))
+        return redirect(url_for('listings.listing_detail', listing_id=listing_id))
     
     # Check if conversation already exists
     existing_conversation = Conversation.query.filter(

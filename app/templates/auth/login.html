@@ -3,57 +3,90 @@
 {% block title %}Login - Othiti{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <h2 class="text-center mb-4 text-green">Login</h2>
-                    
-                    <!-- Flash Messages -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-                    
-                    <form method="POST" action="{{ url_for('auth.login') }}">
-                        {{ form.hidden_tag() }}
-                        
-                        <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email") }}
-                            {% for error in form.email.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="mb-4">
-                            {{ form.password.label(class="form-label") }}
-                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password") }}
-                            {% for error in form.password.errors %}
-                                <div class="invalid-feedback">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="d-grid">
-                            {{ form.submit(class="btn btn-bd-green btn-lg") }}
-                        </div>
-                    </form>
-                    
-                    <div class="text-center mt-4">
-                        <p class="mb-0">Don't have an account? 
-                            <a href="{{ url_for('auth.register') }}" class="text-decoration-none text-red">Register here</a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="page-heading header-text">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <span class="breadcrumb"><a href="{{ url_for('public.index') }}">Home</a> / Login</span>
+        <h3>Login to Your Account</h3>
+      </div>
     </div>
+  </div>
+</div>
+
+<div class="contact-page section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="section-heading">
+          <h6>| Welcome Back</h6>
+          <h2>Login to Your Othiti Account</h2>
+        </div>
+        <p>Welcome back to Othiti! Login to access your account and continue your journey of authentic Bangladeshi hospitality. Whether you're a guest looking for local experiences or a host sharing your home, we're here to connect you with amazing people.</p>
+        
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="item phone">
+              <img src="{{ url_for('static', filename='images/phone-icon.png') }}" alt="" style="max-width: 52px;">
+              <h6>Need Help?<br><span>Contact Support</span></h6>
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <div class="item email">
+              <img src="{{ url_for('static', filename='images/email-icon.png') }}" alt="" style="max-width: 52px;">
+              <h6>support@othiti.com<br><span>24/7 Support</span></h6>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <form id="login-form" method="POST" action="{{ url_for('auth.login') }}">
+          <div class="row">
+            <div class="col-lg-12">
+              <fieldset>
+                <label for="email">Email Address</label>
+                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Enter your email", autocomplete="email") }}
+                {% for error in form.email.errors %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </fieldset>
+            </div>
+            <div class="col-lg-12">
+              <fieldset>
+                <label for="password">Password</label>
+                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password") }}
+                {% for error in form.password.errors %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </fieldset>
+            </div>
+            <div class="col-lg-12">
+              <fieldset>
+                {{ form.submit(class="orange-button", value="Login to Account") }}
+              </fieldset>
+            </div>
+          </div>
+        </form>
+        
+        <div class="text-center mt-4">
+          <p class="mb-0">Don't have an account? 
+            <a href="{{ url_for('auth.register') }}" class="text-decoration-none">Register here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %} 

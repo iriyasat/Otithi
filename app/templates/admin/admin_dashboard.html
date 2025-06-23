@@ -261,7 +261,7 @@
                 </div>
                 <div class="card-body">
                     {% if top_listings %}
-                        {% for listing, booking_count, avg_rating in top_listings %}
+                        {% for listing, booking_count, avg_rating, total_earnings in top_listings %}
                         <div class="mb-3">
                             <h6 class="mb-1">{{ listing.title }}</h6>
                             <p class="text-muted mb-1 small">
@@ -277,10 +277,129 @@
                                     </small>
                                 {% endif %}
                             </div>
+                            {% if total_earnings %}
+                                <small class="text-success">
+                                    <i class="fas fa-dollar-sign me-1"></i>৳{{ "%.0f"|format(total_earnings) }} earned
+                                </small>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     {% else %}
                         <p class="text-muted">No data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Trends and Popular Locations -->
+    <div class="row">
+        <!-- Weekly Trends -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Weekly Trends (Last 4 Weeks)</h6>
+                </div>
+                <div class="card-body">
+                    {% if weekly_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Week</th>
+                                        <th>Users</th>
+                                        <th>Listings</th>
+                                        <th>Bookings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in weekly_stats %}
+                                    <tr>
+                                        <td>{{ stat.week }}</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ stat.users }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">{{ stat.listings }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ stat.bookings }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No trend data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Locations -->
+        <div class="col-xl-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Popular Locations</h6>
+                </div>
+                <div class="card-body">
+                    {% if popular_locations %}
+                        {% for location, listing_count, avg_price in popular_locations %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-0">{{ location }}</h6>
+                                <small class="text-muted">{{ listing_count }} listings</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-success">৳{{ "%.0f"|format(avg_price or 0) }}/night avg</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No location data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Reviews</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_reviews %}
+                        <div class="row">
+                            {% for review in recent_reviews %}
+                            <div class="col-md-6 mb-3">
+                                <div class="border rounded p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">{{ review.listing.title }}</h6>
+                                            <small class="text-muted">by {{ review.user.username }}</small>
+                                        </div>
+                                        <div class="text-warning">
+                                            {% for i in range(5) %}
+                                                {% if i < review.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <p class="mb-1 small">{{ review.comment[:100] }}{% if review.comment|length > 100 %}...{% endif %}</p>
+                                    <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent reviews</p>
                     {% endif %}
                 </div>
             </div>
