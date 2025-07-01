@@ -10,9 +10,12 @@ def index():
     # Get listings from database
     listings = Listing.get_all()
     
+    # Use all listings (these appear to be real listings with real data)
+    real_listings = listings
+    
     # Convert to format expected by template
     listings_data = []
-    for listing in listings:
+    for listing in real_listings:
         listings_data.append({
             'id': listing.id,
             'title': listing.title,
@@ -27,7 +30,60 @@ def index():
             'bathrooms': listing.bathrooms
         })
     
-    return render_template('index.html', listings=listings_data)
+    # Get recent reviews for the homepage
+    all_reviews = Review.get_all()
+    # Filter out any dummy reviews and get the most recent ones
+    real_reviews = [review for review in all_reviews 
+                   if hasattr(review, 'comment') and review.comment and 
+                   not any(dummy_word in review.comment.lower() 
+                          for dummy_word in ['test', 'demo', 'sample'])]
+    
+    # Get latest 6 reviews for display
+    recent_reviews = sorted(real_reviews, key=lambda x: x.created_date, reverse=True)[:6]
+    
+    # Convert reviews to format expected by template
+    reviews_data = []
+    for review in recent_reviews:
+        # Get guest name and listing title
+        guest = User.get(review.user_id)
+        listing = Listing.get(review.listing_id)
+        
+        reviews_data.append({
+            'guest_name': guest.name if guest else 'Anonymous Guest',
+            'rating': review.rating,
+            'comment': review.comment,
+            'created_at': review.created_date,
+            'listing_title': listing.title if listing else 'Unknown Listing'
+        })
+    
+    # Calculate hosting statistics from real data
+    all_bookings = Booking.get_all() if hasattr(Booking, 'get_all') else []
+    all_listings = Listing.get_all()
+    
+    # Use all listings for stats (these appear to be real listings, not dummy data)
+    real_listings = all_listings
+    
+    # Calculate average rating from all listings
+    ratings = [l.rating for l in real_listings if hasattr(l, 'rating') and l.rating > 0]
+    avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0.0
+    
+    # Get unique hosts from all listings
+    unique_hosts = set()
+    for listing in real_listings:
+        if hasattr(listing, 'host_id') and listing.host_id:
+            unique_hosts.add(listing.host_id)
+    
+    hosting_stats = {
+        'total_listings': len(real_listings),
+        'total_bookings': len(all_bookings),
+        'avg_rating': avg_rating,
+        'total_hosts': len(unique_hosts)
+    }
+    
+    return render_template('index.html', 
+                         listings=listings_data, 
+                         reviews=reviews_data, 
+                         hosting_stats=hosting_stats)
 
 @bp.route('/search')
 def search():
@@ -466,11 +522,16 @@ def login():
             login_user(user, remember=remember)
             flash(f'Welcome back, {user.full_name}!', 'success')
             
-            # Redirect to next page or dashboard
+            # Redirect to next page or appropriate dashboard based on user type
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
-            return redirect(url_for('main.dashboard'))
+            
+            # Redirect based on user type
+            if user.user_type == 'host':
+                return redirect(url_for('main.dashboard'))  # Hosts go to full dashboard
+            else:
+                return redirect(url_for('main.index'))      # Guests go to search/browse
         else:
             flash('Invalid email or password.', 'error')
     
@@ -489,6 +550,7 @@ def register():
         phone = request.form.get('phone', '').strip()
         bio = request.form.get('bio', '').strip()
         user_type = request.form.get('user_type', 'guest')
+        terms_agreement = request.form.get('terms_agreement')
         
         # Validation
         errors = []
@@ -511,6 +573,9 @@ def register():
         
         if user_type not in ['guest', 'host']:
             errors.append('Please select a valid account type.')
+        
+        if not terms_agreement:
+            errors.append('You must agree to the Terms of Service and Privacy Policy.')
         
         if errors:
             for error in errors:

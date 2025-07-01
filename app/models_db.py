@@ -27,21 +27,21 @@ class User(UserMixin):
     @staticmethod
     def get(user_id):
         """Get user by ID"""
-        query = "SELECT * FROM users WHERE user_id = %s"
+        query = "SELECT * FROM users WHERE id = %s"
         result = db.execute_query(query, (user_id,))
         if result:
             user_data = result[0]
             return User(
-                id=user_data['user_id'],
-                full_name=user_data['name'],
+                id=user_data['id'],
+                full_name=user_data['full_name'],
                 email=user_data['email'],
-                password_hash=user_data.get('password_hash', ''),  # May not exist in schema
+                password_hash=user_data['password_hash'],
                 phone=user_data['phone'],
-                bio=user_data.get('bio', ''),
+                bio=user_data['bio'],
                 user_type=user_data['user_type'],
                 profile_photo=user_data['profile_photo'],
-                joined_date=user_data['join_date'],
-                verified=user_data.get('verified', False)
+                joined_date=user_data['joined_date'],
+                verified=bool(user_data['verified'])
             )
         return None
     
@@ -53,16 +53,16 @@ class User(UserMixin):
         if result:
             user_data = result[0]
             return User(
-                id=user_data['user_id'],
-                full_name=user_data['name'],
+                id=user_data['id'],
+                full_name=user_data['full_name'],
                 email=user_data['email'],
-                password_hash=user_data.get('password_hash', ''),
+                password_hash=user_data['password_hash'],
                 phone=user_data['phone'],
-                bio=user_data.get('bio', ''),
+                bio=user_data['bio'],
                 user_type=user_data['user_type'],
                 profile_photo=user_data['profile_photo'],
-                joined_date=user_data['join_date'],
-                verified=user_data.get('verified', False)
+                joined_date=user_data['joined_date'],
+                verified=bool(user_data['verified'])
             )
         return None
     
@@ -70,18 +70,12 @@ class User(UserMixin):
     def create(full_name, email, password, phone=None, bio=None, user_type='guest'):
         """Create a new user"""
         password_hash = generate_password_hash(password)
-        # First add password_hash column if it doesn't exist
-        try:
-            db.execute_update("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)")
-        except:
-            pass  # Column might already exist
-        
         query = """
-            INSERT INTO users (name, email, password_hash, phone, user_type, join_date)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO users (full_name, email, password_hash, phone, bio, user_type, joined_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         user_id = db.execute_insert(query, (
-            full_name, email, password_hash, phone, user_type, datetime.now()
+            full_name, email, password_hash, phone, bio, user_type, datetime.now()
         ))
         
         if user_id:
@@ -92,21 +86,21 @@ class User(UserMixin):
         """Save user changes to database"""
         query = """
             UPDATE users 
-            SET name = %s, phone = %s, profile_photo = %s
-            WHERE user_id = %s
+            SET full_name = %s, phone = %s, bio = %s, profile_photo = %s, verified = %s
+            WHERE id = %s
         """
         return db.execute_update(query, (
-            self.full_name, self.phone, self.profile_photo, self.id
+            self.full_name, self.phone, self.bio, self.profile_photo, self.verified, self.id
         ))
 
 class Listing:
-    def __init__(self, id, title, description, location, price, host_id, property_type='entire_place',
+    def __init__(self, id, title, description, location, price, host_id, property_type='apartment',
                  guests=1, bedrooms=1, bathrooms=1, amenities=None, address='', city='', country='Bangladesh',
                  created_date=None, rating=0.0, reviews_count=0, available=True, images=None):
         self.id = id
         self.title = title
         self.description = description
-        self.location = f"{city}, {country}" if city and country else location
+        self.location = location
         self.price = price
         self.host_id = host_id
         self.property_type = property_type
@@ -126,114 +120,103 @@ class Listing:
     @staticmethod
     def get(listing_id):
         """Get listing by ID"""
-        query = "SELECT * FROM listings WHERE listing_id = %s"
+        query = "SELECT * FROM listings WHERE id = %s"
         result = db.execute_query(query, (listing_id,))
         if result:
             listing_data = result[0]
             return Listing(
-                id=listing_data['listing_id'],
+                id=listing_data['id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['city']}, {listing_data['country']}",
-                price=float(listing_data['price_per_night']),
+                location=listing_data['location'],
+                price=float(listing_data['price']),
                 host_id=listing_data['host_id'],
-                property_type=listing_data['room_type'],
-                guests=listing_data['max_guests'],
-                bedrooms=1,  # Default, not in schema
-                bathrooms=1,  # Default, not in schema
+                property_type=listing_data['property_type'],
+                guests=listing_data['guests'],
+                bedrooms=listing_data['bedrooms'],
+                bathrooms=listing_data['bathrooms'],
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
                 address=listing_data['address'],
                 city=listing_data['city'],
                 country=listing_data['country'],
-                created_date=listing_data['created_at'],
-                rating=0.0,  # Will be calculated from reviews
-                reviews_count=0,  # Will be calculated from reviews
-                available=True  # Default
+                created_date=listing_data['created_date'],
+                rating=float(listing_data['rating']) if listing_data['rating'] else 0.0,
+                reviews_count=listing_data['reviews_count'] or 0,
+                available=bool(listing_data['available'])
             )
         return None
     
     @staticmethod
     def get_all():
         """Get all listings"""
-        query = "SELECT * FROM listings ORDER BY created_at DESC"
+        query = "SELECT * FROM listings WHERE available = 1 ORDER BY created_date DESC"
         results = db.execute_query(query)
         listings = []
         for listing_data in results:
-            # Calculate rating and review count
-            rating_query = """
-                SELECT AVG(rating) as avg_rating, COUNT(*) as review_count 
-                FROM reviews WHERE listing_id = %s
-            """
-            rating_result = db.execute_query(rating_query, (listing_data['listing_id'],))
-            avg_rating = float(rating_result[0]['avg_rating']) if rating_result[0]['avg_rating'] else 0.0
-            review_count = rating_result[0]['review_count']
-            
-            listing = Listing(
-                id=listing_data['listing_id'],
+            listings.append(Listing(
+                id=listing_data['id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['city']}, {listing_data['country']}",
-                price=float(listing_data['price_per_night']),
+                location=listing_data['location'],
+                price=float(listing_data['price']),
                 host_id=listing_data['host_id'],
-                property_type=listing_data['room_type'],
-                guests=listing_data['max_guests'],
-                bedrooms=1,
-                bathrooms=1,
+                property_type=listing_data['property_type'],
+                guests=listing_data['guests'],
+                bedrooms=listing_data['bedrooms'],
+                bathrooms=listing_data['bathrooms'],
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
                 address=listing_data['address'],
                 city=listing_data['city'],
                 country=listing_data['country'],
-                created_date=listing_data['created_at'],
-                rating=avg_rating,
-                reviews_count=review_count,
-                available=True
-            )
-            listings.append(listing)
+                created_date=listing_data['created_date'],
+                rating=float(listing_data['rating']) if listing_data['rating'] else 0.0,
+                reviews_count=listing_data['reviews_count'] or 0,
+                available=bool(listing_data['available'])
+            ))
         return listings
     
     @staticmethod
     def get_by_host(host_id):
         """Get all listings by a host"""
-        query = "SELECT * FROM listings WHERE host_id = %s ORDER BY created_at DESC"
+        query = "SELECT * FROM listings WHERE host_id = %s ORDER BY created_date DESC"
         results = db.execute_query(query, (host_id,))
         listings = []
         for listing_data in results:
-            listing = Listing(
-                id=listing_data['listing_id'],
+            listings.append(Listing(
+                id=listing_data['id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['city']}, {listing_data['country']}",
-                price=float(listing_data['price_per_night']),
+                location=listing_data['location'],
+                price=float(listing_data['price']),
                 host_id=listing_data['host_id'],
-                property_type=listing_data['room_type'],
-                guests=listing_data['max_guests'],
-                bedrooms=1,
-                bathrooms=1,
+                property_type=listing_data['property_type'],
+                guests=listing_data['guests'],
+                bedrooms=listing_data['bedrooms'],
+                bathrooms=listing_data['bathrooms'],
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
                 address=listing_data['address'],
                 city=listing_data['city'],
                 country=listing_data['country'],
-                created_date=listing_data['created_at'],
-                rating=0.0,
-                reviews_count=0,
-                available=True
-            )
-            listings.append(listing)
+                created_date=listing_data['created_date'],
+                rating=float(listing_data['rating']) if listing_data['rating'] else 0.0,
+                reviews_count=listing_data['reviews_count'] or 0,
+                available=bool(listing_data['available'])
+            ))
         return listings
     
     @staticmethod
-    def create(title, description, location, price, host_id, property_type='entire_place',
+    def create(title, description, location, price, host_id, property_type='apartment',
                guests=1, bedrooms=1, bathrooms=1, amenities=None, address='', city='', country='Bangladesh'):
         """Create a new listing"""
         amenities_str = ','.join(amenities) if amenities else ''
         query = """
-            INSERT INTO listings (host_id, title, description, address, city, country, 
-                                room_type, price_per_night, max_guests, amenities, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO listings (title, description, location, price, host_id, property_type,
+                                guests, bedrooms, bathrooms, amenities, address, city, country, created_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         listing_id = db.execute_insert(query, (
-            host_id, title, description, address, city, country, 
-            property_type, price, guests, amenities_str, datetime.now()
+            title, description, location, price, host_id, property_type,
+            guests, bedrooms, bathrooms, amenities_str, address, city, country, datetime.now()
         ))
         
         if listing_id:
@@ -293,34 +276,34 @@ class Review:
     @staticmethod
     def get_all():
         """Get all reviews"""
-        query = "SELECT * FROM reviews ORDER BY review_date DESC"
+        query = "SELECT * FROM reviews ORDER BY created_date DESC"
         results = db.execute_query(query)
         reviews = []
         for review_data in results:
             reviews.append(Review(
-                id=review_data['review_id'],
+                id=review_data['id'],
                 listing_id=review_data['listing_id'],
-                user_id=review_data['reviewer_id'],
-                rating=float(review_data['rating']),
-                comment=review_data['comments'],
-                created_date=review_data['review_date']
+                user_id=review_data['user_id'],
+                rating=review_data['rating'],
+                comment=review_data['comment'],
+                created_date=review_data['created_date']
             ))
         return reviews
     
     @staticmethod
     def get_by_listing(listing_id):
         """Get all reviews for a listing"""
-        query = "SELECT * FROM reviews WHERE listing_id = %s ORDER BY review_date DESC"
+        query = "SELECT * FROM reviews WHERE listing_id = %s ORDER BY created_date DESC"
         results = db.execute_query(query, (listing_id,))
         reviews = []
         for review_data in results:
             reviews.append(Review(
-                id=review_data['review_id'],
+                id=review_data['id'],
                 listing_id=review_data['listing_id'],
-                user_id=review_data['reviewer_id'],
-                rating=float(review_data['rating']),
-                comment=review_data['comments'],
-                created_date=review_data['review_date']
+                user_id=review_data['user_id'],
+                rating=review_data['rating'],
+                comment=review_data['comment'],
+                created_date=review_data['created_date']
             ))
         return reviews
     
@@ -328,31 +311,50 @@ class Review:
     def create(listing_id, user_id, rating, comment):
         """Create a new review"""
         query = """
-            INSERT INTO reviews (reviewer_id, listing_id, rating, comments, review_date)
+            INSERT INTO reviews (listing_id, user_id, rating, comment, created_date)
             VALUES (%s, %s, %s, %s, %s)
         """
-        review_id = db.execute_insert(query, (user_id, listing_id, rating, comment, datetime.now()))
+        review_id = db.execute_insert(query, (listing_id, user_id, rating, comment, datetime.now()))
         
         if review_id:
+            # Update listing rating
+            Review.update_listing_rating(listing_id)
             return Review.get(review_id)
         return None
     
     @staticmethod
     def get(review_id):
         """Get review by ID"""
-        query = "SELECT * FROM reviews WHERE review_id = %s"
+        query = "SELECT * FROM reviews WHERE id = %s"
         result = db.execute_query(query, (review_id,))
         if result:
             review_data = result[0]
             return Review(
-                id=review_data['review_id'],
+                id=review_data['id'],
                 listing_id=review_data['listing_id'],
-                user_id=review_data['reviewer_id'],
-                rating=float(review_data['rating']),
-                comment=review_data['comments'],
-                created_date=review_data['review_date']
+                user_id=review_data['user_id'],
+                rating=review_data['rating'],
+                comment=review_data['comment'],
+                created_date=review_data['created_date']
             )
         return None
+    
+    @staticmethod
+    def update_listing_rating(listing_id):
+        """Update listing average rating and review count"""
+        query = """
+            SELECT AVG(rating) as avg_rating, COUNT(*) as review_count 
+            FROM reviews WHERE listing_id = %s
+        """
+        result = db.execute_query(query, (listing_id,))
+        if result:
+            avg_rating = float(result[0]['avg_rating']) if result[0]['avg_rating'] else 0.0
+            review_count = result[0]['review_count']
+            
+            update_query = """
+                UPDATE listings SET rating = %s, reviews_count = %s WHERE id = %s
+            """
+            db.execute_update(update_query, (avg_rating, review_count, listing_id))
 
 class Booking:
     def __init__(self, id, listing_id, user_id, check_in, check_out, guests, total_price, 
@@ -370,40 +372,40 @@ class Booking:
     @staticmethod
     def get_all():
         """Get all bookings"""
-        query = "SELECT * FROM bookings ORDER BY created_at DESC"
+        query = "SELECT * FROM bookings ORDER BY created_date DESC"
         results = db.execute_query(query)
         bookings = []
         for booking_data in results:
             bookings.append(Booking(
-                id=booking_data['booking_id'],
+                id=booking_data['id'],
                 listing_id=booking_data['listing_id'],
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,  # Default, not in schema
+                guests=booking_data['guests'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_date']
             ))
         return bookings
     
     @staticmethod
     def get_by_user(user_id):
         """Get all bookings by a user"""
-        query = "SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC"
+        query = "SELECT * FROM bookings WHERE user_id = %s ORDER BY created_date DESC"
         results = db.execute_query(query, (user_id,))
         bookings = []
         for booking_data in results:
             bookings.append(Booking(
-                id=booking_data['booking_id'],
+                id=booking_data['id'],
                 listing_id=booking_data['listing_id'],
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
+                guests=booking_data['guests'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_date']
             ))
         return bookings
     
@@ -412,43 +414,43 @@ class Booking:
         """Get all bookings for a host's listings"""
         query = """
             SELECT b.* FROM bookings b
-            JOIN listings l ON b.listing_id = l.listing_id
+            JOIN listings l ON b.listing_id = l.id
             WHERE l.host_id = %s
-            ORDER BY b.created_at DESC
+            ORDER BY b.created_date DESC
         """
         results = db.execute_query(query, (host_id,))
         bookings = []
         for booking_data in results:
             bookings.append(Booking(
-                id=booking_data['booking_id'],
+                id=booking_data['id'],
                 listing_id=booking_data['listing_id'],
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
+                guests=booking_data['guests'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_date']
             ))
         return bookings
     
     @staticmethod
     def get_by_listing(listing_id):
         """Get all bookings for a specific listing"""
-        query = "SELECT * FROM bookings WHERE listing_id = %s ORDER BY created_at DESC"
+        query = "SELECT * FROM bookings WHERE listing_id = %s ORDER BY created_date DESC"
         results = db.execute_query(query, (listing_id,))
         bookings = []
         for booking_data in results:
             bookings.append(Booking(
-                id=booking_data['booking_id'],
+                id=booking_data['id'],
                 listing_id=booking_data['listing_id'],
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
+                guests=booking_data['guests'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_date']
             ))
         return bookings
     
@@ -468,11 +470,11 @@ class Booking:
         total_price = price_breakdown['total']
         
         query = """
-            INSERT INTO bookings (user_id, listing_id, check_in, check_out, total_price, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO bookings (listing_id, user_id, check_in, check_out, guests, total_price, created_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         booking_id = db.execute_insert(query, (
-            user_id, listing_id, check_in, check_out, total_price, datetime.now()
+            listing_id, user_id, check_in, check_out, guests, total_price, datetime.now()
         ))
         
         if booking_id:
@@ -482,31 +484,31 @@ class Booking:
     @staticmethod
     def get(booking_id):
         """Get booking by ID"""
-        query = "SELECT * FROM bookings WHERE booking_id = %s"
+        query = "SELECT * FROM bookings WHERE id = %s"
         result = db.execute_query(query, (booking_id,))
         if result:
             booking_data = result[0]
             return Booking(
-                id=booking_data['booking_id'],
+                id=booking_data['id'],
                 listing_id=booking_data['listing_id'],
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
+                guests=booking_data['guests'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_date']
             )
         return None
     
     def confirm(self):
         """Confirm a pending booking"""
         if self.status == 'pending':
-            query = "UPDATE bookings SET status = 'confirmed' WHERE booking_id = %s"
+            query = "UPDATE bookings SET status = 'confirmed' WHERE id = %s"
             return db.execute_update(query, (self.id,))
         return False
     
     def cancel(self):
         """Cancel a booking"""
-        query = "UPDATE bookings SET status = 'cancelled' WHERE booking_id = %s"
+        query = "UPDATE bookings SET status = 'cancelled' WHERE id = %s"
         return db.execute_update(query, (self.id,))

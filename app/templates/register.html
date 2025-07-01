@@ -30,7 +30,7 @@
                 <div class="user-type-selection">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="user-type-card active" onclick="selectUserType('guest', this)">
+                            <div class="user-type-card active">
                                 <input type="radio" name="user_type" value="guest" id="guest" checked style="display: none;">
                                 <label for="guest" class="w-100 text-center">
                                     <div class="user-type-icon">
@@ -42,7 +42,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="user-type-card" onclick="selectUserType('host', this)">
+                            <div class="user-type-card">
                                 <input type="radio" name="user_type" value="host" id="host" style="display: none;">
                                 <label for="host" class="w-100 text-center">
                                     <div class="user-type-icon">
@@ -58,9 +58,30 @@
             </div>
             
             <div class="form-group">
-                <label for="profile_photo" class="form-label">Profile Photo (Optional)</label>
-                <input type="file" class="form-control" id="profile_photo" name="profile_photo" 
-                       accept="image/*">
+                <label class="form-label">Profile Photo (Optional)</label>
+                <div class="file-upload-container">
+                    <input type="file" class="file-input" id="profile_photo" name="profile_photo" 
+                           accept="image/*">
+                    <label for="profile_photo" class="file-upload-label">
+                        <div class="file-upload-content">
+                            <div class="upload-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="upload-text">
+                                <span class="upload-main-text">Click to upload or drag and drop</span>
+                                <span class="upload-sub-text">PNG, JPG or JPEG (max. 5MB)</span>
+                            </div>
+                        </div>
+                        <div class="file-preview" style="display: none;">
+                            <img class="preview-image" src="" alt="Preview">
+                            <button type="button" class="remove-file-btn">×</button>
+                        </div>
+                    </label>
+                </div>
             </div>
             
             <div class="form-group">
@@ -75,8 +96,23 @@
                        placeholder="Confirm your password" required>
             </div>
             
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" class="checkbox-input" id="terms_agreement" name="terms_agreement" required>
+                    <label for="terms_agreement" class="checkbox-label">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-text">
+                            I agree to the 
+                            <a href="#" class="terms-link" onclick="showTermsModal(event)">Terms of Service</a> 
+                            and 
+                            <a href="#" class="terms-link" onclick="showPrivacyModal(event)">Privacy Policy</a>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
             <button type="submit" class="btn-primary w-100">
-                Agree and continue
+                Register
             </button>
         </form>
         

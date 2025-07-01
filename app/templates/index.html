@@ -4,31 +4,41 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
-    <div class="container">
-        <div class="hero-content">
-            <h1>Not sure where to go? Perfect.</h1>
-            <p>Discover unique homes, authentic experiences, and warm hospitality across beautiful Bangladesh</p>
-            
-            <!-- Hero Search Form -->
-            <form action="/search" method="GET" class="hero-search-form">
-                <div class="hero-search-field">
-                    <label>Where</label>
-                    <input type="text" name="city" placeholder="Search destinations">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1 class="hero-title">Not sure where to go?<br><span class="hero-accent">Perfect.</span></h1>
+            <p class="hero-subtitle">Discover unique homes, authentic experiences, and warm hospitality across beautiful Bangladesh</p>
+        </div>
+        
+        <!-- Hero Search Form -->
+        <div class="search-widget">
+            <form action="/search" method="GET" class="search-form">
+                <div class="search-fields">
+                    <div class="search-field search-field--location">
+                        <label class="search-label">Where</label>
+                        <input type="text" name="city" placeholder="Search destinations" class="search-input">
+                    </div>
+                    <div class="search-divider"></div>
+                    <div class="search-field">
+                        <label class="search-label">Check in</label>
+                        <input type="date" name="check_in" class="search-input" placeholder="Add dates">
+                    </div>
+                    <div class="search-divider"></div>
+                    <div class="search-field">
+                        <label class="search-label">Check out</label>
+                        <input type="date" name="check_out" class="search-input" placeholder="Add dates">
+                    </div>
+                    <div class="search-divider"></div>
+                    <div class="search-field">
+                        <label class="search-label">Who</label>
+                        <input type="number" name="max_guests" placeholder="Add guests" min="1" class="search-input">
+                    </div>
                 </div>
-                <div class="hero-search-field">
-                    <label>Check in</label>
-                    <input type="date" name="check_in">
-                </div>
-                <div class="hero-search-field">
-                    <label>Check out</label>
-                    <input type="date" name="check_out">
-                </div>
-                <div class="hero-search-field">
-                    <label>Guests</label>
-                    <input type="number" name="max_guests" placeholder="Add guests" min="1">
-                </div>
-                <button type="submit" class="hero-search-btn">
-                    <i class="bi bi-search"></i> Search
+                <button type="submit" class="search-button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </button>
             </form>
         </div>
@@ -36,59 +46,151 @@
 </section>
 
 <!-- Live anywhere Section -->
-<section class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4" style="font-size: 32px; font-weight: 600; color: var(--text-primary);">Live anywhere</h2>
+<section class="listings-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Live anywhere</h2>
+            <p class="section-subtitle">Discover spaces that suit your style</p>
         </div>
-    </div>
-    <div class="row g-4">
-        {% if listings %}
-            {% for listing in listings %}
-            <div class="col-lg-3 col-md-4 col-sm-6">
+        
+        <div class="listings-grid">
+            {% if listings %}
+                {% for listing in listings %}
                 <div class="listing-card">
-                    <img src="{{ url_for('static', filename='img/' + listing.image) }}" 
-                         alt="{{ listing.title }}" class="listing-image">
-                    <div class="listing-content">
-                        <div class="listing-location">{{ listing.location }}</div>
-                        <div class="listing-title">{{ listing.title }}</div>
-                        <div class="listing-details">{{ listing.type }} · {{ listing.guests }} guests</div>
-                        <div class="listing-price">${{ listing.price }} night</div>
+                    <div class="listing-image-container">
+                        <img src="{{ url_for('static', filename='img/' + listing.image) }}" 
+                             alt="{{ listing.title }}" class="listing-image">
+                        <div class="listing-badge">Featured</div>
                     </div>
-                    <a href="/listing/{{ listing.id }}" class="stretched-link"></a>
+                    <div class="listing-content">
+                        <div class="listing-header">
+                            <h3 class="listing-title">{{ listing.title }}</h3>
+                            <div class="listing-rating">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF5A5F">
+                                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                </svg>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                        <p class="listing-location">{{ listing.location }}</p>
+                        <p class="listing-details">{{ listing.type }} · {{ listing.guests }} guests</p>
+                        <div class="listing-price">
+                            <span class="price">${{ listing.price }}</span>
+                            <span class="period">night</span>
+                        </div>
+                    </div>
+                    <a href="/listing/{{ listing.id }}" class="listing-link"></a>
                 </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="col-12 text-center">
-                <div style="padding: 80px 20px;">
-                    <i class="bi bi-house" style="font-size: 48px; color: var(--text-muted); margin-bottom: 20px;"></i>
-                    <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No listings available yet</h3>
-                    <p style="color: var(--text-muted);">Check back soon for amazing places to stay in Bangladesh</p>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                            <path d="M3 12L5 10M5 10L12 3L19 10M5 10V20A1 1 0 006 21H9M19 10L21 12M19 10V20A1 1 0 0018 21H15M9 21V15A1 1 0 0110 14H14A1 1 0 0115 15V21M9 21H15" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-title">No listings available yet</h3>
+                    <p class="empty-description">Check back soon for amazing places to stay in Bangladesh</p>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
 </section>
 
-<!-- Become a Host Section -->
-<section class="container py-5">
-    <div class="row align-items-center">
-        <div class="col-md-6">
-            <h2 style="font-size: 48px; font-weight: 600; color: var(--text-primary); margin-bottom: 24px;">
-                Try hosting
-            </h2>
-            <p style="font-size: 18px; color: var(--text-secondary); margin-bottom: 32px;">
-                Earn extra income and unlock new opportunities by sharing your space.
-            </p>
-            <a href="/register" class="btn-primary" style="text-decoration: none; display: inline-block;">
-                Start hosting
-            </a>
+<!-- Reviews Section -->
+<section class="reviews-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">What our guests say</h2>
+            <p class="section-subtitle">Real experiences from real travelers</p>
         </div>
-        <div class="col-md-6">
-            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3" 
-                 alt="Become a host" 
-                 style="width: 100%; border-radius: var(--radius-lg);">
+        
+        <div class="reviews-grid">
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">
+                            <span>{{ review.guest_name[0].upper() }}</span>
+                        </div>
+                        <div class="review-info">
+                            <h4 class="reviewer-name">{{ review.guest_name }}</h4>
+                            <div class="review-rating">
+                                {% for i in range(5) %}
+                                    {% if i < review.rating %}
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--primary-500)">
+                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                        </svg>
+                                    {% else %}
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--neutral-300)">
+                                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="rating-value">{{ review.rating }}.0</span>
+                            </div>
+                        </div>
+                        <div class="review-date">
+                            {{ review.created_at.strftime('%B %Y') }}
+                        </div>
+                    </div>
+                    <p class="review-text">{{ review.comment }}</p>
+                    <div class="review-listing">
+                        <span>Stayed at {{ review.listing_title }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0035 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.90003C9.87812 3.30496 11.1801 2.99659 12.5 3.00003H13C15.0843 3.11502 17.053 3.99479 18.5291 5.47089C20.0052 6.94699 20.885 8.91568 21 11V11.5Z" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="empty-title">No reviews yet</h3>
+                    <p class="empty-description">Be the first to share your experience with Otithi</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Try Hosting Section -->
+<section class="hosting-section">
+    <div class="container">
+        <div class="hosting-card">
+            <div class="hosting-content">
+                <div class="hosting-text">
+                    <h2 class="hosting-title">Start hosting with Otithi</h2>
+                    <p class="hosting-description">
+                        Join our growing community of hosts and share your space with travelers.
+                    </p>
+                    <div class="hosting-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ hosting_stats.total_listings }}</div>
+                            <div class="stat-label">Active listings</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ hosting_stats.total_bookings }}</div>
+                            <div class="stat-label">Total bookings</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ hosting_stats.avg_rating }}</div>
+                            <div class="stat-label">Avg rating</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ hosting_stats.total_hosts }}</div>
+                            <div class="stat-label">Hosts joined</div>
+                        </div>
+                    </div>
+                    <a href="/register?type=host" class="hosting-button">
+                        <span>Become a host</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </section>

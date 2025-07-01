@@ -228,26 +228,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // User type selection for registration
-    function selectUserType(type, element) {
-        // Remove active class from all cards
-        document.querySelectorAll('.user-type-card').forEach(card => {
-            card.classList.remove('active');
+    const userTypeCards = document.querySelectorAll('.user-type-card');
+    userTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Get the user type from the radio input inside this card
+            const radioInput = this.querySelector('input[type="radio"]');
+            if (radioInput) {
+                // Remove active class from all cards
+                userTypeCards.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Check the corresponding radio button
+                radioInput.checked = true;
+            }
         });
-        
-        // Add active class to selected card
-        element.classList.add('active');
-        
-        // Check the corresponding radio button
-        document.getElementById(type).checked = true;
-    }
+    });
 
     // Initialize user type selection on page load
     // Set guest as default selected
     const guestCard = document.querySelector('.user-type-card');
     if (guestCard) {
         guestCard.classList.add('active');
+        const guestRadio = guestCard.querySelector('input[type="radio"]');
+        if (guestRadio) {
+            guestRadio.checked = true;
+        }
     }
 });
+
+// Global function for user type selection (backup for inline events)
+function selectUserType(type, element) {
+    // Remove active class from all cards
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Add active class to selected card
+    element.classList.add('active');
+    
+    // Check the corresponding radio button
+    const radioInput = document.getElementById(type);
+    if (radioInput) {
+        radioInput.checked = true;
+    }
+}
 
 // Utility functions
 function formatCurrency(amount) {
@@ -292,3 +318,205 @@ window.OtithiApp = {
     showNotification,
     fetchListings
 };
+
+// File Upload Enhancement
+function initFileUpload() {
+    const fileInputs = document.querySelectorAll('.file-input');
+    
+    fileInputs.forEach(input => {
+        const container = input.closest('.file-upload-container');
+        const label = container.querySelector('.file-upload-label');
+        const uploadContent = container.querySelector('.file-upload-content');
+        const filePreview = container.querySelector('.file-preview');
+        const previewImage = container.querySelector('.preview-image');
+        const removeBtn = container.querySelector('.remove-file-btn');
+        const mainText = container.querySelector('.upload-main-text');
+        const subText = container.querySelector('.upload-sub-text');
+
+        // Handle file selection
+        input.addEventListener('change', function(e) {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Handle drag and drop
+        label.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('drag-over');
+            uploadContent.style.borderColor = 'var(--primary-500)';
+            uploadContent.style.background = 'var(--primary-50)';
+        });
+
+        label.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+            uploadContent.style.borderColor = 'var(--neutral-300)';
+            uploadContent.style.background = 'var(--neutral-50)';
+        });
+
+        label.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+            uploadContent.style.borderColor = 'var(--neutral-300)';
+            uploadContent.style.background = 'var(--neutral-50)';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // Remove file button
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                removeFile();
+            });
+        }
+
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select an image file', 'error');
+                return;
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('File size must be less than 5MB', 'error');
+                return;
+            }
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                uploadContent.style.display = 'none';
+                filePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // Update input
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+        }
+
+        function removeFile() {
+            input.value = '';
+            previewImage.src = '';
+            uploadContent.style.display = 'flex';
+            filePreview.style.display = 'none';
+        }
+    });
+}
+
+// Initialize file upload when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initFileUpload();
+});
+
+// Terms and Privacy Policy Modal Functions
+function showTermsModal(event) {
+    event.preventDefault();
+    showModal('Terms of Service', getTermsContent());
+}
+
+function showPrivacyModal(event) {
+    event.preventDefault();
+    showModal('Privacy Policy', getPrivacyContent());
+}
+
+function showModal(title, content) {
+    // Create modal HTML
+    const modalHTML = `
+        <div class="modal-overlay" onclick="closeModal()">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h3 class="modal-title">${title}</h3>
+                    <button class="modal-close" onclick="closeModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    ${content}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-primary" onclick="closeModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function getTermsContent() {
+    return `
+        <div class="terms-content">
+            <h4>1. Acceptance of Terms</h4>
+            <p>By using Otithi, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>
+            
+            <h4>2. Service Description</h4>
+            <p>Otithi is a platform that connects travelers with local hosts in Bangladesh, facilitating short-term accommodation bookings.</p>
+            
+            <h4>3. User Accounts</h4>
+            <p>You must create an account to use our services. You are responsible for maintaining the security of your account credentials.</p>
+            
+            <h4>4. Booking and Payments</h4>
+            <p>All bookings are subject to host approval. Payment processing is handled securely through our platform.</p>
+            
+            <h4>5. Host Responsibilities</h4>
+            <p>Hosts must provide accurate listing information and maintain their properties to the standards described.</p>
+            
+            <h4>6. Guest Responsibilities</h4>
+            <p>Guests must respect host properties and follow house rules as outlined in each listing.</p>
+            
+            <h4>7. Cancellation Policy</h4>
+            <p>Cancellation policies vary by listing. Please review the specific policy before booking.</p>
+            
+            <h4>8. Limitation of Liability</h4>
+            <p>Otithi acts as a platform and is not responsible for the conduct of hosts or guests.</p>
+        </div>
+    `;
+}
+
+function getPrivacyContent() {
+    return `
+        <div class="privacy-content">
+            <h4>1. Information We Collect</h4>
+            <p>We collect information you provide when creating an account, making bookings, and using our services.</p>
+            
+            <h4>2. How We Use Your Information</h4>
+            <p>Your information is used to facilitate bookings, improve our services, and communicate with you about your account.</p>
+            
+            <h4>3. Information Sharing</h4>
+            <p>We share necessary information between hosts and guests to facilitate bookings. We do not sell your personal information.</p>
+            
+            <h4>4. Data Security</h4>
+            <p>We implement appropriate security measures to protect your personal information against unauthorized access.</p>
+            
+            <h4>5. Cookies</h4>
+            <p>We use cookies to enhance your experience and analyze website usage.</p>
+            
+            <h4>6. Your Rights</h4>
+            <p>You have the right to access, update, or delete your personal information at any time.</p>
+            
+            <h4>7. Contact Us</h4>
+            <p>If you have questions about this Privacy Policy, please contact us at privacy@otithi.com</p>
+        </div>
+    `;
+}
