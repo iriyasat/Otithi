@@ -1,195 +1,195 @@
-# অ. Otithi - Experience Bangladeshi Hospitality
+# Otithi - Bangladeshi Hospitality Platform
 
-A Flask-based home-sharing platform connecting guests and hosts with authentic Bangladeshi hospitality.
+Otithi is a Flask-based web application inspired by Airbnb, designed specifically for the Bangladeshi market. The platform allows users to discover and book unique accommodations across Bangladesh while providing hosts with tools to share their spaces and earn extra income.
 
-## 🚀 Features
+## Features
 
-- **User Authentication**: Registration and login with Flask-Login
-- **Listing Management**: Create, edit, and delete property listings
-- **Image Upload**: Support for listing images with automatic file management
-- **Search & Filter**: Search listings by title or location
-- **Pagination**: Browse listings with pagination
-- **User Roles**: Admin and regular user roles
-- **Responsive Design**: Modern, mobile-friendly UI
+- **Modern UI/UX**: Bootstrap 5-based responsive design with Bangladeshi green color scheme
+- **Property Listings**: Browse and search accommodations across Bangladesh
+- **User Authentication**: Secure login and registration system
+- **Host Dashboard**: Tools for property owners to list and manage their spaces
+- **Search & Filters**: Advanced search with location and date filters
+- **Responsive Design**: Mobile-first approach for all screen sizes
 
-## 📋 Requirements
-
-- Python 3.8+
-- MySQL 5.7+
-- XAMPP (for local development)
-
-## 🛠️ Installation & Setup
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd Othiti
-```
-
-### 2. Create Virtual Environment
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Database Setup
-
-#### Option A: Using the Initialization Script
-```bash
-python init_db.py
-```
-
-#### Option B: Manual Setup with Flask-Migrate
-```bash
-# Initialize migrations
-flask db init
-
-# Create initial migration
-flask db migrate -m "Initial migration"
-
-# Apply migration
-flask db upgrade
-```
-
-### 5. Start the Application
-```bash
-python run.py
-```
-
-The application will be available at `http://localhost:5000`
-
-## 🗄️ Database Schema
-
-### User Model
-- `id`: Primary key
-- `username`: Unique username
-- `email`: Unique email address
-- `password_hash`: Hashed password
-- `role`: User role ('user' or 'admin')
-- `created_at`: Account creation timestamp
-
-### Listing Model
-- `id`: Primary key
-- `title`: Listing title
-- `location`: Property location
-- `description`: Property description
-- `price`: Price per night
-- `image_filename`: Optional uploaded image filename
-- `user_id`: Foreign key to User (listing owner)
-- `created_at`: Listing creation timestamp
-- `updated_at`: Last update timestamp
-
-## 👤 Default Admin Account
-
-After running the initialization script, you can log in with:
-- **Username**: `admin`
-- **Password**: `admin123`
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 Othiti/
 ├── app/
-│   ├── __init__.py          # Flask app factory
-│   ├── models.py            # Database models
-│   ├── forms.py             # WTForms definitions
-│   ├── routes.py            # Application routes
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── search.html
+│   │   ├── listing_detail.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   └── become_host.html
 │   ├── static/
-│   │   ├── css/             # Stylesheets
-│   │   ├── js/              # JavaScript files
-│   │   ├── images/          # Static images
-│   │   └── uploads/         # User uploaded images
-│   └── templates/           # Jinja2 templates
-├── config.py               # Configuration settings
-├── requirements.txt        # Python dependencies
-├── run.py                 # Application entry point
-├── init_db.py             # Database initialization script
-└── README.md              # This file
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   ├── js/
+│   │   │   └── main.js
+│   │   └── img/
+│   │       ├── demo_listing_1.jpg
+│   │       └── user-gear.png
+│   ├── __init__.py
+│   ├── models.py
+│   └── routes.py
+├── config.py
+├── run.py
+├── requirements.txt
+└── README.md
 ```
 
-## 🔧 Configuration
+## Installation
 
-The application uses the following configuration:
+1. **Clone or navigate to the project directory:**
+   ```bash
+   cd /Applications/XAMPP/xamppfiles/htdocs/Othiti
+   ```
 
-- **Database**: MySQL via XAMPP (localhost:3307)
-- **Database Name**: `otithi_db`
-- **Upload Folder**: `app/static/uploads/`
-- **Secret Key**: Auto-generated secure key
+2. **Create a virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On macOS/Linux
+   # or
+   venv\Scripts\activate  # On Windows
+   ```
 
-## 🎯 Key Features Explained
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### User Authentication
-- Secure password hashing with Werkzeug
-- Session management with Flask-Login
-- CSRF protection with Flask-WTF
+4. **Set environment variables (optional):**
+   ```bash
+   export SECRET_KEY="your-secret-key-here"
+   export DATABASE_URL="sqlite:///otithi.db"
+   ```
 
-### Listing Management
-- CRUD operations for listings
-- Automatic user assignment as listing owner
-- Image upload with unique filename generation
-- Permission-based editing (owners and admins only)
+## Running the Application
 
-### Search & Pagination
-- Full-text search on title and location
-- Price-based sorting (ascending/descending)
-- Pagination with 6 listings per page
+1. **Start the Flask development server:**
+   ```bash
+   python run.py
+   ```
 
-### Image Handling
-- Automatic file upload to `static/uploads/`
-- Unique filename generation to prevent conflicts
-- Default SVG placeholder for listings without images
-- Automatic cleanup of old images when updated
+2. **Open your browser and navigate to:**
+   ```
+   http://localhost:5000
+   ```
 
-## 🚨 Security Features
+## Design System
 
-- CSRF protection on all forms
-- Secure password hashing
-- Input validation with WTForms
-- File upload restrictions (JPG, PNG only)
-- User permission checks for listing operations
+### Colors
+- **Primary**: #006a4e (Bangladeshi Green)
+- **Secondary**: #ffffff (White)
+- **Text**: #333333 (Dark Gray)
+- **Accent**: #ff5722 (Orange)
 
-## 🐛 Troubleshooting
+### Typography
+- **Font Family**: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+- **Headings**: Bold weights with proper hierarchy
+- **Body Text**: Regular weight with 1.6 line height
 
-### Database Connection Issues
-1. Ensure XAMPP MySQL service is running
-2. Check database credentials in `app/__init__.py`
-3. Verify database `otithi_db` exists
+### Components
+- **Cards**: Rounded corners with subtle shadows
+- **Buttons**: Primary green with hover effects
+- **Forms**: Clean inputs with focus states
+- **Navigation**: Sticky header with search integration
 
-### Image Upload Issues
-1. Ensure `app/static/uploads/` directory exists
-2. Check file permissions on upload directory
-3. Verify image file format (JPG, PNG only)
+## Key Pages
 
-### Migration Issues
-1. Delete `migrations/` folder if corrupted
-2. Run `flask db init` to reinitialize
-3. Create new migration with `flask db migrate`
+1. **Homepage** (`/`): Hero section with search, featured listings, and promotional content
+2. **Search Results** (`/search`): Filterable grid of property listings
+3. **Property Details** (`/listing/<id>`): Detailed view with booking form
+4. **Authentication** (`/login`, `/register`): User login and registration
+5. **Become a Host** (`/host`): Information and onboarding for hosts
 
-## 📝 Development Notes
+## Features Implemented
 
-- The app uses Flask-Migrate for database versioning
-- All user inputs are validated with WTForms
-- Images are stored with UUID-based filenames
-- The app includes comprehensive error handling
-- Templates use Bootstrap 5 for responsive design
+### Frontend
+- ✅ Responsive design with Bootstrap 5
+- ✅ Custom CSS with Bangladeshi branding
+- ✅ Interactive JavaScript components
+- ✅ Form validation and user feedback
+- ✅ Image optimization and lazy loading
 
-## 🤝 Contributing
+### Backend
+- ✅ Flask application structure
+- ✅ Route handling and templates
+- ✅ Model definitions for core entities
+- ✅ Configuration management
+- ✅ Error handling
+
+### UI Components
+- ✅ Navigation with search integration
+- ✅ Property cards with ratings and pricing
+- ✅ Filter system for search results
+- ✅ Booking form with date selection
+- ✅ Host profile and verification badges
+- ✅ Review system display
+
+## Development Notes
+
+### CSS Architecture
+- Custom properties for consistent theming
+- Mobile-first responsive design
+- Component-based styling approach
+- Utility classes for common patterns
+
+### JavaScript Features
+- Event delegation for dynamic content
+- Form validation and submission handling
+- Interactive UI components (filters, wishlist)
+- API integration structure
+
+### Template System
+- Jinja2 templating with template inheritance
+- Component-based template structure
+- SEO-friendly markup
+- Accessibility considerations
+
+## Future Enhancements
+
+### Database Integration
+- SQLAlchemy ORM setup
+- User authentication with Flask-Login
+- Property management system
+- Booking and payment processing
+
+### Advanced Features
+- Real-time messaging system
+- Email notifications
+- Payment gateway integration
+- Administrative dashboard
+- Multi-language support (Bengali/English)
+
+### Performance Optimizations
+- Image compression and CDN integration
+- Caching layer implementation
+- Database query optimization
+- Asset minification
+
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Design inspiration from Airbnb
+- Bootstrap 5 for responsive components
+- Flask framework for backend structure
+- Bangladeshi cultural elements and color scheme
 
 ---
 
-**অ. Otithi** - Experience authentic Bangladeshi hospitality! 🇧🇩 
+**Made with ❤️ in Bangladesh for the Bangladeshi hospitality community**

@@ -1,0 +1,603 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import login_user, logout_user, login_required, current_user
+from app.models import User, Listing, Booking, Review
+from datetime import datetime, date
+
+bp = Blueprint('main', __name__)
+
+@bp.route('/')
+def index():
+    # Get listings from database
+    listings = Listing.get_all()
+    
+    # Convert to format expected by template
+    listings_data = []
+    for listing in listings:
+        listings_data.append({
+            'id': listing.id,
+            'title': listing.title,
+            'location': listing.location,
+            'price': listing.price,
+            'rating': listing.rating,
+            'reviews': listing.reviews_count,
+            'image': 'demo_listing_1.jpg',  # Default image
+            'type': listing.property_type.title(),
+            'guests': listing.guests,
+            'bedrooms': listing.bedrooms,
+            'bathrooms': listing.bathrooms
+        })
+    
+    return render_template('index.html', listings=listings_data)
+
+@bp.route('/search')
+def search():
+    query = request.args.get('query', '')
+    location = request.args.get('location', '')
+    checkin = request.args.get('checkin', '')
+    checkout = request.args.get('checkout', '')
+    guests = request.args.get('guests', '')
+    
+    # Get all listings and filter based on search criteria
+    listings = Listing.get_all()
+    
+    # Filter by location if provided
+    if location:
+        listings = [l for l in listings if location.lower() in l.location.lower() or location.lower() in l.city.lower()]
+    
+    # Filter by availability if dates provided
+    if checkin and checkout:
+        try:
+            checkin_date = datetime.strptime(checkin, '%Y-%m-%d').date()
+            checkout_date = datetime.strptime(checkout, '%Y-%m-%d').date()
+            listings = [l for l in listings if l.is_available(checkin_date, checkout_date)]
+        except ValueError:
+            pass
+    
+    # Filter by guest count if provided
+    if guests:
+        try:
+            guest_count = int(guests)
+            listings = [l for l in listings if l.guests >= guest_count]
+        except ValueError:
+            pass
+    
+    # Convert to template format
+    listings_data = []
+    for listing in listings:
+        listings_data.append({
+            'id': listing.id,
+            'title': listing.title,
+            'location': listing.location,
+            'price': listing.price,
+            'rating': listing.rating,
+            'reviews': listing.reviews_count,
+            'image': 'demo_listing_1.jpg',
+            'type': listing.property_type.title(),
+            'guests': listing.guests,
+            'bedrooms': listing.bedrooms,
+            'bathrooms': listing.bathrooms
+        })
+    
+    return render_template('search.html', 
+                         listings=listings_data,
+                         query=query, 
+                         location=location,
+                         checkin=checkin,
+                         checkout=checkout,
+                         guests=guests)
+
+# Listing Routes
+
+@bp.route('/listings/<int:listing_id>')
+def listing_detail(listing_id):
+    listing = Listing.get(listing_id)
+    
+    if not listing:
+        flash('Listing not found.', 'error')
+        return redirect(url_for('main.index'))
+    
+    # Get host information
+    host = User.get(listing.host_id)
+    
+    # Get reviews
+    reviews = Review.get_by_listing(listing_id)
+    
+    # Get unavailable dates for calendar
+    unavailable_dates = listing.get_unavailable_dates()
+    
+    # Prepare listing data for template
+    listing_data = {
+        'id': listing.id,
+        'title': listing.title,
+        'location': listing.location,
+        'address': listing.address,
+        'city': listing.city,
+        'country': listing.country,
+        'price': listing.price,
+        'rating': listing.rating,
+        'reviews': listing.reviews_count,
+        'image': 'demo_listing_1.jpg',
+        'type': listing.property_type.title(),
+        'guests': listing.guests,
+        'bedrooms': listing.bedrooms,
+        'bathrooms': listing.bathrooms,
+        'description': listing.description,
+        'amenities': listing.amenities,
+        'host': {
+            'id': host.id if host else None,
+            'name': host.full_name if host else 'Unknown Host',
+            'avatar': 'user-gear.png',
+            'joined': host.joined_date.year if host else '2023',
+            'verified': host.verified if host else False,
+            'bio': host.bio if host else ''
+        },
+        'unavailable_dates': unavailable_dates
+    }
+    
+    return render_template('listing.html', listing=listing_data, reviews=reviews)
+
+@bp.route('/create_listing', methods=['GET', 'POST'])
+@login_required
+def create_listing():
+    # Only hosts can create listings
+    if current_user.user_type != 'host':
+        flash('Only hosts can create listings.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        property_type = request.form.get('property_type', 'apartment')
+        address = request.form.get('address', '').strip()
+        city = request.form.get('city', '').strip()
+        country = request.form.get('country', 'Bangladesh').strip()
+        price = request.form.get('price')
+        guests = request.form.get('guests')
+        bedrooms = request.form.get('bedrooms')
+        bathrooms = request.form.get('bathrooms')
+        amenities = request.form.getlist('amenities')
+        
+        # Validation
+        errors = []
+        
+        if not title:
+            errors.append('Title is required.')
+        
+        if not description:
+            errors.append('Description is required.')
+        
+        if not address:
+            errors.append('Address is required.')
+        
+        if not city:
+            errors.append('City is required.')
+        
+        try:
+            price = float(price)
+            if price <= 0:
+                errors.append('Price must be greater than 0.')
+        except (ValueError, TypeError):
+            errors.append('Please enter a valid price.')
+        
+        try:
+            guests = int(guests)
+            if guests <= 0:
+                errors.append('Guest count must be at least 1.')
+        except (ValueError, TypeError):
+            errors.append('Please enter a valid guest count.')
+        
+        try:
+            bedrooms = int(bedrooms)
+            if bedrooms <= 0:
+                errors.append('Bedroom count must be at least 1.')
+        except (ValueError, TypeError):
+            errors.append('Please enter a valid bedroom count.')
+        
+        try:
+            bathrooms = int(bathrooms)
+            if bathrooms <= 0:
+                errors.append('Bathroom count must be at least 1.')
+        except (ValueError, TypeError):
+            errors.append('Please enter a valid bathroom count.')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return render_template('create_listing.html')
+        
+        # Create location string
+        location = f"{city}, {country}"
+        
+        # Create listing
+        listing = Listing.create(
+            title=title,
+            description=description,
+            location=location,
+            price=price,
+            host_id=current_user.id,
+            property_type=property_type,
+            guests=guests,
+            bedrooms=bedrooms,
+            bathrooms=bathrooms,
+            amenities=amenities,
+            address=address,
+            city=city,
+            country=country
+        )
+        
+        if listing:
+            flash(f'Listing "{title}" created successfully!', 'success')
+            return redirect(url_for('main.listing_detail', listing_id=listing.id))
+        else:
+            flash('Failed to create listing. Please try again.', 'error')
+    
+    return render_template('create_listing.html')
+
+# Booking Routes
+
+@bp.route('/book/<int:listing_id>')
+@login_required
+def book_listing(listing_id):
+    listing = Listing.get(listing_id)
+    
+    if not listing:
+        flash('Listing not found.', 'error')
+        return redirect(url_for('main.index'))
+    
+    # Hosts cannot book their own listings
+    if listing.host_id == current_user.id:
+        flash('You cannot book your own listing.', 'error')
+        return redirect(url_for('main.listing_detail', listing_id=listing_id))
+    
+    # Get host information
+    host = User.get(listing.host_id)
+    
+    # Get unavailable dates
+    unavailable_dates = listing.get_unavailable_dates()
+    
+    # Prepare listing data
+    listing_data = {
+        'id': listing.id,
+        'title': listing.title,
+        'location': listing.location,
+        'price': listing.price,
+        'rating': listing.rating,
+        'reviews': listing.reviews_count,
+        'image': 'demo_listing_1.jpg',
+        'type': listing.property_type.title(),
+        'guests': listing.guests,
+        'bedrooms': listing.bedrooms,
+        'bathrooms': listing.bathrooms,
+        'description': listing.description,
+        'amenities': listing.amenities,
+        'host': {
+            'name': host.full_name if host else 'Unknown Host',
+            'avatar': 'user-gear.png'
+        },
+        'unavailable_dates': unavailable_dates
+    }
+    
+    return render_template('booking.html', listing=listing_data)
+
+@bp.route('/book/<int:listing_id>/confirm', methods=['POST'])
+@login_required
+def confirm_booking(listing_id):
+    listing = Listing.get(listing_id)
+    
+    if not listing:
+        flash('Listing not found.', 'error')
+        return redirect(url_for('main.index'))
+    
+    # Hosts cannot book their own listings
+    if listing.host_id == current_user.id:
+        flash('You cannot book your own listing.', 'error')
+        return redirect(url_for('main.listing_detail', listing_id=listing_id))
+    
+    checkin = request.form.get('checkin')
+    checkout = request.form.get('checkout')
+    guests = request.form.get('guests')
+    
+    # Validation
+    errors = []
+    
+    try:
+        checkin_date = datetime.strptime(checkin, '%Y-%m-%d').date()
+        checkout_date = datetime.strptime(checkout, '%Y-%m-%d').date()
+        
+        if checkin_date < date.today():
+            errors.append('Check-in date cannot be in the past.')
+        
+        if checkout_date <= checkin_date:
+            errors.append('Check-out date must be after check-in date.')
+        
+        if not listing.is_available(checkin_date, checkout_date):
+            errors.append('These dates are not available.')
+        
+    except ValueError:
+        errors.append('Please enter valid dates.')
+    
+    try:
+        guest_count = int(guests)
+        if guest_count <= 0:
+            errors.append('Guest count must be at least 1.')
+        if guest_count > listing.guests:
+            errors.append(f'This listing can accommodate maximum {listing.guests} guests.')
+    except (ValueError, TypeError):
+        errors.append('Please enter a valid guest count.')
+    
+    if errors:
+        for error in errors:
+            flash(error, 'error')
+        return redirect(url_for('main.book_listing', listing_id=listing_id))
+    
+    # Create booking
+    booking = Booking.create(
+        listing_id=listing_id,
+        user_id=current_user.id,
+        check_in=checkin_date,
+        check_out=checkout_date,
+        guests=guest_count
+    )
+    
+    if booking:
+        flash('Booking request submitted successfully! Waiting for host approval.', 'success')
+        return redirect(url_for('main.dashboard'))
+    else:
+        flash('Failed to create booking. Please try again.', 'error')
+        return redirect(url_for('main.book_listing', listing_id=listing_id))
+
+# Booking Management Routes
+
+@bp.route('/my-bookings')
+@login_required
+def my_bookings():
+    """View user's bookings"""
+    user = current_user
+    
+    # Get user's bookings
+    bookings = Booking.get_by_user(user.id)
+    
+    # Enrich bookings with listing information
+    enriched_bookings = []
+    for booking in bookings:
+        listing = Listing.get(booking.listing_id)
+        host = User.get(listing.host_id) if listing else None
+        
+        booking_data = {
+            'id': booking.id,
+            'check_in': booking.check_in,
+            'check_out': booking.check_out,
+            'guests': booking.guests,
+            'total_price': booking.total_price,
+            'status': booking.status,
+            'created_date': booking.created_date,
+            'listing': {
+                'id': listing.id if listing else None,
+                'title': listing.title if listing else 'Unknown Listing',
+                'location': listing.location if listing else '',
+                'image': 'demo_listing_1.jpg',
+                'host_name': host.full_name if host else 'Unknown Host'
+            } if listing else None
+        }
+        enriched_bookings.append(booking_data)
+    
+    # Sort by creation date (newest first)
+    enriched_bookings.sort(key=lambda x: x['created_date'], reverse=True)
+    
+    return render_template('my_bookings.html', bookings=enriched_bookings, user=user)
+
+# API Routes
+
+@bp.route('/api/calculate_price/<int:listing_id>')
+def calculate_price(listing_id):
+    listing = Listing.get(listing_id)
+    
+    if not listing:
+        return jsonify({'error': 'Listing not found'}), 404
+    
+    checkin = request.args.get('checkin')
+    checkout = request.args.get('checkout')
+    guests = request.args.get('guests', 1)
+    
+    try:
+        checkin_date = datetime.strptime(checkin, '%Y-%m-%d').date()
+        checkout_date = datetime.strptime(checkout, '%Y-%m-%d').date()
+        guest_count = int(guests)
+        
+        if checkout_date <= checkin_date:
+            return jsonify({'error': 'Invalid dates'}), 400
+        
+        price_breakdown = listing.calculate_total_price(checkin_date, checkout_date, guest_count)
+        
+        return jsonify({
+            'nights': price_breakdown['nights'],
+            'base_price': price_breakdown['base_price'],
+            'cleaning_fee': price_breakdown['cleaning_fee'],
+            'service_fee': price_breakdown['service_fee'],
+            'total': price_breakdown['total']
+        })
+        
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+@bp.route('/api/check_availability/<int:listing_id>')
+def check_availability(listing_id):
+    listing = Listing.get(listing_id)
+    
+    if not listing:
+        return jsonify({'error': 'Listing not found'}), 404
+    
+    checkin = request.args.get('checkin')
+    checkout = request.args.get('checkout')
+    
+    try:
+        checkin_date = datetime.strptime(checkin, '%Y-%m-%d').date()
+        checkout_date = datetime.strptime(checkout, '%Y-%m-%d').date()
+        
+        available = listing.is_available(checkin_date, checkout_date)
+        
+        return jsonify({
+            'available': available,
+            'unavailable_dates': listing.get_unavailable_dates()
+        })
+        
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+# Authentication Routes
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        remember = bool(request.form.get('remember'))
+        
+        if not email or not password:
+            flash('Please provide both email and password.', 'error')
+            return render_template('login.html')
+        
+        user = User.get_by_email(email)
+        
+        if user and user.check_password(password):
+            login_user(user, remember=remember)
+            flash(f'Welcome back, {user.full_name}!', 'success')
+            
+            # Redirect to next page or dashboard
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Invalid email or password.', 'error')
+    
+    return render_template('login.html')
+
+@bp.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        phone = request.form.get('phone', '').strip()
+        bio = request.form.get('bio', '').strip()
+        user_type = request.form.get('user_type', 'guest')
+        
+        # Validation
+        errors = []
+        
+        if not full_name:
+            errors.append('Full name is required.')
+        
+        if not email:
+            errors.append('Email is required.')
+        elif User.get_by_email(email):
+            errors.append('Email already registered.')
+        
+        if not password:
+            errors.append('Password is required.')
+        elif len(password) < 6:
+            errors.append('Password must be at least 6 characters long.')
+        
+        if password != confirm_password:
+            errors.append('Passwords do not match.')
+        
+        if user_type not in ['guest', 'host']:
+            errors.append('Please select a valid account type.')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+            return render_template('register.html')
+        
+        # Create new user
+        user = User.create(
+            full_name=full_name,
+            email=email,
+            password=password,
+            phone=phone,
+            bio=bio,
+            user_type=user_type
+        )
+        
+        if user:
+            login_user(user)
+            flash(f'Welcome to Otithi, {user.full_name}! Your account has been created successfully.', 'success')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Registration failed. Please try again.', 'error')
+    
+    return render_template('register.html')
+
+@bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out successfully.', 'info')
+    return redirect(url_for('main.index'))
+
+@bp.route('/dashboard')
+@login_required
+def dashboard():
+    user = current_user
+    
+    # Get user's bookings
+    bookings = Booking.get_by_user(user.id)
+    
+    # Get user's listings (if host)
+    listings = []
+    host_bookings = []
+    if user.user_type == 'host':
+        listings = Listing.get_by_host(user.id)
+        host_bookings = Booking.get_by_host(user.id)
+    
+    return render_template('dashboard.html', 
+                         user=user, 
+                         bookings=bookings, 
+                         listings=listings,
+                         host_bookings=host_bookings)
+
+@bp.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@bp.route('/profile/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    if request.method == 'POST':
+        current_user.full_name = request.form.get('full_name', current_user.full_name)
+        current_user.phone = request.form.get('phone', current_user.phone)
+        current_user.bio = request.form.get('bio', current_user.bio)
+        current_user.save()
+        
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('main.profile'))
+    
+    return render_template('edit_profile.html', user=current_user)
+
+# API Routes for AJAX requests
+
+@bp.route('/api/check-email')
+def check_email():
+    email = request.args.get('email', '').strip()
+    if email:
+        user = User.get_by_email(email)
+        return jsonify({'available': user is None})
+    return jsonify({'available': False})
+
+# Legacy routes (for compatibility)
+@bp.route('/host')
+def become_host():
+    return redirect(url_for('main.register') + '?type=host')
+
+@bp.route('/become-host')
+def become_host_alt():
+    return redirect(url_for('main.register') + '?type=host')

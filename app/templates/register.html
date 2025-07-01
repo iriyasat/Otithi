@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Sign up - Otithi{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h1 class="auth-title">Welcome to Otithi</h1>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" name="name" 
+                       placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" 
+                       placeholder="Enter your email address" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone number</label>
+                <input type="tel" class="form-control" id="phone" name="phone" 
+                       placeholder="Enter your phone number">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Join Otithi as:</label>
+                <div class="user-type-selection">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="user-type-card active" onclick="selectUserType('guest', this)">
+                                <input type="radio" name="user_type" value="guest" id="guest" checked style="display: none;">
+                                <label for="guest" class="w-100 text-center">
+                                    <div class="user-type-icon">
+                                        <i class="bi bi-airplane" style="font-size: 2rem; color: #006a4e;"></i>
+                                    </div>
+                                    <h6 style="margin: 10px 0 5px 0; color: #006a4e;">Guest</h6>
+                                    <small style="color: #666;">Find places to stay</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="user-type-card" onclick="selectUserType('host', this)">
+                                <input type="radio" name="user_type" value="host" id="host" style="display: none;">
+                                <label for="host" class="w-100 text-center">
+                                    <div class="user-type-icon">
+                                        <i class="bi bi-house-door" style="font-size: 2rem; color: #006a4e;"></i>
+                                    </div>
+                                    <h6 style="margin: 10px 0 5px 0; color: #006a4e;">Host</h6>
+                                    <small style="color: #666;">Share your space</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="profile_photo" class="form-label">Profile Photo (Optional)</label>
+                <input type="file" class="form-control" id="profile_photo" name="profile_photo" 
+                       accept="image/*">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" 
+                       placeholder="Create a password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                       placeholder="Confirm your password" required>
+            </div>
+            
+            <button type="submit" class="btn-primary w-100">
+                Agree and continue
+            </button>
+        </form>
+        
+        <div class="text-center mt-4">
+            <p style="color: var(--text-secondary); font-size: 14px;">
+                Already have an account? 
+                <a href="/login" style="color: var(--primary-green); text-decoration: none; font-weight: 600;">Log in</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

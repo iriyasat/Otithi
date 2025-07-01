@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Search results - Otithi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3">
+            <div style="position: sticky; top: 120px;">
+                <h4 style="font-size: 22px; font-weight: 600; margin-bottom: 24px;">Filters</h4>
+                
+                <!-- Price Range -->
+                <div style="margin-bottom: 32px;">
+                    <h5 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Price range</h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 12px; color: var(--text-secondary);">Min price</label>
+                            <input type="number" class="form-control" placeholder="$0">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; color: var(--text-secondary);">Max price</label>
+                            <input type="number" class="form-control" placeholder="$1000+">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Room Type -->
+                <div style="margin-bottom: 32px;">
+                    <h5 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Type of place</h5>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                            <input type="checkbox" name="room_type" value="entire_place">
+                            <span>Entire place</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                            <input type="checkbox" name="room_type" value="private_room">
+                            <span>Private room</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                            <input type="checkbox" name="room_type" value="shared_room">
+                            <span>Shared room</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Guests -->
+                <div style="margin-bottom: 32px;">
+                    <h5 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Guests</h5>
+                    <select class="form-control">
+                        <option>Any</option>
+                        <option>1 guest</option>
+                        <option>2 guests</option>
+                        <option>3 guests</option>
+                        <option>4+ guests</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Search Results -->
+        <div class="col-lg-9">
+            <div style="margin-bottom: 24px;">
+                <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 8px;">
+                    {% if query %}
+                        Search results for "{{ query }}"
+                    {% else %}
+                        Places to stay
+                    {% endif %}
+                </h1>
+                <p style="color: var(--text-secondary);">Over 1,000 homes in Bangladesh</p>
+            </div>
+            
+            <!-- Results Grid -->
+            <div class="row g-4">
+                {% if listings %}
+                    {% for listing in listings %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="listing-card">
+                            <img src="{{ url_for('static', filename='img/' + (listing.image if listing.image else 'demo_listing_1.jpg')) }}" 
+                                 alt="{{ listing.title }}" class="listing-image">
+                            <div class="listing-content">
+                                <div class="listing-location">{{ listing.city }}, {{ listing.country }}</div>
+                                <div class="listing-title">{{ listing.title }}</div>
+                                <div class="listing-details">{{ listing.room_type.replace('_', ' ').title() }} · {{ listing.max_guests }} guests</div>
+                                <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                    <i class="bi bi-star-fill" style="color: #FFD700; font-size: 12px;"></i>
+                                    <span style="font-size: 14px; font-weight: 600;">4.8</span>
+                                    <span style="font-size: 14px; color: var(--text-secondary);">(127)</span>
+                                </div>
+                                <div class="listing-price">${{ listing.price_per_night }} night</div>
+                            </div>
+                            <a href="/listing/{{ listing.listing_id }}" class="stretched-link"></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div style="text-align: center; padding: 80px 20px;">
+                            <i class="bi bi-search" style="font-size: 48px; color: var(--text-muted); margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No exact matches</h3>
+                            <p style="color: var(--text-muted);">Try changing or removing some of your filters or adjusting your search area.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

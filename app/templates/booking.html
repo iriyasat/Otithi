@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Confirm and pay - Otithi{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-7">
+            <div style="background: var(--secondary-color); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-md);">
+                <h2 style="font-size: 32px; font-weight: 600; color: var(--text-primary); margin-bottom: 32px;">
+                    Confirm and pay
+                </h2>
+                
+                <form method="POST">
+                    <!-- Booking Details -->
+                    <div class="form-group">
+                        <label for="user_id" class="form-label">User ID</label>
+                        <input type="number" class="form-control" id="user_id" name="user_id" 
+                               placeholder="Your user ID" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="listing_id" class="form-label">Listing ID</label>
+                        <input type="number" class="form-control" id="listing_id" name="listing_id" 
+                               placeholder="Listing ID" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="check_in" class="form-label">Check-in</label>
+                            <input type="date" class="form-control" id="check_in" name="check_in" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="check_out" class="form-label">Check-out</label>
+                            <input type="date" class="form-control" id="check_out" name="check_out" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="total_price" class="form-label">Total Price ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="total_price" name="total_price" 
+                               placeholder="Total price" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status" class="form-label">Booking Status</label>
+                        <select class="form-control" id="status" name="status" required>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="form-group">
+                        <label class="form-label">Payment method</label>
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                                <input type="radio" name="payment_method" value="card" id="card" checked>
+                                <label for="card" style="font-weight: 600; margin: 0;">Credit or debit card</label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <input type="text" class="form-control" placeholder="Card number">
+                                <input type="text" class="form-control" placeholder="MM / YY">
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <input type="text" class="form-control" placeholder="Security code">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary w-100" style="font-size: 16px; padding: 16px;">
+                        Confirm and pay
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Booking Summary -->
+        <div class="col-lg-5">
+            <div style="background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; position: sticky; top: 120px;">
+                <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                    <img src="{{ url_for('static', filename='img/demo_listing_1.jpg') }}" 
+                         style="width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm);">
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Booking Summary</h4>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                            Complete your reservation details
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="border-top: 1px solid var(--border-light); padding-top: 24px;">
+                    <h5 style="font-size: 22px; font-weight: 600; margin-bottom: 16px;">Price details</h5>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>$0.00 x 0 nights</span>
+                        <span>$0.00</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span>Service fee</span>
+                        <span>$0.00</span>
+                    </div>
+                    
+                    <div style="border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 16px;">
+                            <span>Total (USD)</span>
+                            <span>$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

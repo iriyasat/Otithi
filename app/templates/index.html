@@ -1,317 +1,95 @@
 {% extends "base.html" %}
-
-{% block title %}Othiti - Find Your Perfect Stay{% endblock %}
+{% block title %}Otithi - Experience Bangladesh Like a Local{% endblock %}
 
 {% block content %}
-<!-- ***** Main Banner Area Start ***** -->
-<section id="section-1">
-    <div class="content-slider">
-        <input type="radio" id="banner1" class="sec-1-input" name="banner" checked>
-        <input type="radio" id="banner2" class="sec-1-input" name="banner">
-        <input type="radio" id="banner3" class="sec-1-input" name="banner">
-        <input type="radio" id="banner4" class="sec-1-input" name="banner">
-        <div class="slider">
-            <div id="top-banner-1" class="banner">
-                <div class="banner-inner-wrapper header-text">
-                    <div class="main-caption">
-                        <h2>Discover Amazing Places in:</h2>
-                        <h1>Bangladesh</h1>
-                        <div class="border-button"><a href="{{ url_for('main.about') }}">Learn More</a></div>
-                    </div>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="more-info">
-                                    <div class="row">
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-users"></i>
-                                            <h4><span>Active Hosts:</span><br>500+</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-home"></i>
-                                            <h4><span>Properties:</span><br>1,200+</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-star"></i>
-                                            <h4><span>Avg Rating:</span><br>4.8/5</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">Explore More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Not sure where to go? Perfect.</h1>
+            <p>Discover unique homes, authentic experiences, and warm hospitality across beautiful Bangladesh</p>
+            
+            <!-- Hero Search Form -->
+            <form action="/search" method="GET" class="hero-search-form">
+                <div class="hero-search-field">
+                    <label>Where</label>
+                    <input type="text" name="city" placeholder="Search destinations">
                 </div>
-            </div>
-            <div id="top-banner-2" class="banner">
-                <div class="banner-inner-wrapper header-text">
-                    <div class="main-caption">
-                        <h2>Experience Authentic Living in:</h2>
-                        <h1>Dhaka</h1>
-                        <div class="border-button"><a href="{{ url_for('main.listings') }}">View Properties</a></div>
-                    </div>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="more-info">
-                                    <div class="row">
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-users"></i>
-                                            <h4><span>Population:</span><br>9.5M</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-map"></i>
-                                            <h4><span>Districts:</span><br>90</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-home"></i>
-                                            <h4><span>Starting From:</span><br>৳2,500</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">Explore More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="hero-search-field">
+                    <label>Check in</label>
+                    <input type="date" name="check_in">
                 </div>
-            </div>
-            <div id="top-banner-3" class="banner">
-                <div class="banner-inner-wrapper header-text">
-                    <div class="main-caption">
-                        <h2>Coastal Beauty of:</h2>
-                        <h1>Chittagong</h1>
-                        <div class="border-button"><a href="{{ url_for('main.listings') }}">Discover</a></div>
-                    </div>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="more-info">
-                                    <div class="row">
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-users"></i>
-                                            <h4><span>Population:</span><br>3.9M</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-ship"></i>
-                                            <h4><span>Port City:</span><br>Major Hub</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-home"></i>
-                                            <h4><span>Starting From:</span><br>৳2,000</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">Explore More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="hero-search-field">
+                    <label>Check out</label>
+                    <input type="date" name="check_out">
                 </div>
-            </div>
-            <div id="top-banner-4" class="banner">
-                <div class="banner-inner-wrapper header-text">
-                    <div class="main-caption">
-                        <h2>Cultural Heritage of:</h2>
-                        <h1>Sylhet</h1>
-                        <div class="border-button"><a href="{{ url_for('main.listings') }}">Visit Now</a></div>
-                    </div>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="more-info">
-                                    <div class="row">
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-users"></i>
-                                            <h4><span>Population:</span><br>0.5M</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-leaf"></i>
-                                            <h4><span>Tea Gardens:</span><br>150+</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <i class="fa fa-home"></i>
-                                            <h4><span>Starting From:</span><br>৳1,800</h4>
-                                        </div>
-                                        <div class="col-lg-3 col-sm-6 col-6">
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">Explore More</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="hero-search-field">
+                    <label>Guests</label>
+                    <input type="number" name="max_guests" placeholder="Add guests" min="1">
                 </div>
-            </div>
+                <button type="submit" class="hero-search-btn">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </form>
         </div>
-        <nav>
-            <div class="controls">
-                <label for="banner1"><span class="progressbar"><span class="progressbar-fill"></span></span><span class="text">1</span></label>
-                <label for="banner2"><span class="progressbar"><span class="progressbar-fill"></span></span><span class="text">2</span></label>
-                <label for="banner3"><span class="progressbar"><span class="progressbar-fill"></span></span><span class="text">3</span></label>
-                <label for="banner4"><span class="progressbar"><span class="progressbar-fill"></span></span><span class="text">4</span></label>
-            </div>
-        </nav>
     </div>
 </section>
-<!-- ***** Main Banner Area End ***** -->
 
-<!-- ***** Featured Properties Start ***** -->
-<div class="visit-country">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-5">
-                <div class="section-heading">
-                    <h2>Featured Properties</h2>
-                    <p>Discover amazing stays across Bangladesh with our carefully selected properties offering comfort and authentic experiences.</p>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="items">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="item">
-                                <div class="row">
-                                    <div class="col-lg-4 col-sm-5">
-                                        <div class="image">
-                                            <img src="{{ url_for('static', filename='images/country-01.jpg') }}" alt="Luxury Apartment in Gulshan">
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-8 col-sm-7">
-                                        <div class="right-content">
-                                            <h4>LUXURY APARTMENT</h4>
-                                            <span>Gulshan, Dhaka</span>
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">View Details</a>
-                                            </div>
-                                            <p>Modern luxury apartment in the heart of Gulshan with all amenities. Perfect for business travelers and families.</p>
-                                            <ul class="info">
-                                                <li><i class="fa fa-bed"></i> 3 Bedrooms</li>
-                                                <li><i class="fa fa-tint"></i> 2 Bathrooms</li>
-                                                <li><i class="fa fa-money"></i> ৳5,500/night</li>
-                                            </ul>
-                                            <div class="text-button">
-                                                <a href="{{ url_for('main.listings') }}">Book Now <i class="fa fa-arrow-right"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-12">
-                            <div class="item">
-                                <div class="row">
-                                    <div class="col-lg-4 col-sm-5">
-                                        <div class="image">
-                                            <img src="{{ url_for('static', filename='images/country-02.jpg') }}" alt="Cozy House in Old Dhaka">
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-8 col-sm-7">
-                                        <div class="right-content">
-                                            <h4>HERITAGE HOUSE</h4>
-                                            <span>Old Dhaka</span>
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">View Details</a>
-                                            </div>
-                                            <p>Experience authentic Dhaka culture in this traditional house located in the historic Old Dhaka area.</p>
-                                            <ul class="info">
-                                                <li><i class="fa fa-bed"></i> 2 Bedrooms</li>
-                                                <li><i class="fa fa-home"></i> Traditional Style</li>
-                                                <li><i class="fa fa-money"></i> ৳3,200/night</li>
-                                            </ul>
-                                            <div class="text-button">
-                                                <a href="{{ url_for('main.listings') }}">Book Now <i class="fa fa-arrow-right"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-12">
-                            <div class="item last-item">
-                                <div class="row">
-                                    <div class="col-lg-4 col-sm-5">
-                                        <div class="image">
-                                            <img src="{{ url_for('static', filename='images/country-03.jpg') }}" alt="Beachfront Villa in Cox's Bazar">
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-8 col-sm-7">
-                                        <div class="right-content">
-                                            <h4>BEACHFRONT VILLA</h4>
-                                            <span>Cox's Bazar</span>
-                                            <div class="main-button">
-                                                <a href="{{ url_for('main.listings') }}">View Details</a>
-                                            </div>
-                                            <p>Stunning beachfront villa with direct access to the world's longest natural sea beach. Perfect for vacation.</p>
-                                            <ul class="info">
-                                                <li><i class="fa fa-bed"></i> 4 Bedrooms</li>
-                                                <li><i class="fa fa-anchor"></i> Beach Access</li>
-                                                <li><i class="fa fa-money"></i> ৳8,000/night</li>
-                                            </ul>
-                                            <div class="text-button">
-                                                <a href="{{ url_for('main.listings') }}">Book Now <i class="fa fa-arrow-right"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-12">
-                            <ul class="page-numbers">
-                                <li><a href="#"><i class="fa fa-arrow-left"></i></a></li>
-                                <li><a href="#">1</a></li>
-                                <li class="active"><a href="#">2</a></li>
-                                <li><a href="#">3</a></li>
-                                <li><a href="#"><i class="fa fa-arrow-right"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="side-bar-map">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div id="map">
-                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7502.230855705301!2d90.4125181!3d23.810332!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c70c15ea1de1%3A0x97856381e88fb311!2sGulshan%2C%20Dhaka!5e0!3m2!1sen!2sbd!4v1704123456789!5m2!1sen!2sbd" width="100%" height="550px" frameborder="0" style="border:0; border-radius: 23px;" allowfullscreen=""></iframe>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- Live anywhere Section -->
+<section class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4" style="font-size: 32px; font-weight: 600; color: var(--text-primary);">Live anywhere</h2>
         </div>
     </div>
-</div>
-<!-- ***** Featured Properties End ***** -->
+    <div class="row g-4">
+        {% if listings %}
+            {% for listing in listings %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="listing-card">
+                    <img src="{{ url_for('static', filename='img/' + listing.image) }}" 
+                         alt="{{ listing.title }}" class="listing-image">
+                    <div class="listing-content">
+                        <div class="listing-location">{{ listing.location }}</div>
+                        <div class="listing-title">{{ listing.title }}</div>
+                        <div class="listing-details">{{ listing.type }} · {{ listing.guests }} guests</div>
+                        <div class="listing-price">${{ listing.price }} night</div>
+                    </div>
+                    <a href="/listing/{{ listing.id }}" class="stretched-link"></a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <div style="padding: 80px 20px;">
+                    <i class="bi bi-house" style="font-size: 48px; color: var(--text-muted); margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No listings available yet</h3>
+                    <p style="color: var(--text-muted);">Check back soon for amazing places to stay in Bangladesh</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Become a Host Section -->
+<section class="container py-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h2 style="font-size: 48px; font-weight: 600; color: var(--text-primary); margin-bottom: 24px;">
+                Try hosting
+            </h2>
+            <p style="font-size: 18px; color: var(--text-secondary); margin-bottom: 32px;">
+                Earn extra income and unlock new opportunities by sharing your space.
+            </p>
+            <a href="/register" class="btn-primary" style="text-decoration: none; display: inline-block;">
+                Start hosting
+            </a>
+        </div>
+        <div class="col-md-6">
+            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3" 
+                 alt="Become a host" 
+                 style="width: 100%; border-radius: var(--radius-lg);">
+        </div>
+    </div>
+</section>
 {% endblock %}
-
-{% block extra_js %}
-<script>
-    function bannerSwitcher() {
-        next = $('.sec-1-input').filter(':checked').next('.sec-1-input');
-        if (next.length) next.prop('checked', true);
-        else $('.sec-1-input').first().prop('checked', true);
-    }
-
-    var bannerTimer = setInterval(bannerSwitcher, 5000);
-
-    $('nav .controls label').click(function() {
-        clearInterval(bannerTimer);
-        bannerTimer = setInterval(bannerSwitcher, 5000)
-    });
-</script>
-{% endblock %} 

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.title }} - Otithi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav style="margin-bottom: 24px;">
+        <a href="/" style="color: var(--text-secondary); text-decoration: none;">Otithi</a>
+        <span style="color: var(--text-muted); margin: 0 8px;">></span>
+        <a href="/search" style="color: var(--text-secondary); text-decoration: none;">{{ listing.city }}</a>
+        <span style="color: var(--text-muted); margin: 0 8px;">></span>
+        <span style="color: var(--text-primary);">{{ listing.title }}</span>
+    </nav>
+    
+    <!-- Title & Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 8px;">{{ listing.title }}</h1>
+            <div style="display: flex; align-items: center; gap: 16px; color: var(--text-secondary);">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <i class="bi bi-star-fill" style="color: #FFD700;"></i>
+                    <span>4.8 (127 reviews)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>{{ listing.city }}, {{ listing.country }}</span>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 16px;">
+            <button class="btn-outline" style="display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-share"></i> Share
+            </button>
+            <button class="btn-outline" style="display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-heart"></i> Save
+            </button>
+        </div>
+    </div>
+    
+    <!-- Photo Gallery -->
+    <div style="border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 48px;">
+        <img src="{{ url_for('static', filename='img/' + (listing.image if listing.image else 'demo_listing_1.jpg')) }}" 
+             alt="{{ listing.title }}" 
+             style="width: 100%; height: 400px; object-fit: cover;">
+    </div>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-7">
+            <!-- Host Info -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 24px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
+                <div>
+                    <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">
+                        {{ listing.room_type.replace('_', ' ').title() }} hosted by Host
+                    </h2>
+                    <p style="color: var(--text-secondary); margin: 0;">
+                        {{ listing.max_guests }} guests · 1 bedroom · 1 bed · 1 bath
+                    </p>
+                </div>
+                <div style="width: 56px; height: 56px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 24px;">
+                    H
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
+                <p style="line-height: 1.6; color: var(--text-primary);">
+                    {{ listing.description or "Experience authentic Bangladeshi hospitality in this beautiful space. Perfect for travelers looking to immerse themselves in local culture while enjoying modern comforts." }}
+                </p>
+            </div>
+            
+            <!-- Amenities -->
+            <div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
+                <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 24px;">What this place offers</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                    {% set amenities_list = listing.amenities.split(',') if listing.amenities else ['Wi-Fi', 'Kitchen', 'Air conditioning', 'Parking'] %}
+                    {% for amenity in amenities_list[:6] %}
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <i class="bi bi-check-circle" style="color: var(--primary-green);"></i>
+                        <span>{{ amenity.strip() }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Booking Card -->
+        <div class="col-lg-5">
+            <div style="position: sticky; top: 120px;">
+                <div style="background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-lg);">
+                    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 24px;">
+                        <span style="font-size: 22px; font-weight: 600;">${{ listing.price_per_night }}</span>
+                        <span style="color: var(--text-secondary);">night</span>
+                    </div>
+                    
+                    <form action="/booking" method="GET" style="margin-bottom: 16px;">
+                        <input type="hidden" name="listing_id" value="{{ listing.listing_id }}">
+                        
+                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 16px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                                <div style="padding: 12px; border-right: 1px solid var(--border-light);">
+                                    <label style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-primary);">Check-in</label>
+                                    <input type="date" name="check_in" style="width: 100%; border: none; background: none; outline: none; font-size: 14px; margin-top: 4px;">
+                                </div>
+                                <div style="padding: 12px;">
+                                    <label style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-primary);">Check-out</label>
+                                    <input type="date" name="check_out" style="width: 100%; border: none; background: none; outline: none; font-size: 14px; margin-top: 4px;">
+                                </div>
+                            </div>
+                            <div style="padding: 12px; border-top: 1px solid var(--border-light);">
+                                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-primary);">Guests</label>
+                                <select name="guests" style="width: 100%; border: none; background: none; outline: none; font-size: 14px; margin-top: 4px;">
+                                    <option value="1">1 guest</option>
+                                    <option value="2">2 guests</option>
+                                    <option value="3">3 guests</option>
+                                    <option value="4">4 guests</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary w-100" style="font-size: 16px; padding: 14px;">
+                            Reserve
+                        </button>
+                    </form>
+                    
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 14px; margin: 0;">
+                        You won't be charged yet
+                    </p>
+                    
+                    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span>${{ listing.price_per_night }} x 5 nights</span>
+                            <span>${{ listing.price_per_night * 5 }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                            <span>Service fee</span>
+                            <span>${{ (listing.price_per_night * 5 * 0.1)|round(2) }}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border-light); font-weight: 600;">
+                            <span>Total before taxes</span>
+                            <span>${{ (listing.price_per_night * 5 * 1.1)|round(2) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reviews Section -->
+    <div style="margin-top: 48px; padding-top: 48px; border-top: 1px solid var(--border-light);">
+        <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 32px;">
+            <i class="bi bi-star-fill" style="color: #FFD700; margin-right: 8px;"></i>
+            4.8 · 127 reviews
+        </h3>
+        
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div style="padding: 16px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                            A
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Ahmed</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">March 2025</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-primary); line-height: 1.6;">
+                        Amazing stay! The host was incredibly welcoming and the place was exactly as described. Highly recommend for anyone visiting Bangladesh.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div style="padding: 16px 0;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                            S
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">Sarah</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">February 2025</div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-primary); line-height: 1.6;">
+                        Beautiful location and excellent amenities. The cultural experience was authentic and memorable. Will definitely book again!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
