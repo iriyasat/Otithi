@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Othiti - Explore Properties{% endblock %}
+
+{% block content %}
+<!-- ***** Page Heading Start ***** -->
+<div class="page-heading">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h4>Discover Amazing Properties</h4>
+                <h2>Find Your Perfect Stay</h2>
+                <div class="border-button"><a href="{{ url_for('main.about') }}">Learn More</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Page Heading End ***** -->
+
+<!-- ***** Search Form Start ***** -->
+<div class="search-form">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <form id="search-form" name="gs" method="submit" role="search" action="#">
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <h4>Filter Properties:</h4>
+                        </div>
+                        <div class="col-lg-4">
+                            <fieldset>
+                                <select name="Location" class="form-select" aria-label="Default select example" id="chooseLocation" onChange="this.form.click()">
+                                    <option selected>Select Location</option>
+                                    <option value="Dhaka">Dhaka</option>
+                                    <option value="Chittagong">Chittagong</option>
+                                    <option value="Sylhet">Sylhet</option>
+                                    <option value="Khulna">Khulna</option>
+                                    <option value="Rajshahi">Rajshahi</option>
+                                    <option value="Barisal">Barisal</option>
+                                    <option value="Rangpur">Rangpur</option>
+                                    <option value="Mymensingh">Mymensingh</option>
+                                    <option value="Cox's Bazar">Cox's Bazar</option>
+                                </select>
+                            </fieldset>
+                        </div>
+                        <div class="col-lg-4">
+                            <fieldset>
+                                <select name="Price" class="form-select" aria-label="Default select example" id="choosePrice" onChange="this.form.click()">
+                                    <option selected>Price Range</option>
+                                    <option value="1000">৳1,000 - ৳2,500</option>
+                                    <option value="2500">৳2,500 - ৳5,000</option>
+                                    <option value="5000">৳5,000 - ৳10,000</option>
+                                    <option value="10000">৳10,000 - ৳20,000</option>
+                                    <option value="20000+">৳20,000+</option>
+                                </select>
+                            </fieldset>
+                        </div>
+                        <div class="col-lg-2">                        
+                            <fieldset>
+                                <button class="border-button">Search Results</button>
+                            </fieldset>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Search Form End ***** -->
+
+<!-- ***** Amazing Properties Start ***** -->
+<div class="amazing-deals">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 offset-lg-3">
+                <div class="section-heading text-center">
+                    <h2>Amazing Properties Available</h2>
+                    <p>Browse through our carefully curated selection of properties across Bangladesh, each offering unique experiences and comfort.</p>
+                </div>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <div class="item">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="image">
+                                <img src="{{ url_for('static', filename='images/deals-01.jpg') }}" alt="Modern Apartment Dhaka">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 align-self-center">
+                            <div class="content">
+                                <span class="info">*Available Today</span>
+                                <h4>Modern Apartment</h4>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <i class="fa fa-clock"></i>
+                                        <span class="list">Instant Book</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-map"></i>
+                                        <span class="list">Dhanmondi</span>
+                                    </div>
+                                </div>
+                                <p>Stylish modern apartment in the heart of Dhanmondi with all amenities.</p>
+                                <div class="main-button">
+                                    <a href="#">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <div class="item">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="image">
+                                <img src="{{ url_for('static', filename='images/deals-02.jpg') }}" alt="Heritage House Old Dhaka">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 align-self-center">
+                            <div class="content">
+                                <span class="info">*Cultural Experience</span>
+                                <h4>Heritage House</h4>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <i class="fa fa-clock"></i>
+                                        <span class="list">Quick Response</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-map"></i>
+                                        <span class="list">Old Dhaka</span>
+                                    </div>
+                                </div>
+                                <p>Experience authentic Bangladeshi culture in this beautiful heritage property.</p>
+                                <div class="main-button">
+                                    <a href="#">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <div class="item">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="image">
+                                <img src="{{ url_for('static', filename='images/deals-03.jpg') }}" alt="Beachfront Villa Cox's Bazar">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 align-self-center">
+                            <div class="content">
+                                <span class="info">*Beach Access</span>
+                                <h4>Beachfront Villa</h4>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <i class="fa fa-clock"></i>
+                                        <span class="list">3 Days Min</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-map"></i>
+                                        <span class="list">Cox's Bazar</span>
+                                    </div>
+                                </div>
+                                <p>Luxury beachfront villa with direct access to the world's longest sea beach.</p>
+                                <div class="main-button">
+                                    <a href="#">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <div class="item">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="image">
+                                <img src="{{ url_for('static', filename='images/deals-04.jpg') }}" alt="Tea Garden Resort Sylhet">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 align-self-center">
+                            <div class="content">
+                                <span class="info">*Nature Experience</span>
+                                <h4>Tea Garden Resort</h4>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <i class="fa fa-clock"></i>
+                                        <span class="list">2 Days Min</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-map"></i>
+                                        <span class="list">Sylhet</span>
+                                    </div>
+                                </div>
+                                <p>Peaceful retreat surrounded by lush tea gardens in beautiful Sylhet.</p>
+                                <div class="main-button">
+                                    <a href="#">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <div class="item">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="image">
+                                <img src="{{ url_for('static', filename='images/deals-01.jpg') }}" alt="Riverside Cottage Chittagong">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 align-self-center">
+                            <div class="content">
+                                <span class="info">*Riverside Location</span>
+                                <h4>Riverside Cottage</h4>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <i class="fa fa-clock"></i>
+                                        <span class="list">Flexible</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-map"></i>
+                                        <span class="list">Chittagong</span>
+                                    </div>
+                                </div>
+                                <p>Charming cottage by the river with stunning views of Chittagong hills.</p>
+                                <div class="main-button">
+                                    <a href="#">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <div class="item">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="image">
+                                <img src="{{ url_for('static', filename='images/deals-02.jpg') }}" alt="Urban Loft Gulshan">
+                            </div>
+                        </div>
+                        <div class="col-lg-6 align-self-center">
+                            <div class="content">
+                                <span class="info">*Business District</span>
+                                <h4>Urban Loft</h4>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <i class="fa fa-clock"></i>
+                                        <span class="list">Instant Book</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fa fa-map"></i>
+                                        <span class="list">Gulshan</span>
+                                    </div>
+                                </div>
+                                <p>Contemporary loft in Gulshan's business district, perfect for professionals.</p>
+                                <div class="main-button">
+                                    <a href="#">Book Now</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <ul class="page-numbers">
+                    <li><a href="#"><i class="fa fa-arrow-left"></i></a></li>
+                    <li><a href="#">1</a></li>
+                    <li class="active"><a href="#">2</a></li>
+                    <li><a href="#">3</a></li>
+                    <li><a href="#"><i class="fa fa-arrow-right"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ***** Amazing Properties End ***** -->
+{% endblock %} 

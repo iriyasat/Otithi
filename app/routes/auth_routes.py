@@ -1,73 +1,38 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from ..models import User
-from .. import db
-from app.forms import LoginForm, RegisterForm
+from flask import Blueprint
 
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+# Authentication Blueprint - Placeholder for future implementation
+auth = Blueprint('auth', __name__)
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+# TODO: Implement authentication routes later
+# - Login
+# - Register  
+# - Logout
+# - Password reset
+# etc.
+
+@auth.route('/login')
 def login():
-    """Login page with authentication"""
-    if current_user.is_authenticated:
-        return redirect(url_for('public.index'))
-    
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        
-        if user and check_password_hash(user.password_hash, form.password.data):
-            login_user(user, remember=True)
-            flash('Login successful! Welcome back.', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('public.index'))
-        else:
-            flash('Invalid email or password. Please try again.', 'error')
-    
-    return render_template('auth/login.html', form=form)
+    """Placeholder for login page"""
+    return """
+    <h2>Login Coming Soon!</h2>
+    <p>Authentication will be implemented in a future update.</p>
+    <p><a href="/">Return to Home</a></p>
+    """
 
-@auth_bp.route('/register', methods=['GET', 'POST'])
+@auth.route('/register')  
 def register():
-    """Register page with user creation"""
-    if current_user.is_authenticated:
-        return redirect(url_for('public.index'))
-    
-    form = RegisterForm()
-    if form.validate_on_submit():
-        # Check if user already exists
-        if User.query.filter_by(email=form.email.data).first():
-            flash('Email already registered. Please use a different email or login.', 'error')
-            return render_template('auth/register.html', form=form)
-        
-        if User.query.filter_by(username=form.username.data).first():
-            flash('Username already taken. Please choose a different username.', 'error')
-            return render_template('auth/register.html', form=form)
-        
-        # Create new user
-        hashed_password = generate_password_hash(form.password.data)
-        new_user = User(
-            username=form.username.data,
-            email=form.email.data,
-            password_hash=hashed_password,
-            role='guest'  # Default role
-        )
-        
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            flash('Registration successful! Please login with your new account.', 'success')
-            return redirect(url_for('auth.login'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Registration failed. Please try again.', 'error')
-    
-    return render_template('auth/register.html', form=form)
+    """Placeholder for registration page"""
+    return """
+    <h2>Registration Coming Soon!</h2>
+    <p>User registration will be implemented in a future update.</p>
+    <p><a href="/">Return to Home</a></p>
+    """
 
-@auth_bp.route('/logout')
-@login_required
+@auth.route('/logout')
 def logout():
-    """Logout user"""
-    logout_user()
-    flash('You have been logged out successfully.', 'info')
-    return redirect(url_for('public.index')) 
+    """Placeholder for logout"""
+    return """
+    <h2>Logout</h2>
+    <p>No user session to log out from.</p>
+    <p><a href="/">Return to Home</a></p>
+    """ 

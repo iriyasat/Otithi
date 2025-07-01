@@ -1,61 +1,67 @@
-from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-import click
-from flask_login import LoginManager
+from flask import Flask, request
 import os
-import secrets
-from flask_wtf.csrf import CSRFProtect
-from config import config
 
-db = SQLAlchemy()
-migrate = Migrate()
-login_manager = LoginManager()
-csrf = CSRFProtect()
-
-def create_app(config_name='default'):
+def create_app(config_name=None):
+    """Create and configure the Flask application"""
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
-
-    # Ensure the upload folder exists
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-    db.init_app(app)
-    migrate.init_app(app, db)
-    login_manager.init_app(app)
-    csrf.init_app(app)  # Enable CSRF protection globally
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Please log in to access this page.'
-    login_manager.login_message_category = 'info'
-
-    from .models import User
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
-
-    # Import and register Blueprints here
-    from .routes import blueprints
-    for bp in blueprints:
-        app.register_blueprint(bp)
-
-    # Error handlers
+    
+    # Basic configuration
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your-secret-key-change-this'
+    app.config['APP_NAME'] = 'Othiti'
+    app.config['APP_DESCRIPTION'] = 'Bangladeshi Hospitality Platform'
+    
+    # Register blueprints - only the ones we need for now
+    from app.routes.main_routes import main
+    from app.routes.auth_routes import auth
+    from app.routes.user_routes import user
+    from app.routes.host_routes import host
+    from app.routes.admin_routes import admin
+    from app.routes.messages_routes import messages
+    
+    app.register_blueprint(main)
+    app.register_blueprint(auth, url_prefix='/auth')
+    app.register_blueprint(user, url_prefix='/user')
+    app.register_blueprint(host, url_prefix='/host')
+    app.register_blueprint(admin, url_prefix='/admin')
+    app.register_blueprint(messages, url_prefix='/messages')
+    
+    # Basic error handlers
     @app.errorhandler(404)
     def not_found_error(error):
-        return render_template('errors/404.html'), 404
-
-    @app.errorhandler(403)
-    def forbidden_error(error):
-        return render_template('errors/403.html'), 403
-
+        return """
+        <h1>Page Not Found</h1>
+        <p>The page you're looking for doesn't exist.</p>
+        <p><a href="/">Return to Home</a></p>
+        """, 404
+    
     @app.errorhandler(500)
     def internal_error(error):
-        db.session.rollback()
-        return render_template('errors/500.html'), 500
-
-    @app.cli.command('init-db')
-    def init_db_command():
-        """Initialize the database."""
-        db.create_all()
-        click.echo('Database initialized!')
-
+        return """
+        <h1>Internal Server Error</h1>
+        <p>Something went wrong on our end.</p>
+        <p><a href="/">Return to Home</a></p>
+        """, 500
+    
+    # Context processors for templates
+    @app.context_processor
+    def inject_app_info():
+        return {
+            'app_name': app.config.get('APP_NAME', 'Othiti'),
+            'app_description': app.config.get('APP_DESCRIPTION', 'Bangladeshi Hospitality Platform'),
+            'request': request
+        }
+    
+    # Template filters
+    @app.template_filter('currency')
+    def currency_filter(amount):
+        """Format currency in BDT"""
+        return f"৳ {amount:,.0f}"
+    
+    @app.template_filter('dateformat')
+    def dateformat_filter(date, format='%B %d, %Y'):
+        """Format date"""
+        if date is None:
+            return ""
+        return date.strftime(format)
+    
     return app 
