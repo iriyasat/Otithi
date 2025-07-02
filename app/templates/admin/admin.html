@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Otithi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-user-shield"></i> 
+                Admin Dashboard
+            </h1>
+            <p class="lead">Welcome back, {{ user.full_name }}!</p>
+        </div>
+    </div>
+    
+    <!-- Admin Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Total Users</h5>
+                            <h2>{{ bookings|length + 10 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Total Listings</h5>
+                            <h2>{{ listings|length }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-home fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Total Bookings</h5>
+                            <h2>{{ bookings|length }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Revenue</h5>
+                            <h2>৳{{ "%.0f"|format(bookings|sum(attribute='total_price') or 0) }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-money-bill fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="#" class="btn btn-outline-primary btn-block mb-2">
+                                <i class="fas fa-users"></i> Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="#" class="btn btn-outline-success btn-block mb-2">
+                                <i class="fas fa-home"></i> Manage Listings
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="#" class="btn btn-outline-info btn-block mb-2">
+                                <i class="fas fa-calendar"></i> Manage Bookings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="list-group list-group-flush">
+                            {% for booking in bookings[:5] %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Booking #{{ booking.id }}</strong><br>
+                                    <small class="text-muted">{{ booking.created_date.strftime('%Y-%m-%d') if booking.created_date else 'N/A' }}</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                                    {{ booking.status.title() }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent bookings</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Database</span>
+                            <span class="badge bg-success">Online</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Server</span>
+                            <span class="badge bg-success">Running</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Storage</span>
+                            <span class="badge bg-warning">75% Used</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -16,7 +16,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20),
-    user_type ENUM('guest', 'host') DEFAULT 'guest',
+    user_type ENUM('guest', 'host', 'admin') DEFAULT 'guest',
     profile_photo TEXT,
     join_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );

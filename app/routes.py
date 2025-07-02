@@ -528,8 +528,8 @@ def login():
                 return redirect(next_page)
             
             # Redirect based on user type
-            if user.user_type == 'host':
-                return redirect(url_for('main.dashboard'))  # Hosts go to full dashboard
+            if user.user_type in ['admin', 'host']:
+                return redirect(url_for('main.dashboard'))  # Admin and hosts go to their dashboards
             else:
                 return redirect(url_for('main.index'))      # Guests go to search/browse
         else:
