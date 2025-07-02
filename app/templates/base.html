@@ -33,7 +33,7 @@
             <div class="navbar-nav">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/explore" class="nav-link">Explore</a>
-                {% if session.user_id %}
+                {% if current_user.is_authenticated %}
                     <a href="/dashboard" class="nav-link">Dashboard</a>
                     <a href="/profile" class="nav-link">Profile</a>
                     <a href="/listings" class="nav-link">My Listings</a>
@@ -42,7 +42,7 @@
             
             <!-- User Menu -->
             <div class="navbar-menu">
-                {% if session.user_id %}
+                {% if current_user.is_authenticated %}
                     <div class="user-menu">
                         <a href="/logout" class="btn-primary">Logout</a>
                     </div>

@@ -1,0 +1,995 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Admin Dashboard Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-user-shield"></i>
+                Admin Dashboard
+            </h1>
+            <p class="lead">Welcome back, {{ user.full_name }}! Manage your platform from here.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard Statistics -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Total Users</h5>
+                            <h2>{{ (users|length) if users else ((bookings|length) + 10) }}</h2>
+                            <i class="fas fa-users fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Total Listings</h5>
+                            <h2>{{ (listings|length) if listings else 12 }}</h2>
+                            <i class="fas fa-home fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Total Bookings</h5>
+                            <h2>{{ (bookings|length) if bookings else 8 }}</h2>
+                            <i class="fas fa-calendar-check fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Revenue</h5>
+                            <h2>$12.5K</h2>
+                            <i class="fas fa-dollar-sign fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Management Sections -->
+        <div class="row">
+            <!-- Users Management -->
+            <div class="col-lg-6">
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-users me-2"></i>
+                            Users Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="admin-search-filters mb-3">
+                            <input type="text" class="admin-search-input" placeholder="Search users..." id="userSearch">
+                        </div>
+                        
+                        {% if users %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 14px;">
+                                                    {{ user.name[0].upper() }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ user.name }}</div>
+                                                    <small class="text-muted">{{ user.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if user.user_type == 'admin' else 'primary' if user.user_type == 'host' else 'secondary' }}">
+                                                {{ user.user_type.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if user.status == 'active' else 'warning' }}">
+                                                {{ user.status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal" data-user-id="{{ user.user_id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.user_id }}" data-user-name="{{ user.name }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5>No users found</h5>
+                            <p class="text-muted">Start by adding your first user to the platform.</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                                <i class="fas fa-plus me-2"></i>
+                                Add New User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listings Management -->
+            <div class="col-lg-6">
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-home me-2"></i>
+                            Listings Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if listings %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Listing</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for listing in listings %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                    <i class="fas fa-home"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ listing.title }}</div>
+                                                    <small class="text-muted">{{ listing.city }}, {{ listing.country }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-medium">${{ listing.price_per_night }}/night</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if listing.status == 'approved' else 'warning' if listing.status == 'pending' else 'danger' }}">
+                                                {{ listing.status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info btn-sm" data-listing-url="/listing/{{ listing.listing_id }}" onclick="window.open(this.dataset.listingUrl, '_blank')">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editListingModal" data-listing-id="{{ listing.listing_id }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                            <h5>No listings found</h5>
+                            <p class="text-muted">Hosts haven't created any listings yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Bookings Section -->
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Recent Bookings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Guest</th>
+                                        <th>Dates</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings[:10] %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-medium">#{{ booking.booking_id }}</span>
+                                        </td>
+                                        <td>
+                                            <span>{{ booking.guest_name or 'Guest' }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div>{{ booking.check_in_date.strftime('%b %d, %Y') if booking.check_in_date else 'TBD' }}</div>
+                                                <small class="text-muted">to {{ booking.check_out_date.strftime('%b %d, %Y') if booking.check_out_date else 'TBD' }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if booking.booking_status == 'confirmed' else 'warning' if booking.booking_status == 'pending' else 'danger' }}">
+                                                {{ booking.booking_status.title() if booking.booking_status else 'Pending' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#viewBookingModal" data-booking-id="{{ booking.booking_id }}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                            <h5>No bookings found</h5>
+                            <p class="text-muted">No bookings have been made yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="admin-quick-actions">
+                            <button class="admin-quick-action" data-bs-toggle="modal" data-bs-target="#systemStatusModal">
+                                <i class="fas fa-server"></i>
+                                System Status
+                            </button>
+                            <button class="admin-quick-action" data-bs-toggle="modal" data-bs-target="#backupModal">
+                                <i class="fas fa-download"></i>
+                                Export Data
+                            </button>
+                            <button class="admin-quick-action" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                                <i class="fas fa-cog"></i>
+                                Platform Settings
+                            </button>
+                            <button class="admin-quick-action" onclick="location.reload()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Revenue</h5>
+                            <h2>৳{{ "%.0f"|format(bookings|sum(attribute='total_price') or 0) }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-money-bill fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Admin Actions -->
+    <div class="row dashboard-animate">
+        <div class="col-12">
+            <div class="card action-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cog"></i> Admin Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <a href="{{ url_for('main.admin_users') }}" class="action-btn btn-outline-primary">
+                                <i class="fas fa-users dashboard-icon"></i> Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('main.admin_listings') }}" class="action-btn btn-outline-success">
+                                <i class="fas fa-home dashboard-icon"></i> Manage Listings
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('main.admin_bookings') }}" class="action-btn btn-outline-info">
+                                <i class="fas fa-calendar dashboard-icon"></i> Manage Bookings
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('main.admin_stats') }}" class="action-btn btn-outline-warning">
+                                <i class="fas fa-chart-bar dashboard-icon"></i> View Stats
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{{ url_for('main.admin_profile') }}" class="action-btn btn-outline-secondary">
+                                <i class="fas fa-user-cog dashboard-icon"></i> My Profile
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="#" class="action-btn btn-outline-danger" onclick="showSystemControls()">
+                                <i class="fas fa-server dashboard-icon"></i> System
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row dashboard-animate">
+        <div class="col-12">
+            <div class="card action-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="action-btn btn-outline-primary" onclick="showCreateUserModal()">
+                                <i class="fas fa-user-plus dashboard-icon"></i> Add New User
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="action-btn btn-outline-success" onclick="showApproveListingsModal()">
+                                <i class="fas fa-check-circle dashboard-icon"></i> Approve Listings
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="action-btn btn-outline-info" onclick="showBulkActionsModal()">
+                                <i class="fas fa-tasks dashboard-icon"></i> Bulk Actions
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="action-btn btn-outline-warning" onclick="exportData()">
+                                <i class="fas fa-download dashboard-icon"></i> Export Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row dashboard-animate">
+        <div class="col-md-4">
+            <div class="card activity-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock"></i> Recent Bookings</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if bookings %}
+                        <div class="activity-list">
+                            {% for booking in bookings[:5] %}
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Booking #{{ booking.id }}</strong><br>
+                                        <small class="text-dashboard-muted">{{ booking.created_date.strftime('%Y-%m-%d') if booking.created_date else 'N/A' }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                                            {{ booking.status.title() }}
+                                        </span>
+                                        <br>
+                                        <small class="text-dashboard-muted">৳{{ booking.total_price if booking.total_price else 0 }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="activity-item">
+                            <p class="text-dashboard-muted mb-0">No recent bookings</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card activity-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-users"></i> Recent Users</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if users %}
+                        <div class="activity-list">
+                            {% for user in users[:5] %}
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ user.full_name }}</strong><br>
+                                        <small class="text-dashboard-muted">{{ user.email }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-{{ 'primary' if user.user_type == 'admin' else 'success' if user.user_type == 'host' else 'info' }}">
+                                            {{ user.user_type.title() }}
+                                        </span>
+                                        <br>
+                                        <small class="text-dashboard-muted">{{ user.joined_date.strftime('%Y-%m-%d') if user.joined_date else 'N/A' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="activity-item">
+                            <p class="text-dashboard-muted mb-0">No users found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card activity-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-server"></i> System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-database text-success"></i> Database</span>
+                            <span class="badge bg-success">Online</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-server text-success"></i> Web Server</span>
+                            <span class="badge bg-success">Running</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-hdd text-warning"></i> Storage</span>
+                            <span class="badge bg-warning">75% Used</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-memory text-info"></i> Memory</span>
+                            <span class="badge bg-info">2.1GB / 4GB</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-wifi text-success"></i> Network</span>
+                            <span class="badge bg-success">Connected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+</div>
+
+<!-- Admin Modals -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label for="newUserName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="newUserName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="newUserEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserPhone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="newUserPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserType" class="form-label">User Type</label>
+                        <select class="form-select" id="newUserType" required>
+                            <option value="guest">Guest</option>
+                            <option value="host">Host</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="newUserPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createUser()">Create User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="systemControlsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-server"></i> System Controls</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-info" onclick="clearCache()">
+                        <i class="fas fa-broom"></i> Clear Cache
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="backupDatabase()">
+                        <i class="fas fa-database"></i> Backup Database
+                    </button>
+                    <button class="btn btn-outline-success" onclick="runMaintenance()">
+                        <i class="fas fa-wrench"></i> Run Maintenance
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="restartServices()">
+                        <i class="fas fa-redo"></i> Restart Services
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Management Modal -->
+<div class="modal fade" id="usersModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-users"></i> User Management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <button class="btn btn-primary btn-sm" onclick="adminDashboard.showCreateUserModal()">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="adminDashboard.exportData()">
+                            <i class="fas fa-download"></i> Export Users
+                        </button>
+                    </div>
+                    <div>
+                        <input type="text" class="form-control" placeholder="Search users..." style="width: 200px;">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user_item in users %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ user_item.profile_photo or '/static/img/user-gear.png' }}" 
+                                             class="rounded-circle me-2" width="32" height="32">
+                                        <strong>{{ user_item.full_name }}</strong>
+                                    </div>
+                                </td>
+                                <td>{{ user_item.email }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if user_item.user_type == 'admin' else 'success' if user_item.user_type == 'host' else 'primary' }}">
+                                        {{ user_item.user_type.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ user_item.joined_date.strftime('%Y-%m-%d') if user_item.joined_date else 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" 
+                                                onclick="adminDashboard.changeUserRole({{ user_item.id }}, '{{ user_item.user_type }}')"
+                                                title="Change Role">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% if user_item.id != user.id %}
+                                        <button class="btn btn-outline-danger" 
+                                                onclick="adminDashboard.deleteUser({{ user_item.id }}, '{{ user_item.full_name }}')"
+                                                title="Delete User">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Listings Management Modal -->
+<div class="modal fade" id="listingsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-home"></i> Listings Management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <button class="btn btn-success btn-sm" onclick="adminDashboard.showApproveListingsModal()">
+                            <i class="fas fa-check"></i> Bulk Approve
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="adminDashboard.exportData()">
+                            <i class="fas fa-download"></i> Export Listings
+                        </button>
+                    </div>
+                    <div>
+                        <select class="form-select form-select-sm me-2" style="width: auto; display: inline-block;">
+                            <option>All Listings</option>
+                            <option>Pending Approval</option>
+                            <option>Approved</option>
+                            <option>Rejected</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" placeholder="Search listings..." style="width: 200px; display: inline-block;">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Host</th>
+                                <th>Location</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for listing in listings %}
+                            <tr>
+                                <td>
+                                    <strong>{{ listing.title }}</strong><br>
+                                    <small class="text-muted">{{ listing.property_type.title() }}</small>
+                                </td>
+                                <td>{{ listing.host_name or 'Unknown Host' }}</td>
+                                <td>{{ listing.location }}</td>
+                                <td>৳{{ listing.price }}/night</td>
+                                <td>
+                                    <span class="badge bg-warning">Pending</span>
+                                </td>
+                                <td>{{ listing.created_date.strftime('%Y-%m-%d') if listing.created_date else 'N/A' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-success" 
+                                                onclick="adminDashboard.approveListing({{ listing.id }}, '{{ listing.title }}')"
+                                                title="Approve">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-outline-info" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" 
+                                                onclick="adminDashboard.deleteListing({{ listing.id }}, '{{ listing.title }}')"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bookings Management Modal -->
+<div class="modal fade" id="bookingsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-calendar"></i> Bookings Management</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="adminDashboard.exportData()">
+                            <i class="fas fa-download"></i> Export Bookings
+                        </button>
+                    </div>
+                    <div>
+                        <select class="form-select form-select-sm me-2" style="width: auto; display: inline-block;">
+                            <option>All Bookings</option>
+                            <option>Pending</option>
+                            <option>Confirmed</option>
+                            <option>Cancelled</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm" placeholder="Search bookings..." style="width: 200px; display: inline-block;">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Guest</th>
+                                <th>Listing</th>
+                                <th>Dates</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                            <tr>
+                                <td><strong>#{{ booking.id }}</strong></td>
+                                <td>{{ booking.guest_name or 'Unknown Guest' }}</td>
+                                <td>{{ booking.listing_title or 'Unknown Listing' }}</td>
+                                <td>
+                                    <small>
+                                        {{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }}<br>
+                                        {{ booking.check_out_date.strftime('%Y-%m-%d') if booking.check_out_date else 'N/A' }}
+                                    </small>
+                                </td>
+                                <td>৳{{ booking.total_price }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                                        {{ booking.status.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if booking.status == 'pending' %}
+                                        <button class="btn btn-outline-success" 
+                                                onclick="adminDashboard.updateBookingStatus({{ booking.id }}, 'confirmed')"
+                                                title="Confirm">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                        {% if booking.status != 'cancelled' %}
+                                        <button class="btn btn-outline-danger" 
+                                                onclick="adminDashboard.updateBookingStatus({{ booking.id }}, 'cancelled')"
+                                                title="Cancel">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        {% endif %}
+                                        <button class="btn btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newUserName" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="newUserName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newUserEmail" class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" id="newUserEmail" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newUserPhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="newUserPhone">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="newUserType" class="form-label">User Type *</label>
+                                <select class="form-select" id="newUserType" required>
+                                    <option value="guest">Guest</option>
+                                    <option value="host">Host</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="newUserPassword" class="form-label">Password *</label>
+                                <input type="password" class="form-control" id="newUserPassword" required minlength="6">
+                                <div class="form-text">Password must be at least 6 characters long.</div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="adminDashboard.createUser()">
+                    <i class="fas fa-plus"></i> Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Controls Modal -->
+<div class="modal fade" id="systemControlsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-cog"></i> System Controls</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-database"></i> Database Management</h6>
+                        <div class="d-grid gap-2 mb-3">
+                            <button class="btn btn-outline-primary" onclick="adminDashboard.backupDatabase()">
+                                <i class="fas fa-download"></i> Create Backup
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="adminDashboard.runMaintenance()">
+                                <i class="fas fa-wrench"></i> Run Maintenance
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-server"></i> System Management</h6>
+                        <div class="d-grid gap-2 mb-3">
+                            <button class="btn btn-outline-info" onclick="adminDashboard.clearCache()">
+                                <i class="fas fa-broom"></i> Clear Cache
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="adminDashboard.restartServices()">
+                                <i class="fas fa-redo"></i> Restart Services
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h6><i class="fas fa-chart-line"></i> System Status</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="h5 text-success"><i class="fas fa-check-circle"></i></div>
+                                    <div class="small">Database</div>
+                                    <div class="text-success">Online</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="h5 text-success"><i class="fas fa-check-circle"></i></div>
+                                    <div class="small">Server</div>
+                                    <div class="text-success">Running</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 border rounded">
+                                    <div class="h5 text-warning"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="small">Storage</div>
+                                    <div class="text-warning">75% Used</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

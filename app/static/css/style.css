@@ -8,12 +8,12 @@
 .btn-primary:hover,
 .btn-primary:focus,
 .btn-primary:active {
-    background-color: var(--primary-color) !important;
-    border-color: var(--primary-color) !important;
+    background-color: var(--primary-500) !important;
+    border-color: var(--primary-500) !important;
     color: white !important;
 }
 
 .btn-primary:not(:disabled):not(.disabled):active {
-    background-color: var(--primary-dark) !important;
-    border-color: var(--primary-dark) !important;
+    background-color: var(--primary-600) !important;
+    border-color: var(--primary-600) !important;
 }

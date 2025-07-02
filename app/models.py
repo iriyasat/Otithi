@@ -18,8 +18,16 @@ class User(UserMixin):
         self.joined_date = joined_date or datetime.now()
         self.verified = verified
     
+    def get_id(self):
+        """Required by Flask-Login for session management"""
+        return str(self.id)
+    
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def get_id(self):
+        """Required by Flask-Login for session management"""
+        return str(self.id)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

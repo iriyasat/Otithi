@@ -18,7 +18,7 @@ def create_app():
         from app.models import User
         return User.get(user_id)
     
-    from app.routes import bp as main_bp
+    from app.routes.routes import bp as main_bp
     app.register_blueprint(main_bp)
     
     return app

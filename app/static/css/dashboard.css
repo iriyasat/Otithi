@@ -3,14 +3,14 @@
 
 /* ===== DASHBOARD LAYOUT ===== */
 .dashboard-container {
-    background-color: var(--neutral-50);
+    background-color: var(--neutral-0);
     min-height: 100vh;
     padding: var(--space-6) 0;
 }
 
 .dashboard-header {
     background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-    color: white;
+    color: var(--neutral-0);
     padding: var(--space-8) 0;
     margin-bottom: var(--space-8);
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
@@ -24,12 +24,77 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    color: var(--neutral-0);
 }
 
 .dashboard-header .lead {
     font-size: var(--font-size-lg);
-    opacity: 0.9;
+    opacity: 0.95;
     font-weight: var(--font-weight-normal);
+    color: var(--neutral-0);
+}
+
+/* ===== CONTAINER OVERRIDES FOR DASHBOARD ===== */
+.dashboard-container .container {
+    background-color: transparent;
+    color: var(--text-primary);
+}
+
+/* Ensure all text elements within containers use brand colors */
+.dashboard-container .container,
+.dashboard-container .container * {
+    color: var(--text-primary);
+}
+
+.dashboard-container .container .text-muted,
+.dashboard-container .container .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+.dashboard-container .container .small,
+.dashboard-container .container small {
+    color: var(--text-muted) !important;
+}
+
+/* Override any inherited dark colors */
+.dashboard-container .container .text-dark {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure cards within containers maintain proper backgrounds */
+.dashboard-container .container .card {
+    background-color: var(--neutral-0);
+    color: var(--text-primary);
+    border-color: var(--neutral-200);
+}
+
+.dashboard-container .container .table {
+    color: var(--text-primary);
+    background-color: var(--neutral-0);
+}
+
+.dashboard-container .container .table th {
+    color: var(--text-primary);
+    background-color: var(--neutral-50);
+}
+
+.dashboard-container .container .table td {
+    color: var(--text-secondary);
+}
+
+/* Header container specific rules */
+.dashboard-header .container,
+.dashboard-header .container *,
+.dashboard-header .container h1,
+.dashboard-header .container h2,
+.dashboard-header .container h3,
+.dashboard-header .container h4,
+.dashboard-header .container h5,
+.dashboard-header .container h6,
+.dashboard-header .container p,
+.dashboard-header .container span,
+.dashboard-header .container .lead {
+    color: var(--neutral-0) !important;
 }
 
 /* ===== DASHBOARD CARDS ===== */
@@ -54,7 +119,7 @@
 }
 
 .stat-card.bg-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%) !important;
 }
 
 .stat-card.bg-success {
@@ -62,11 +127,11 @@
 }
 
 .stat-card.bg-info {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+    background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-500) 100%) !important;
 }
 
 .stat-card.bg-warning {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    background: linear-gradient(135deg, var(--accent-coral) 0%, var(--accent-coral-light) 100%) !important;
 }
 
 .stat-card .card-body {
@@ -173,22 +238,22 @@
 }
 
 .action-btn.btn-outline-info {
-    border-color: #0891b2;
-    color: #0891b2;
+    border-color: var(--primary-400);
+    color: var(--primary-400);
 }
 
 .action-btn.btn-outline-info:hover {
-    background: #0891b2;
+    background: var(--primary-400);
     color: white;
 }
 
 .action-btn.btn-outline-warning {
-    border-color: #d97706;
-    color: #d97706;
+    border-color: var(--accent-coral);
+    color: var(--accent-coral);
 }
 
 .action-btn.btn-outline-warning:hover {
-    background: #d97706;
+    background: var(--accent-coral);
     color: white;
 }
 
@@ -259,7 +324,7 @@
 }
 
 .badge.bg-warning {
-    background-color: #f59e0b !important;
+    background-color: var(--accent-coral-light) !important;
 }
 
 .badge.bg-danger {
@@ -267,18 +332,18 @@
 }
 
 .badge.bg-info {
-    background-color: #0891b2 !important;
+    background-color: var(--primary-400) !important;
 }
 
 /* ===== DASHBOARD SPECIFIC STYLES ===== */
 
 /* Admin Dashboard */
 .admin-dashboard .dashboard-header {
-    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
 }
 
 .admin-dashboard .stat-card.bg-primary {
-    background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%) !important;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%) !important;
 }
 
 /* Host Dashboard */
@@ -292,11 +357,11 @@
 
 /* Guest Dashboard */
 .guest-dashboard .dashboard-header {
-    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+    background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-500) 100%);
 }
 
 .guest-dashboard .stat-card.bg-primary {
-    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important;
+    background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-500) 100%) !important;
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
@@ -381,8 +446,9 @@
 }
 
 .table-responsive {
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
 }
 
 .table th {
@@ -391,42 +457,56 @@
     font-weight: var(--font-weight-semibold);
     font-size: var(--font-size-sm);
     border-bottom: 2px solid var(--neutral-200);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-4) var(--space-4);
 }
 
 .table td {
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-4) var(--space-4);
     vertical-align: middle;
     border-bottom: 1px solid var(--neutral-100);
+    background: var(--neutral-0);
 }
 
-.table tr:hover {
+.table tr:hover td {
     background-color: var(--neutral-50);
 }
 
 .btn-group-sm .btn {
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-2) var(--space-3);
     font-size: var(--font-size-xs);
+    border-radius: var(--radius-base);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+}
+
+.btn-group-sm .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 /* ===== ADMIN FORMS ===== */
 .form-label {
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
     margin-bottom: var(--space-2);
+    font-size: var(--font-size-sm);
 }
 
 .form-control, .form-select {
+    width: 100%;
     border: 1px solid var(--neutral-300);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--font-size-sm);
-    transition: var(--transition-fast);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+    background: var(--neutral-0);
+    transition: all var(--transition-fast);
 }
 
 .form-control:focus, .form-select:focus {
+    outline: none;
     border-color: var(--primary-500);
-    box-shadow: 0 0 0 3px rgba(0, 106, 78, 0.1);
+    box-shadow: 0 0 0 3px var(--primary-100);
 }
 
 .form-text {
@@ -444,32 +524,36 @@
 
 .system-status-item {
     text-align: center;
-    padding: var(--space-4);
+    padding: var(--space-6);
     border: 1px solid var(--neutral-200);
-    border-radius: var(--radius-md);
-    background: white;
-    transition: var(--transition-fast);
+    border-radius: var(--radius-lg);
+    background: var(--neutral-0);
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-sm);
 }
 
 .system-status-item:hover {
     border-color: var(--primary-500);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-base);
+    transform: translateY(-1px);
 }
 
 .system-status-icon {
-    font-size: var(--font-size-xl);
-    margin-bottom: var(--space-2);
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-3);
 }
 
 .system-status-label {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    margin-bottom: var(--space-1);
+    margin-bottom: var(--space-2);
+    font-weight: var(--font-weight-medium);
 }
 
 .system-status-value {
     font-weight: var(--font-weight-semibold);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-lg);
+    color: var(--text-primary);
 }
 
 /* ===== ADMIN SEARCH & FILTERS ===== */
@@ -482,19 +566,37 @@
 }
 
 .admin-search-input {
+    width: 100%;
     border: 1px solid var(--neutral-300);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--font-size-sm);
-    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+    background: var(--neutral-0);
+    transition: all var(--transition-fast);
+}
+
+.admin-search-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
 }
 
 .admin-filter-select {
+    width: 100%;
     border: 1px solid var(--neutral-300);
-    border-radius: var(--radius-sm);
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--font-size-sm);
-    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+    background: var(--neutral-0);
+    transition: all var(--transition-fast);
+}
+
+.admin-filter-select:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px var(--primary-100);
 }
 
 /* ===== ADMIN ENHANCED ACTIONS ===== */
@@ -508,22 +610,25 @@
 .admin-quick-action {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
     border: 1px solid var(--neutral-300);
-    border-radius: var(--radius-sm);
-    background: white;
+    border-radius: var(--radius-lg);
+    background: var(--neutral-0);
     color: var(--text-primary);
     text-decoration: none;
-    font-size: var(--font-size-sm);
-    transition: var(--transition-fast);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    cursor: pointer;
 }
 
 .admin-quick-action:hover {
     border-color: var(--primary-500);
     color: var(--primary-500);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-base);
+    text-decoration: none;
 }
 
 /* ===== ADMIN NOTIFICATIONS ===== */
@@ -639,30 +744,40 @@
 }
 
 /* ===== ADMIN DARK MODE SUPPORT ===== */
-@media (prefers-color-scheme: dark) {
-    .admin-dashboard {
-        --neutral-0: #1a1a1a;
-        --neutral-50: #262626;
-        --neutral-100: #404040;
-        --neutral-200: #525252;
-        --text-primary: #ffffff;
-        --text-secondary: #d4d4d4;
-        --text-muted: #a3a3a3;
-    }
-    
-    .admin-dashboard .modal-content {
-        background-color: var(--neutral-50);
-        color: var(--text-primary);
-    }
-    
-    .admin-dashboard .table {
-        color: var(--text-primary);
-    }
-    
-    .admin-dashboard .form-control,
-    .admin-dashboard .form-select {
-        background-color: var(--neutral-100);
-        border-color: var(--neutral-200);
-        color: var(--text-primary);
-    }
+/* ===== DASHBOARD ACCESSIBILITY ===== */
+/* Force light theme consistency to maintain brand colors */
+.admin-dashboard,
+.host-dashboard,
+.guest-dashboard {
+    --neutral-0: #ffffff;
+    --neutral-50: #fafafa;
+    --neutral-100: #f5f5f5;
+    --neutral-200: #e5e5e5;
+    --text-primary: var(--neutral-900);
+    --text-secondary: var(--neutral-600);
+    --text-muted: var(--neutral-500);
+}
+
+.admin-dashboard .modal-content,
+.host-dashboard .modal-content,
+.guest-dashboard .modal-content {
+    background-color: var(--neutral-0);
+    color: var(--text-primary);
+}
+
+.admin-dashboard .table,
+.host-dashboard .table,
+.guest-dashboard .table {
+    color: var(--text-primary);
+}
+
+.admin-dashboard .form-control,
+.admin-dashboard .form-select,
+.host-dashboard .form-control,
+.host-dashboard .form-select,
+.guest-dashboard .form-control,
+.guest-dashboard .form-select {
+    background-color: var(--neutral-0);
+    border-color: var(--neutral-200);
+    color: var(--text-primary);
 }
