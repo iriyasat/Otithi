@@ -6,15 +6,103 @@
     background-color: var(--neutral-0);
     min-height: 100vh;
     padding: var(--space-6) 0;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.dashboard-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(180deg, var(--primary-50) 0%, transparent 100%);
+    z-index: 0;
+    animation: backgroundFloat 6s ease-in-out infinite;
+}
+
+.dashboard-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--primary-100) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 0;
+    animation: floatRight 8s ease-in-out infinite;
+}
+
+@keyframes backgroundFloat {
+    0%, 100% { opacity: 0.3; transform: translateY(0); }
+    50% { opacity: 0.6; transform: translateY(-10px); }
+}
+
+@keyframes floatRight {
+    0%, 100% { 
+        transform: translateY(0) scale(1);
+        opacity: 0.2;
+    }
+    50% { 
+        transform: translateY(-20px) scale(1.1);
+        opacity: 0.4;
+    }
 }
 
 .dashboard-header {
-    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 50%, var(--primary-400) 100%);
     color: var(--neutral-0);
     padding: var(--space-8) 0;
     margin-bottom: var(--space-8);
-    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-    box-shadow: var(--shadow-lg);
+    border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    overflow: hidden;
+    animation: headerGlow 3s ease-in-out infinite alternate;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 4s linear infinite;
+    pointer-events: none;
+}
+
+.dashboard-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-coral-light), transparent);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes headerGlow {
+    0% { 
+        box-shadow: var(--shadow-xl), 0 0 30px rgba(0, 106, 78, 0.3);
+    }
+    100% { 
+        box-shadow: var(--shadow-xl), 0 0 50px rgba(0, 106, 78, 0.5), 0 0 80px rgba(0, 106, 78, 0.2);
+    }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
 }
 
 .dashboard-header h1 {
@@ -25,6 +113,32 @@
     align-items: center;
     gap: var(--space-3);
     color: var(--neutral-0);
+    position: relative;
+    z-index: 2;
+    animation: slideInLeft 0.8s ease-out;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.dashboard-header h1 i {
+    font-size: 1.2em;
+    animation: iconBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+@keyframes slideInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-5px) scale(1.05); }
 }
 
 .dashboard-header .lead {
@@ -32,12 +146,29 @@
     opacity: 0.95;
     font-weight: var(--font-weight-normal);
     color: var(--neutral-0);
+    position: relative;
+    z-index: 2;
+    animation: slideInRight 0.8s ease-out 0.2s both;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+@keyframes slideInRight {
+    0% {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    100% {
+        opacity: 0.95;
+        transform: translateX(0);
+    }
 }
 
 /* ===== CONTAINER OVERRIDES FOR DASHBOARD ===== */
 .dashboard-container .container {
     background-color: transparent;
     color: var(--text-primary);
+    position: relative;
+    z-index: 1;
 }
 
 /* Ensure all text elements within containers use brand colors */
@@ -107,10 +238,43 @@
     border: none;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    transition: var(--transition-base);
+    transition: all var(--transition-base);
     height: 100%;
     overflow: hidden;
     position: relative;
+    transform: translateY(0);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.stat-card:hover::before {
+    left: 100%;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .stat-card:hover {
@@ -127,11 +291,11 @@
 }
 
 .stat-card.bg-info {
-    background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-500) 100%) !important;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%) !important;
 }
 
 .stat-card.bg-warning {
-    background: linear-gradient(135deg, var(--accent-coral) 0%, var(--accent-coral-light) 100%) !important;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%) !important;
 }
 
 .stat-card .card-body {
@@ -163,6 +327,38 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 1;
+}
+
+/* Staggered animation delays for stat cards */
+.dashboard-stats .col-md-3:nth-child(1) .stat-card {
+    animation-delay: 0.1s;
+}
+
+.dashboard-stats .col-md-3:nth-child(2) .stat-card {
+    animation-delay: 0.2s;
+}
+
+.dashboard-stats .col-md-3:nth-child(3) .stat-card {
+    animation-delay: 0.3s;
+}
+
+.dashboard-stats .col-md-3:nth-child(4) .stat-card {
+    animation-delay: 0.4s;
+}
+
+/* Cool loading animation for cards */
+.stat-card .card-body {
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card h5 {
+    animation: textGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes textGlow {
+    0% { text-shadow: none; }
+    100% { text-shadow: 0 0 10px rgba(0, 106, 78, 0.3); }
 }
 
 /* ===== ACTION CARDS ===== */
@@ -201,20 +397,40 @@
     padding: var(--space-4) var(--space-5);
     text-decoration: none;
     color: var(--text-primary);
-    transition: var(--transition-base);
+    transition: all var(--transition-base);
     display: flex;
     align-items: center;
     gap: var(--space-3);
     font-weight: var(--font-weight-medium);
     width: 100%;
     margin-bottom: var(--space-3);
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(0, 106, 78, 0.1);
+    border-radius: 50%;
+    transition: all 0.4s ease;
+    transform: translate(-50%, -50%);
+}
+
+.action-btn:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .action-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-    text-decoration: none;
-    color: var(--text-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 106, 78, 0.15);
+    border-color: var(--primary-400);
 }
 
 .action-btn.btn-outline-primary {
@@ -780,4 +996,32 @@
     background-color: var(--neutral-0);
     border-color: var(--neutral-200);
     color: var(--text-primary);
+}
+
+/* Fix text colors for colored stat cards */
+.stat-card.bg-primary,
+.stat-card.bg-success,
+.stat-card.bg-info,
+.stat-card.bg-warning {
+    color: var(--neutral-0) !important;
+}
+
+.stat-card.bg-primary h5,
+.stat-card.bg-primary h2,
+.stat-card.bg-success h5,
+.stat-card.bg-success h2,
+.stat-card.bg-info h5,
+.stat-card.bg-info h2,
+.stat-card.bg-warning h5,
+.stat-card.bg-warning h2 {
+    color: var(--neutral-0) !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.stat-card.bg-primary i,
+.stat-card.bg-success i,
+.stat-card.bg-info i,
+.stat-card.bg-warning i {
+    color: rgba(255,255,255,0.9) !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }

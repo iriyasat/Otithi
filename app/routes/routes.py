@@ -572,22 +572,16 @@ def login():
         user = User.get_by_email(email)
         
         if user and user.check_password(password):
-            print(f"DEBUG: Login successful for user {user.id} ({user.email})")
             login_user(user, remember=remember)
-            print(f"DEBUG: login_user() called, is_authenticated: {user.is_authenticated}")
-            print(f"DEBUG: current_user after login_user: {current_user}")
-            print(f"DEBUG: current_user.is_authenticated: {current_user.is_authenticated}")
             flash(f'Welcome back, {user.full_name}!', 'success')
             
             # Redirect to next page or appropriate dashboard based on user type
             next_page = request.args.get('next')
             if next_page:
-                print(f"DEBUG: Redirecting to next_page: {next_page}")
                 return redirect(next_page)
             
             # Redirect based on user type
             if user.user_type in ['admin', 'host']:
-                print(f"DEBUG: Redirecting admin/host to dashboard")
                 return redirect(url_for('main.dashboard'))  # Admin and hosts go to their dashboards
             else:
                 return redirect(url_for('main.index'))      # Guests go to search/browse
@@ -712,7 +706,42 @@ def dashboard():
 @login_required
 def profile():
     """User profile page - shared template for all user types"""
-    return render_template('profile.html', edit_mode=False)
+    # Calculate user statistics
+    stats = {
+        'total_bookings': 0,
+        'average_rating': 0.0,
+        'favorites': 0,
+        'reviews_given': 0
+    }
+    
+    # Get user bookings
+    bookings = Booking.get_by_user(current_user.id)
+    stats['total_bookings'] = len(bookings) if bookings else 0
+    
+    # Get user reviews given
+    reviews = Review.get_by_user(current_user.id)
+    stats['reviews_given'] = len(reviews) if reviews else 0
+    
+    # Calculate average rating received (for hosts)
+    if current_user.user_type == 'host':
+        host_listings = Listing.get_by_host(current_user.id)
+        if host_listings:
+            total_rating = 0
+            total_reviews = 0
+            for listing in host_listings:
+                if listing.rating > 0:
+                    total_rating += listing.rating * listing.reviews_count
+                    total_reviews += listing.reviews_count
+            if total_reviews > 0:
+                stats['average_rating'] = total_rating / total_reviews
+    
+    # Get recent activity (placeholder for now)
+    recent_activities = []
+    
+    return render_template('profile.html', 
+                         edit_mode=False, 
+                         stats=stats, 
+                         recent_activities=recent_activities)
 
 @bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
@@ -726,8 +755,143 @@ def edit_profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('main.profile'))
     
+    # Calculate user statistics
+    stats = {
+        'total_bookings': 0,
+        'average_rating': 0.0,
+        'favorites': 0,
+        'reviews_given': 0
+    }
+    
+    # Get user bookings
+    bookings = Booking.get_by_user(current_user.id)
+    stats['total_bookings'] = len(bookings) if bookings else 0
+    
+    # Get user reviews given
+    reviews = Review.get_by_user(current_user.id)
+    stats['reviews_given'] = len(reviews) if reviews else 0
+    
+    # Calculate average rating received (for hosts)
+    if current_user.user_type == 'host':
+        host_listings = Listing.get_by_host(current_user.id)
+        if host_listings:
+            total_rating = 0
+            total_reviews = 0
+            for listing in host_listings:
+                if listing.rating > 0:
+                    total_rating += listing.rating * listing.reviews_count
+                    total_reviews += listing.reviews_count
+            if total_reviews > 0:
+                stats['average_rating'] = total_rating / total_reviews
+    
+    # Get recent activity (placeholder for now)
+    recent_activities = []
+    
     # Use shared template for all user types
-    return render_template('profile.html', edit_mode=True)
+    return render_template('profile.html', 
+                         edit_mode=True, 
+                         stats=stats, 
+                         recent_activities=recent_activities)
+
+@bp.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    """Update user profile information"""
+    try:
+        full_name = request.form.get('full_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        bio = request.form.get('bio', '').strip()
+        
+        # Handle profile photo upload
+        profile_photo = request.files.get('profile_photo')
+        if profile_photo and profile_photo.filename:
+            # Save the uploaded file (implement file upload logic)
+            # For now, we'll skip the actual file upload
+            pass
+        
+        # Update user data
+        if current_user.update_profile(full_name=full_name, phone=phone):
+            # Update bio separately if needed
+            current_user.bio = bio
+            current_user.save()
+            flash('Profile updated successfully!', 'success')
+        else:
+            flash('Error updating profile. Please try again.', 'error')
+            
+    except Exception as e:
+        flash(f'Error updating profile: {str(e)}', 'error')
+    
+    return redirect(url_for('main.profile'))
+
+@bp.route('/profile/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Change user password"""
+    try:
+        current_password = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Validate current password
+        if not current_user.check_password(current_password):
+            flash('Current password is incorrect.', 'error')
+            return redirect(url_for('main.profile'))
+        
+        # Validate new password
+        if len(new_password) < 8:
+            flash('New password must be at least 8 characters long.', 'error')
+            return redirect(url_for('main.profile'))
+        
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'error')
+            return redirect(url_for('main.profile'))
+        
+        # Update password
+        if current_user.update_password(new_password):
+            flash('Password changed successfully!', 'success')
+        else:
+            flash('Error changing password. Please try again.', 'error')
+            
+    except Exception as e:
+        flash(f'Error changing password: {str(e)}', 'error')
+    
+    return redirect(url_for('main.profile'))
+
+@bp.route('/profile/delete-account', methods=['POST'])
+@login_required
+def delete_account():
+    """Delete user account"""
+    try:
+        delete_confirmation = request.form.get('delete_confirmation', '')
+        password = request.form.get('delete_password', '')
+        
+        # Validate confirmation
+        if delete_confirmation != 'DELETE':
+            flash('Account deletion confirmation failed. Please type DELETE exactly.', 'error')
+            return redirect(url_for('main.profile'))
+        
+        # Validate password
+        if not current_user.check_password(password):
+            flash('Password is incorrect.', 'error')
+            return redirect(url_for('main.profile'))
+        
+        # Store user ID for deletion
+        user_id = current_user.id
+        
+        # Log out user
+        logout_user()
+        
+        # Delete user account
+        user = User.get(user_id)
+        if user and user.delete():
+            flash('Your account has been deleted successfully.', 'success')
+        else:
+            flash('Error deleting account. Please contact support.', 'error')
+            
+    except Exception as e:
+        flash(f'Error deleting account: {str(e)}', 'error')
+    
+    return redirect(url_for('main.index'))
 
 # API Routes for AJAX requests
 
@@ -751,6 +915,15 @@ def become_host_alt():
 # =============================================================================
 # ADMIN ROUTES
 # =============================================================================
+
+@bp.route('/admin')
+@login_required
+def admin():
+    """Main admin route - redirects to dashboard"""
+    if current_user.user_type != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('main.index'))
+    return redirect(url_for('main.dashboard'))
 
 def admin_required(f):
     """Decorator to require admin access"""

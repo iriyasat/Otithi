@@ -482,6 +482,23 @@ class Review:
         return reviews
     
     @staticmethod
+    def get_by_user(user_id):
+        """Get all reviews written by a user"""
+        query = "SELECT * FROM reviews WHERE reviewer_id = %s ORDER BY review_date DESC"
+        results = db.execute_query(query, (user_id,))
+        reviews = []
+        for review_data in results:
+            reviews.append(Review(
+                id=review_data['review_id'],
+                listing_id=review_data['listing_id'],
+                user_id=review_data['reviewer_id'],
+                rating=float(review_data['rating']),
+                comment=review_data['comments'],
+                created_date=review_data['review_date']
+            ))
+        return reviews
+
+    @staticmethod
     def create(listing_id, user_id, rating, comment):
         """Create a new review"""
         query = """

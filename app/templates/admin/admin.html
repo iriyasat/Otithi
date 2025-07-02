@@ -28,7 +28,7 @@
                     <div class="stat-card bg-primary text-white">
                         <div class="card-body">
                             <h5>Total Users</h5>
-                            <h2>{{ (users|length) if users else ((bookings|length) + 10) }}</h2>
+                            <h2>{{ stats.total_users if stats else (users|length if users else 0) }}</h2>
                             <i class="fas fa-users fa-3x"></i>
                         </div>
                     </div>
@@ -37,7 +37,7 @@
                     <div class="stat-card bg-success text-white">
                         <div class="card-body">
                             <h5>Total Listings</h5>
-                            <h2>{{ (listings|length) if listings else 12 }}</h2>
+                            <h2>{{ stats.total_listings if stats else (listings|length if listings else 0) }}</h2>
                             <i class="fas fa-home fa-3x"></i>
                         </div>
                     </div>
@@ -46,7 +46,7 @@
                     <div class="stat-card bg-info text-white">
                         <div class="card-body">
                             <h5>Total Bookings</h5>
-                            <h2>{{ (bookings|length) if bookings else 8 }}</h2>
+                            <h2>{{ stats.total_bookings if stats else (bookings|length if bookings else 0) }}</h2>
                             <i class="fas fa-calendar-check fa-3x"></i>
                         </div>
                     </div>
@@ -55,8 +55,8 @@
                     <div class="stat-card bg-warning text-white">
                         <div class="card-body">
                             <h5>Revenue</h5>
-                            <h2>$12.5K</h2>
-                            <i class="fas fa-dollar-sign fa-3x"></i>
+                            <h2>{{ stats.revenue_display if stats else "৳0.0K" }}</h2>
+                            <i class="fas fa-money-bill-wave fa-3x"></i>
                         </div>
                     </div>
                 </div>

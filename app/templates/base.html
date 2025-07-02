@@ -33,7 +33,7 @@
             <div class="navbar-nav">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/explore" class="nav-link">Explore</a>
-                {% if current_user.is_authenticated %}
+                {% if current_user.is_authenticated or is_temp_admin %}
                     <a href="/dashboard" class="nav-link">Dashboard</a>
                     <a href="/profile" class="nav-link">Profile</a>
                     <a href="/listings" class="nav-link">My Listings</a>
@@ -42,9 +42,13 @@
             
             <!-- User Menu -->
             <div class="navbar-menu">
-                {% if current_user.is_authenticated %}
+                {% if current_user.is_authenticated or is_temp_admin %}
                     <div class="user-menu">
-                        <a href="/logout" class="btn-primary">Logout</a>
+                        {% if is_temp_admin %}
+                            <a href="/" class="btn-primary">Exit Test Mode</a>
+                        {% else %}
+                            <a href="/logout" class="btn-primary">Logout</a>
+                        {% endif %}
                     </div>
                 {% else %}
                     <div class="auth-buttons">
