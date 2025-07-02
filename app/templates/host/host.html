@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Host Dashboard - Otithi{% endblock %}
+
+{% block content %}
+<div class="dashboard-container host-dashboard">
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1>
+                        <i class="fas fa-home"></i> 
+                        Host Dashboard
+                    </h1>
+                    <p class="lead">Welcome back, {{ user.full_name }}!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+    
+    <!-- Host Stats Cards -->
+    <div class="row dashboard-stats dashboard-animate">
+        <div class="col-md-3">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>My Listings</h5>
+                            <h2>{{ user_listings|length if user_listings else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-home fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Active Bookings</h5>
+                            <h2>{{ active_bookings|length if active_bookings else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Total Bookings</h5>
+                            <h2>{{ total_bookings if total_bookings else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>Earnings</h5>
+                            <h2>৳{{ "%.0f"|format(total_earnings or 0) }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-money-bill-wave fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Host Actions -->
+    <div class="row dashboard-animate">
+        <div class="col-12">
+            <div class="card action-card">
+                <div class="card-header">
+                    <h5>Host Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('create_listing') }}" class="action-btn btn-outline-primary">
+                                <i class="fas fa-plus dashboard-icon"></i> Add New Listing
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('host_listings') }}" class="action-btn btn-outline-success">
+                                <i class="fas fa-list dashboard-icon"></i> Manage Listings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('host_bookings') }}" class="action-btn btn-outline-info">
+                                <i class="fas fa-calendar dashboard-icon"></i> View Bookings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('host_analytics') }}" class="action-btn btn-outline-warning">
+                                <i class="fas fa-chart-bar dashboard-icon"></i> Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row dashboard-animate">
+        <div class="col-md-6">
+            <div class="card activity-card">
+                <div class="card-header">
+                    <h5>Recent Bookings</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_bookings %}
+                        <div class="activity-list">
+                            {% for booking in recent_bookings[:5] %}
+                            <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ booking.guest_name or 'Guest' }}</strong><br>
+                                        <small class="text-dashboard-muted">{{ booking.listing_title }} - {{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                                        {{ booking.status.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="activity-item">
+                            <p class="text-dashboard-muted mb-0">No recent bookings</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card activity-card">
+                <div class="card-header">
+                    <h5>Listing Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if user_listings %}
+                        {% for listing in user_listings[:3] %}
+                        <div class="activity-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ listing.title }}</strong><br>
+                                    <small class="text-dashboard-muted">{{ listing.bookings_count or 0 }} bookings</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if listing.status == 'active' else 'warning' }}">
+                                    {{ listing.status.title() if listing.status else 'Active' }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="activity-item">
+                            <p class="text-dashboard-muted mb-0">No listings yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+</div>
+{% endblock %}

@@ -98,6 +98,86 @@ class User(UserMixin):
         return db.execute_update(query, (
             self.full_name, self.phone, self.profile_photo, self.id
         ))
+    
+    @staticmethod
+    def get_all():
+        """Get all users"""
+        query = "SELECT * FROM users ORDER BY join_date DESC"
+        results = db.execute_query(query)
+        users = []
+        for user_data in results:
+            user = User(
+                id=user_data['user_id'],
+                full_name=user_data['name'],
+                email=user_data['email'],
+                password_hash=user_data.get('password_hash', ''),
+                phone=user_data['phone'],
+                bio=user_data.get('bio', ''),
+                user_type=user_data['user_type'],
+                profile_photo=user_data['profile_photo'],
+                joined_date=user_data['join_date'],
+                verified=user_data.get('verified', False)
+            )
+            users.append(user)
+        return users
+    
+    def update_user_type(self, new_user_type):
+        """Update user type (for admin use)"""
+        query = "UPDATE users SET user_type = %s WHERE user_id = %s"
+        return db.execute_update(query, (new_user_type, self.id))
+    
+    def update_profile(self, full_name=None, phone=None, profile_photo=None):
+        """Update user profile"""
+        update_fields = []
+        update_values = []
+        
+        if full_name:
+            update_fields.append("name = %s")
+            update_values.append(full_name)
+            self.full_name = full_name
+            
+        if phone:
+            update_fields.append("phone = %s")
+            update_values.append(phone)
+            self.phone = phone
+            
+        if profile_photo:
+            update_fields.append("profile_photo = %s")
+            update_values.append(profile_photo)
+            self.profile_photo = profile_photo
+        
+        if update_fields:
+            query = f"UPDATE users SET {', '.join(update_fields)} WHERE user_id = %s"
+            update_values.append(self.id)
+            return db.execute_update(query, tuple(update_values))
+        return True
+    
+    def update_password(self, new_password):
+        """Update user password"""
+        password_hash = generate_password_hash(new_password)
+        query = "UPDATE users SET password_hash = %s WHERE user_id = %s"
+        return db.execute_update(query, (password_hash, self.id))
+        
+    def delete(self):
+        """Delete user and all associated data"""
+        try:
+            # Delete associated reviews
+            db.execute_update("DELETE FROM reviews WHERE user_id = %s", (self.id,))
+            
+            # Delete associated bookings
+            db.execute_update("DELETE FROM bookings WHERE user_id = %s", (self.id,))
+            
+            # Delete listings if user is a host
+            listings = Listing.get_by_host(self.id)
+            for listing in listings:
+                listing.delete()
+            
+            # Delete user
+            db.execute_update("DELETE FROM users WHERE user_id = %s", (self.id,))
+            return True
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
 
 class Listing:
     def __init__(self, id, title, description, location, price, host_id, property_type='entire_place',
@@ -280,6 +360,75 @@ class Listing:
             'service_fee': service_fee,
             'total': total
         }
+    
+    def update(self, title=None, description=None, price=None, property_type=None, guests=None, amenities=None):
+        """Update listing details"""
+        update_fields = []
+        update_values = []
+        
+        if title:
+            update_fields.append("title = %s")
+            update_values.append(title)
+            self.title = title
+            
+        if description:
+            update_fields.append("description = %s")
+            update_values.append(description)
+            self.description = description
+            
+        if price:
+            update_fields.append("price_per_night = %s")
+            update_values.append(price)
+            self.price = price
+            
+        if property_type:
+            update_fields.append("room_type = %s")
+            update_values.append(property_type)
+            self.property_type = property_type
+            
+        if guests:
+            update_fields.append("max_guests = %s")
+            update_values.append(guests)
+            self.guests = guests
+            
+        if amenities:
+            amenities_str = ','.join(amenities) if isinstance(amenities, list) else amenities
+            update_fields.append("amenities = %s")
+            update_values.append(amenities_str)
+            self.amenities = amenities if isinstance(amenities, list) else amenities.split(',')
+        
+        if update_fields:
+            query = f"UPDATE listings SET {', '.join(update_fields)} WHERE listing_id = %s"
+            update_values.append(self.id)
+            return db.execute_update(query, tuple(update_values))
+        return True
+    
+    def delete(self):
+        """Delete listing and all associated data"""
+        try:
+            # Delete associated reviews
+            db.execute_update("DELETE FROM reviews WHERE listing_id = %s", (self.id,))
+            
+            # Delete associated bookings
+            db.execute_update("DELETE FROM bookings WHERE listing_id = %s", (self.id,))
+            
+            # Delete listing
+            db.execute_update("DELETE FROM listings WHERE listing_id = %s", (self.id,))
+            return True
+        except Exception as e:
+            print(f"Error deleting listing: {e}")
+            return False
+    
+    def approve(self):
+        """Approve listing (admin function)"""
+        # Add approved status column if it doesn't exist
+        try:
+            db.execute_update("ALTER TABLE listings ADD COLUMN approved BOOLEAN DEFAULT FALSE")
+        except:
+            pass
+        
+        query = "UPDATE listings SET approved = TRUE WHERE listing_id = %s"
+        return db.execute_update(query, (self.id,))
 
 class Review:
     def __init__(self, id, listing_id, user_id, rating, comment, created_date=None):
@@ -505,3 +654,12 @@ class Booking:
         """Cancel a booking"""
         query = "UPDATE bookings SET status = 'cancelled' WHERE booking_id = %s"
         return db.execute_update(query, (self.id,))
+    
+    def update_status(self, new_status):
+        """Update booking status"""
+        if new_status in ['pending', 'confirmed', 'cancelled']:
+            query = "UPDATE bookings SET status = %s WHERE booking_id = %s"
+            if db.execute_update(query, (new_status, self.id)):
+                self.status = new_status
+                return True
+        return False
