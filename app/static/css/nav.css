@@ -1,0 +1,309 @@
+/* ===== RESET & BASE ===== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    line-height: var(--line-height-normal);
+    -webkit-text-size-adjust: 100%;
+    -moz-tab-size: 4;
+    tab-size: 4;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
+    color: var(--neutral-900);
+    background-color: var(--neutral-0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-top: 80px;
+}
+
+/* ===== LAYOUT UTILITIES ===== */
+.container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+}
+
+/* ===== UTILITY CLASSES ===== */
+.w-100 {
+    width: 100% !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.mt-3 {
+    margin-top: var(--space-3) !important;
+}
+
+.mt-4 {
+    margin-top: var(--space-4) !important;
+}
+
+@media (min-width: 640px) {
+    .container { padding: 0 var(--space-8); }
+}
+
+/* ===== NAVIGATION ===== */
+.otithi-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-fixed);
+    background: var(--neutral-0);
+    border-bottom: 1px solid var(--neutral-200);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--space-6);
+}
+
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin-left: auto;
+    margin-right: var(--space-8);
+}
+
+.nav-link {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-base);
+    transition: var(--transition-fast);
+    position: relative;
+}
+
+.nav-link:hover {
+    color: var(--text-primary);
+    background-color: var(--neutral-50);
+}
+
+.nav-link.active {
+    color: var(--primary-500);
+    font-weight: var(--font-weight-semibold);
+}
+
+.otithi-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    text-decoration: none;
+    color: var(--primary-500);
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-2xl);
+    letter-spacing: -0.02em;
+}
+
+.logo-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.logo-text {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-500);
+    line-height: 1;
+}
+
+.logo-tagline {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+    line-height: 1;
+    letter-spacing: 0.025em;
+}
+
+.navbar-search {
+    flex: 1;
+    max-width: 400px;
+    margin: 0 var(--space-10);
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-base);
+    overflow: hidden;
+}
+
+.search-container:hover,
+.search-container:focus-within {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-500);
+}
+
+.search-field {
+    flex: 1;
+    padding: 14px 16px;
+    position: relative;
+    min-width: 0;
+}
+
+.search-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 4px;
+}
+
+.search-field input {
+    width: 100%;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--neutral-900);
+    padding: 0;
+}
+
+.search-field input::placeholder {
+    color: var(--neutral-500);
+}
+
+.search-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--neutral-200);
+    flex-shrink: 0;
+}
+
+.search-btn {
+    background: var(--primary-500);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    margin: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-0);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.search-btn:hover {
+    background: var(--primary-600);
+    transform: scale(1.05);
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-full);
+    background: var(--neutral-0);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    color: var(--neutral-700);
+    font-weight: var(--font-weight-medium);
+}
+
+.user-menu-btn:hover {
+    box-shadow: var(--shadow-base);
+    border-color: var(--neutral-300);
+}
+
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.btn-ghost {
+    background: none;
+    border: none;
+    color: var(--neutral-700);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.btn-ghost:hover {
+    background: var(--neutral-100);
+    color: var(--neutral-900);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+    border: none;
+    color: var(--neutral-0);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    box-shadow: var(--shadow-base);
+    transform: translateY(-1px);
+}
+
+/* Enhanced Button Styles */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left var(--transition-slow);
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
