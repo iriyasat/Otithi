@@ -265,7 +265,7 @@ class Listing:
                 current_date += date.timedelta(days=1)
         return unavailable_dates
     
-    def calculate_total_price(self, check_in, check_out, guests):
+    def calculate_total_price(self, check_in, check_out, guests=1):
         """Calculate total price for booking"""
         nights = (check_out - check_in).days
         base_price = self.price * nights
@@ -355,14 +355,13 @@ class Review:
         return None
 
 class Booking:
-    def __init__(self, id, listing_id, user_id, check_in, check_out, guests, total_price, 
+    def __init__(self, id, listing_id, user_id, check_in, check_out, total_price, 
                  status='pending', created_date=None):
         self.id = id
         self.listing_id = listing_id
         self.user_id = user_id
         self.check_in = check_in
         self.check_out = check_out
-        self.guests = guests
         self.total_price = total_price
         self.status = status
         self.created_date = created_date or datetime.now()
@@ -380,7 +379,6 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,  # Default, not in schema
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at']
@@ -425,7 +423,6 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at']
@@ -445,7 +442,6 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at']
@@ -453,7 +449,7 @@ class Booking:
         return bookings
     
     @staticmethod
-    def create(listing_id, user_id, check_in, check_out, guests):
+    def create(listing_id, user_id, check_in, check_out):
         """Create a new booking"""
         listing = Listing.get(listing_id)
         if not listing:
@@ -463,8 +459,8 @@ class Booking:
         if not listing.is_available(check_in, check_out):
             return None
         
-        # Calculate price
-        price_breakdown = listing.calculate_total_price(check_in, check_out, guests)
+        # Calculate price (using default guests=1 for calculation)
+        price_breakdown = listing.calculate_total_price(check_in, check_out, 1)
         total_price = price_breakdown['total']
         
         query = """
@@ -492,7 +488,6 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at']
