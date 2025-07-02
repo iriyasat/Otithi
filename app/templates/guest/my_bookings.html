@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - Otithi{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>My Bookings</h2>
+    
+    {% if bookings %}
+        <div class="row">
+            {% for booking in bookings %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ booking.listing.title }}</h5>
+                        <p class="card-text">
+                            <strong>Location:</strong> {{ booking.listing.city }}, {{ booking.listing.country }}<br>
+                            <strong>Check-in:</strong> {{ booking.check_in.strftime('%B %d, %Y') }}<br>
+                            <strong>Check-out:</strong> {{ booking.check_out.strftime('%B %d, %Y') }}<br>
+                            <strong>Total Price:</strong> ৳{{ "%.2f"|format(booking.total_price) }}<br>
+                            <strong>Status:</strong> 
+                            <span class="badge 
+                                {% if booking.status == 'confirmed' %}bg-success
+                                {% elif booking.status == 'pending' %}bg-warning
+                                {% else %}bg-danger
+                                {% endif %}">
+                                {{ booking.status.title() }}
+                            </span>
+                        </p>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('main.listing_detail', listing_id=booking.listing_id) }}" class="btn btn-sm btn-outline-primary">View Listing</a>
+                            {% if booking.status == 'pending' %}
+                            <form method="POST" action="{{ url_for('main.cancel_booking', booking_id=booking.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this booking?')">Cancel</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <h4>No bookings yet</h4>
+            <p>Start exploring amazing places to stay!</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Browse Listings</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

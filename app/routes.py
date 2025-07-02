@@ -134,7 +134,7 @@ def search():
             'bathrooms': listing.bathrooms
         })
     
-    return render_template('search.html', 
+    return render_template('host/search.html', 
                          listings=listings_data,
                          query=query, 
                          location=location,
@@ -190,7 +190,7 @@ def listing_detail(listing_id):
         'unavailable_dates': unavailable_dates
     }
     
-    return render_template('listing.html', listing=listing_data, reviews=reviews)
+    return render_template('host/listing_detail.html', listing=listing_data, reviews=reviews)
 
 @bp.route('/create_listing', methods=['GET', 'POST'])
 @login_required
@@ -259,7 +259,7 @@ def create_listing():
         if errors:
             for error in errors:
                 flash(error, 'error')
-            return render_template('create_listing.html')
+            return render_template('host/create_listing.html')
         
         # Create location string
         location = f"{city}, {country}"
@@ -287,7 +287,7 @@ def create_listing():
         else:
             flash('Failed to create listing. Please try again.', 'error')
     
-    return render_template('create_listing.html')
+    return render_template('host/create_listing.html')
 
 # Booking Routes
 
@@ -333,7 +333,7 @@ def book_listing(listing_id):
         'unavailable_dates': unavailable_dates
     }
     
-    return render_template('booking.html', listing=listing_data)
+    return render_template('guest/booking.html', listing=listing_data)
 
 @bp.route('/book/<int:listing_id>/confirm', methods=['POST'])
 @login_required
@@ -440,7 +440,7 @@ def my_bookings():
     # Sort by creation date (newest first)
     enriched_bookings.sort(key=lambda x: x['created_date'], reverse=True)
     
-    return render_template('my_bookings.html', bookings=enriched_bookings, user=user)
+    return render_template('guest/booking.html', bookings=enriched_bookings, user=user)
 
 # API Routes
 
@@ -514,7 +514,7 @@ def login():
         
         if not email or not password:
             flash('Please provide both email and password.', 'error')
-            return render_template('login.html')
+            return render_template('auth/login.html')
         
         user = User.get_by_email(email)
         
@@ -535,7 +535,7 @@ def login():
         else:
             flash('Invalid email or password.', 'error')
     
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -580,7 +580,7 @@ def register():
         if errors:
             for error in errors:
                 flash(error, 'error')
-            return render_template('register.html')
+            return render_template('auth/register.html')
         
         # Create new user
         user = User.create(
@@ -599,7 +599,7 @@ def register():
         else:
             flash('Registration failed. Please try again.', 'error')
     
-    return render_template('register.html')
+    return render_template('auth/register.html')
 
 @bp.route('/logout')
 @login_required
@@ -623,16 +623,31 @@ def dashboard():
         listings = Listing.get_by_host(user.id)
         host_bookings = Booking.get_by_host(user.id)
     
-    return render_template('dashboard.html', 
-                         user=user, 
-                         bookings=bookings, 
-                         listings=listings,
-                         host_bookings=host_bookings)
+    # Render appropriate dashboard based on user type
+    if user.user_type == 'admin':
+        return render_template('admin/admin.html', 
+                             user=user, 
+                             bookings=bookings, 
+                             listings=listings,
+                             host_bookings=host_bookings)
+    elif user.user_type == 'host':
+        return render_template('host/host.html', 
+                             user=user, 
+                             bookings=bookings, 
+                             listings=listings,
+                             host_bookings=host_bookings)
+    else:  # guest
+        return render_template('guest/guest.html', 
+                             user=user, 
+                             bookings=bookings, 
+                             listings=listings,
+                             host_bookings=host_bookings)
 
 @bp.route('/profile')
 @login_required
 def profile():
-    return render_template('profile.html', user=current_user)
+    """User profile page - shared template for all user types"""
+    return render_template('profile.html', edit_mode=False)
 
 @bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
@@ -646,7 +661,8 @@ def edit_profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('main.profile'))
     
-    return render_template('edit_profile.html', user=current_user)
+    # Use shared template for all user types
+    return render_template('profile.html', edit_mode=True)
 
 # API Routes for AJAX requests
 
