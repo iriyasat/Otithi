@@ -2,6 +2,10 @@
 
 {% block title %}My Bookings - Otithi{% endblock %}
 
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <h2>My Bookings</h2>

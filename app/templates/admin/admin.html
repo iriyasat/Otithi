@@ -2,6 +2,11 @@
 
 {% block title %}Admin Dashboard - Otithi{% endblock %}
 
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-container admin-dashboard">
     <div class="dashboard-header">

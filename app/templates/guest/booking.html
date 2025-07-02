@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Confirm and pay - Otithi{% endblock %}
 
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row">
