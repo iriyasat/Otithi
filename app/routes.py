@@ -13,9 +13,9 @@ def index():
     # Use all listings (these appear to be real listings with real data)
     real_listings = listings
     
-    # Convert to format expected by template
+    # Convert to format expected by template (limit to 5 for homepage)
     listings_data = []
-    for listing in real_listings:
+    for listing in real_listings[:5]:  # Only show first 5 listings on homepage
         listings_data.append({
             'id': listing.id,
             'title': listing.title,
@@ -84,6 +84,59 @@ def index():
                          listings=listings_data, 
                          reviews=reviews_data, 
                          hosting_stats=hosting_stats)
+
+@bp.route('/explore')
+def explore():
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 12  # Show 12 listings per page
+    
+    # Get all listings for explore page
+    all_listings = Listing.get_all()
+    
+    # Calculate pagination
+    total_listings = len(all_listings)
+    total_pages = (total_listings + per_page - 1) // per_page  # Ceiling division
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    
+    # Get listings for current page
+    page_listings = all_listings[start_idx:end_idx]
+    
+    # Convert to format expected by template
+    listings_data = []
+    for listing in page_listings:
+        listings_data.append({
+            'id': listing.id,
+            'title': listing.title,
+            'location': listing.location,
+            'city': listing.city,
+            'country': listing.country,
+            'price': listing.price,
+            'rating': listing.rating,
+            'reviews': listing.reviews_count,
+            'image': 'demo_listing_1.jpg',  # Default image
+            'type': listing.property_type.title(),
+            'guests': listing.guests,
+            'bedrooms': listing.bedrooms,
+            'bathrooms': listing.bathrooms,
+            'description': listing.description
+        })
+    
+    # Pagination info
+    pagination = {
+        'page': page,
+        'per_page': per_page,
+        'total': total_listings,
+        'total_pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'prev_num': page - 1 if page > 1 else None,
+        'next_num': page + 1 if page < total_pages else None,
+        'pages': list(range(1, total_pages + 1))
+    }
+    
+    return render_template('explore.html', listings=listings_data, pagination=pagination)
 
 @bp.route('/search')
 def search():

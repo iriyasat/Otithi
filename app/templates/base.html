@@ -23,14 +23,19 @@
                 </div>
             </a>
             
+            <!-- Navigation Menu -->
+            <div class="navbar-nav">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/explore" class="nav-link">Explore</a>
+            </div>
             
             <!-- User Menu -->
             <div class="navbar-menu">
                 {% if session.user_id %}
-                    <a href="/dashboard" class="user-menu-btn">
-                        <i class="bi bi-list"></i>
-                        <i class="bi bi-person-circle"></i>
-                    </a>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/profile" class="nav-link">Profile</a>
+                    <a href="/listings" class="nav-link">Create Listing</a>
+                    <a href="/logout" class="btn-primary">Logout</a>
                 {% else %}
                     <div class="auth-buttons">
                         <a href="/login" class="btn-ghost">Log in</a>

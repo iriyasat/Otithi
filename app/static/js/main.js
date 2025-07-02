@@ -256,6 +256,57 @@ document.addEventListener('DOMContentLoaded', function() {
             guestRadio.checked = true;
         }
     }
+
+    // View toggle functionality for explore page
+    const viewToggleBtns = document.querySelectorAll('.view-btn');
+    const listingsContainer = document.getElementById('listings-container');
+    
+    if (viewToggleBtns.length > 0 && listingsContainer) {
+        viewToggleBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Prevent multiple rapid clicks
+                if (this.classList.contains('switching')) return;
+                
+                // Remove active class from all buttons
+                viewToggleBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.classList.remove('switching');
+                });
+                
+                // Add switching state to prevent rapid clicks
+                this.classList.add('switching');
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Get the view type
+                const viewType = this.dataset.view;
+                
+                // Add fade out effect
+                listingsContainer.style.opacity = '0.7';
+                listingsContainer.style.transform = 'scale(0.98)';
+                
+                // After a short delay, change the view
+                setTimeout(() => {
+                    // Toggle the grid/list view
+                    if (viewType === 'list') {
+                        listingsContainer.classList.add('listings-list');
+                        listingsContainer.classList.remove('listings-grid');
+                    } else {
+                        listingsContainer.classList.remove('listings-list');
+                        listingsContainer.classList.add('listings-grid');
+                    }
+                    
+                    // Fade back in with new layout
+                    listingsContainer.style.opacity = '1';
+                    listingsContainer.style.transform = 'scale(1)';
+                    
+                    // Remove switching state
+                    this.classList.remove('switching');
+                }, 150);
+            });
+        });
+    }
 });
 
 // Global function for user type selection (backup for inline events)
@@ -519,4 +570,35 @@ function getPrivacyContent() {
             <p>If you have questions about this Privacy Policy, please contact us at privacy@otithi.com</p>
         </div>
     `;
+}
+
+// Favorite toggle function for listings
+function toggleFavorite(listingId) {
+    // Get the button that was clicked
+    const button = event.target.closest('.favorite-btn');
+    if (!button) return;
+    
+    const icon = button.querySelector('i');
+    const isCurrentlyFavorited = icon.classList.contains('bi-heart-fill');
+    
+    // Toggle the icon
+    if (isCurrentlyFavorited) {
+        icon.classList.remove('bi-heart-fill');
+        icon.classList.add('bi-heart');
+        button.classList.remove('favorited');
+    } else {
+        icon.classList.remove('bi-heart');
+        icon.classList.add('bi-heart-fill');
+        button.classList.add('favorited');
+    }
+    
+    // Here you would typically make an AJAX request to save the favorite state
+    // For now, we'll just update the UI
+    console.log(`Toggled favorite for listing ${listingId}`);
+    
+    // Optional: Add animation feedback
+    button.style.transform = 'scale(1.2)';
+    setTimeout(() => {
+        button.style.transform = 'scale(1)';
+    }, 150);
 }

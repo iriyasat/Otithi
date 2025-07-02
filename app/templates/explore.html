@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Explore - Otithi{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1 class="hero-title">Explore <span class="hero-accent">Bangladesh</span></h1>
+            <p class="hero-subtitle">Discover unique places to stay with local hosts</p>
+        </div>
+        
+        <!-- Hero Search Form -->
+        <div class="search-widget">
+            <form action="/search" method="GET" class="search-form">
+                <div class="search-fields">
+                    <div class="search-field search-field--location">
+                        <label class="search-label">Where</label>
+                        <input type="text" name="location" placeholder="Search destinations" class="search-input">
+                    </div>
+                    <div class="search-divider"></div>
+                    <div class="search-field">
+                        <label class="search-label">Check in</label>
+                        <input type="date" name="checkin" class="search-input" placeholder="Add dates">
+                    </div>
+                    <div class="search-divider"></div>
+                    <div class="search-field">
+                        <label class="search-label">Check out</label>
+                        <input type="date" name="checkout" class="search-input" placeholder="Add dates">
+                    </div>
+                    <div class="search-divider"></div>
+                    <div class="search-field">
+                        <label class="search-label">Who</label>
+                        <input type="number" name="guests" placeholder="Add guests" min="1" class="search-input">
+                    </div>
+                </div>
+                <button type="submit" class="search-button">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Listings Section -->
+<section class="listings-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                {% if pagination %}
+                {{ pagination.total }} places to stay
+                {% else %}
+                {{ listings|length }} places to stay
+                {% endif %}
+            </h2>
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="grid">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+                <button class="view-btn" data-view="list">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+        </div>
+        
+        {% if listings %}
+        <div class="listings-grid" id="listings-container">
+            {% for listing in listings %}
+            <div class="listing-card">
+                <div class="listing-image-container">
+                    <img src="{{ url_for('static', filename='img/' + listing.image) }}" 
+                         alt="{{ listing.title }}" class="listing-image">
+                    <button class="favorite-btn" onclick="event.stopPropagation(); toggleFavorite('{{ listing.id }}')">
+                        <i class="bi bi-heart"></i>
+                    </button>
+                </div>
+                <div class="listing-content">
+                    <div class="listing-header">
+                        <h3 class="listing-title">{{ listing.title }}</h3>
+                        <div class="listing-rating">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF5A5F">
+                                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                            </svg>
+                            <span>{{ listing.rating }}</span>
+                        </div>
+                    </div>
+                    <p class="listing-location">{{ listing.city }}, {{ listing.country }}</p>
+                    <p class="listing-details">{{ listing.guests }} guests · {{ listing.bedrooms }} bedrooms · {{ listing.bathrooms }} bathrooms</p>
+                    <div class="listing-price">
+                        <span class="price">৳{{ listing.price }}</span>
+                        <span class="period">night</span>
+                    </div>
+                </div>
+                <a href="/listings/{{ listing.id }}" class="listing-link"></a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 12L5 10M5 10L12 3L19 10M5 10V20A1 1 0 006 21H9M19 10L21 12M19 10V20A1 1 0 0018 21H15M9 21V15A1 1 0 0110 14H14A1 1 0 0115 15V21M9 21H15" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h3 class="empty-title">No listings found</h3>
+            <p class="empty-description">Try adjusting your search criteria or explore different locations.</p>
+            <a href="/" class="btn-primary">Go Home</a>
+        </div>
+        {% endif %}
+        
+        {% if pagination and pagination.total_pages > 1 %}
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <nav class="pagination">
+                {% if pagination.has_prev %}
+                <a href="{{ url_for('main.explore', page=pagination.prev_num) }}" class="pagination-btn pagination-prev">
+                    <i class="bi bi-chevron-left"></i>
+                    Previous
+                </a>
+                {% endif %}
+                
+                <div class="pagination-numbers">
+                    {% set start_page = [1, pagination.page - 2]|max %}
+                    {% set end_page = [pagination.total_pages, pagination.page + 2]|min %}
+                    
+                    {% if start_page > 1 %}
+                    <a href="{{ url_for('main.explore', page=1) }}" class="pagination-number">1</a>
+                    {% if start_page > 2 %}
+                    <span class="pagination-ellipsis">...</span>
+                    {% endif %}
+                    {% endif %}
+                    
+                    {% for page_num in range(start_page, end_page + 1) %}
+                        {% if page_num == pagination.page %}
+                        <span class="pagination-number active">{{ page_num }}</span>
+                        {% else %}
+                        <a href="{{ url_for('main.explore', page=page_num) }}" class="pagination-number">{{ page_num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if end_page < pagination.total_pages %}
+                    {% if end_page < pagination.total_pages - 1 %}
+                    <span class="pagination-ellipsis">...</span>
+                    {% endif %}
+                    <a href="{{ url_for('main.explore', page=pagination.total_pages) }}" class="pagination-number">{{ pagination.total_pages }}</a>
+                    {% endif %}
+                </div>
+                
+                {% if pagination.has_next %}
+                <a href="{{ url_for('main.explore', page=pagination.next_num) }}" class="pagination-btn pagination-next">
+                    Next
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                {% endif %}
+            </nav>
+            
+            <div class="pagination-info">
+                Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to 
+                {{ [((pagination.page - 1) * pagination.per_page) + listings|length, pagination.total]|min }} of 
+                {{ pagination.total }} listings
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
