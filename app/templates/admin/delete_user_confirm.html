@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Delete User - Admin Dashboard - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+.confirm-card {
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--danger-color, #dc3545);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+}
+
+.warning-icon {
+    font-size: 3rem;
+    color: var(--danger-color, #dc3545);
+    margin-bottom: 1rem;
+}
+
+.danger-text {
+    color: var(--danger-color, #dc3545);
+    font-weight: 600;
+}
+
+.btn-danger {
+    background-color: var(--danger-color, #dc3545);
+    border-color: var(--danger-color, #dc3545);
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <!-- Back Navigation -->
+                <div class="mb-4">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+
+                <!-- Delete Confirmation Card -->
+                <div class="card confirm-card">
+                    <div class="card-header bg-danger text-white text-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Delete User
+                        </h4>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <!-- Warning Icon -->
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+
+                        <!-- User Avatar -->
+                        <div class="user-avatar">
+                            {{ user.name[0].upper() }}
+                        </div>
+
+                        <!-- User Info -->
+                        <div class="mb-4">
+                            <h5 class="mb-1">{{ user.name }}</h5>
+                            <p class="text-muted mb-2">{{ user.email }}</p>
+                            <span class="badge bg-{{ 'success' if user.user_type == 'admin' else 'primary' if user.user_type == 'host' else 'secondary' }}">
+                                {{ user.user_type.title() }}
+                            </span>
+                            <span class="badge bg-{{ 'success' if user.verified else 'warning' }} ms-2">
+                                {{ 'Verified' if user.verified else 'Unverified' }}
+                            </span>
+                        </div>
+
+                        <!-- Warning Message -->
+                        <div class="alert alert-danger" role="alert">
+                            <h6 class="danger-text mb-2">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                This action cannot be undone!
+                            </h6>
+                            <p class="mb-0">
+                                Deleting this user will permanently remove:
+                            </p>
+                            <ul class="list-unstyled mt-2 mb-0">
+                                <li><i class="fas fa-times text-danger me-2"></i>User account and profile</li>
+                                <li><i class="fas fa-times text-danger me-2"></i>All associated bookings</li>
+                                <li><i class="fas fa-times text-danger me-2"></i>All listings (if host)</li>
+                                <li><i class="fas fa-times text-danger me-2"></i>All reviews and ratings</li>
+                            </ul>
+                        </div>
+
+                        <!-- Confirmation Form -->
+                        <form method="POST" action="{{ url_for('main.admin_delete_user', user_id=user.id) }}" id="deleteForm">
+                            <div class="mb-3">
+                                <label for="confirmInput" class="form-label">
+                                    Type <strong>DELETE</strong> to confirm:
+                                </label>
+                                <input type="text" class="form-control text-center" id="confirmInput" 
+                                       placeholder="Type DELETE to confirm" required>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-3 justify-content-center">
+                                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-danger px-4" id="deleteBtn" disabled>
+                                    <i class="fas fa-trash me-2"></i>Delete User
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput = document.getElementById('confirmInput');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const deleteForm = document.getElementById('deleteForm');
+
+    // Enable/disable delete button based on confirmation input
+    confirmInput.addEventListener('input', function() {
+        if (this.value === 'DELETE') {
+            deleteBtn.disabled = false;
+            deleteBtn.classList.remove('btn-outline-danger');
+            deleteBtn.classList.add('btn-danger');
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-outline-danger');
+        }
+    });
+
+    // Final confirmation before delete
+    deleteForm.addEventListener('submit', function(e) {
+        if (confirmInput.value !== 'DELETE') {
+            e.preventDefault();
+            alert('Please type DELETE to confirm');
+            return;
+        }
+
+        const finalConfirm = confirm('Are you absolutely sure you want to delete this user? This action cannot be undone.');
+        if (!finalConfirm) {
+            e.preventDefault();
+        }
+    });
+
+    // Add shake animation on wrong input
+    confirmInput.addEventListener('keyup', function() {
+        if (this.value && this.value !== 'DELETE' && this.value !== 'DELETE'.substring(0, this.value.length)) {
+            this.classList.add('is-invalid');
+            this.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                this.style.animation = '';
+            }, 500);
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+});
+</script>
+
+<style>
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+</style>
+{% endblock %}

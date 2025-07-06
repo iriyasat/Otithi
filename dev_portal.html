@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Othiti Development Portal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 15px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn.primary {
+            background: #28a745;
+            border-color: #28a745;
+        }
+        .btn.secondary {
+            background: #17a2b8;
+            border-color: #17a2b8;
+        }
+        .btn.warning {
+            background: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Othiti Development Portal</h1>
+        
+        <div class="instructions">
+            <h3>🚀 How to Use the Built-in VS Code Browser:</h3>
+            <p>VS Code has powerful browser tools built-in. Here's how to use them:</p>
+            <ol>
+                <li><strong>Open Command Palette:</strong> Press <code>Cmd+Shift+P</code> (Mac) or <code>Ctrl+Shift+P</code> (Windows/Linux)</li>
+                <li><strong>Type:</strong> "Edge Tools: Open Browser" and select it</li>
+                <li><strong>Navigate to:</strong> <code>http://127.0.0.1:5000</code></li>
+            </ol>
+            <p><em>This gives you a full browser experience with DevTools inside VS Code!</em></p>
+        </div>
+
+        <div class="section">
+            <h3>🔗 Quick Access Links</h3>
+            <p>Click these links to open in the VS Code browser:</p>
+            
+            <a href="http://127.0.0.1:5000/" class="btn primary">🏠 Homepage</a>
+            <a href="http://127.0.0.1:5000/dev/users" class="btn secondary">👥 Development Users</a>
+            <a href="http://127.0.0.1:5000/dev/force_profile/1" class="btn warning">👤 Test Profile (User 1)</a>
+        </div>
+
+        <div class="section">
+            <h3>🛠️ Available Test Routes</h3>
+            <div class="code">
+                • http://127.0.0.1:5000/dev/users - View all users<br>
+                • http://127.0.0.1:5000/dev/force_profile/1 - Login as Admin<br>
+                • http://127.0.0.1:5000/dev/force_profile/2 - Login as Guest<br>
+                • http://127.0.0.1:5000/dev/force_profile/3 - Login as Host
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>✨ Profile Features to Test</h3>
+            <ul>
+                <li>📸 <strong>Photo Upload:</strong> New naming convention (username_userid_profile.ext)</li>
+                <li>📝 <strong>Bio Editing:</strong> Full text editing with validation</li>
+                <li>👁️ <strong>Live Preview:</strong> See images before uploading</li>
+                <li>✅ <strong>File Validation:</strong> Type and size checking</li>
+                <li>🗑️ <strong>Auto Cleanup:</strong> Old photos removed automatically</li>
+            </ul>
+        </div>
+
+        <div class="instructions">
+            <h3>💡 Alternative Methods:</h3>
+            <p><strong>Method 1 - Edge Tools (Recommended):</strong></p>
+            <ol>
+                <li>Press <code>Cmd+Shift+P</code></li>
+                <li>Type "Edge Tools: Open Browser"</li>
+                <li>Navigate to <code>http://127.0.0.1:5000/dev/users</code></li>
+            </ol>
+            
+            <p><strong>Method 2 - Live Preview:</strong></p>
+            <ol>
+                <li>Right-click this HTML file in VS Code explorer</li>
+                <li>Select "Show Preview"</li>
+                <li>Click the links above</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Make links work in VS Code preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a[href^="http"]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Let VS Code handle the link
+                    console.log('Opening:', this.href);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

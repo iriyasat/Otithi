@@ -13,7 +13,11 @@
     <div class="dashboard-header">
         <div class="container">
             <h1>
-                <i class="fas fa-user-shield"></i>
+                {% if user and user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                {% else %}
+                    <i class="fas fa-user-shield"></i>
+                {% endif %}
                 Admin Dashboard
             </h1>
             <p class="lead">Welcome back, {{ user.full_name }}! Manage your platform from here.</p>
@@ -81,7 +85,7 @@
                         
                         {% if users %}
                         <div class="table-responsive">
-                            <table class="table">
+                            <table class="table" id="usersTable">
                                 <thead>
                                     <tr>
                                         <th>User</th>
@@ -116,12 +120,17 @@
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary btn-sm" title="Edit User">
+                                                <button class="btn btn-outline-{{ 'warning' if user.verified else 'success' }} btn-sm verification-toggle" 
+                                                        data-user-id="{{ user.id }}" 
+                                                        title="{{ 'Unverify User' if user.verified else 'Verify User' }}">
+                                                    <i class="fas fa-{{ 'times-circle' if user.verified else 'check-circle' }}"></i>
+                                                </button>
+                                                <a href="{{ url_for('main.admin_edit_user_confirm', user_id=user.id) }}" class="btn btn-outline-primary btn-sm" title="Edit User">
                                                     <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-outline-danger btn-sm" title="Delete User">
+                                                </a>
+                                                <a href="{{ url_for('main.admin_delete_user_confirm', user_id=user.id) }}" class="btn btn-outline-danger btn-sm" title="Delete User">
                                                     <i class="fas fa-trash"></i>
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -374,9 +383,10 @@
 
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin-verification.js') }}"></script>
 <script>
-// Simple admin dashboard functionality without complex modal handling
+// Simple search functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Search functionality
     const userSearch = document.getElementById('userSearch');

@@ -25,10 +25,6 @@ class User(UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
     
-    def get_id(self):
-        """Required by Flask-Login for session management"""
-        return str(self.id)
-    
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
     
@@ -78,18 +74,13 @@ class User(UserMixin):
     def create(full_name, email, password, phone=None, bio=None, user_type='guest'):
         """Create a new user"""
         password_hash = generate_password_hash(password)
-        # First add password_hash column if it doesn't exist
-        try:
-            db.execute_update("ALTER TABLE users ADD COLUMN password_hash VARCHAR(255)")
-        except:
-            pass  # Column might already exist
         
         query = """
-            INSERT INTO users (name, email, password_hash, phone, user_type, join_date)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO users (name, email, password_hash, phone, bio, user_type, join_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         user_id = db.execute_insert(query, (
-            full_name, email, password_hash, phone, user_type, datetime.now()
+            full_name, email, password_hash, phone, bio, user_type, datetime.now()
         ))
         
         if user_id:
@@ -170,6 +161,14 @@ class User(UserMixin):
         password_hash = generate_password_hash(new_password)
         query = "UPDATE users SET password_hash = %s WHERE user_id = %s"
         return db.execute_update(query, (password_hash, self.id))
+    
+    def update_verification_status(self, verified_status):
+        """Update user verification status"""
+        query = "UPDATE users SET verified = %s WHERE user_id = %s"
+        if db.execute_update(query, (verified_status, self.id)):
+            self.verified = verified_status
+            return True
+        return False
         
     def delete(self):
         """Delete user and all associated data"""
@@ -192,10 +191,133 @@ class User(UserMixin):
             print(f"Error deleting user: {e}")
             return False
 
+
+class Location:
+    def __init__(self, location_id, address, city, country, latitude=None, longitude=None, postal_code=None, created_at=None):
+        self.id = location_id
+        self.address = address
+        self.city = city
+        self.country = country
+        self.latitude = latitude
+        self.longitude = longitude
+        self.postal_code = postal_code
+        self.created_at = created_at
+
+    @staticmethod
+    def create(address, city, country, latitude=None, longitude=None, postal_code=None):
+        """Create a new location"""
+        query = """
+            INSERT INTO locations (address, city, country, latitude, longitude, postal_code, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        location_id = db.execute_insert(query, (address, city, country, latitude, longitude, postal_code, datetime.now()))
+        
+        if location_id:
+            return Location.get(location_id)
+        return None
+
+    @staticmethod
+    def get(location_id):
+        """Get location by ID"""
+        query = "SELECT * FROM locations WHERE location_id = %s"
+        result = db.execute_query(query, (location_id,))
+        if result:
+            loc = result[0]
+            return Location(
+                location_id=loc['location_id'],
+                address=loc['address'],
+                city=loc['city'],
+                country=loc['country'],
+                latitude=float(loc['latitude']) if loc['latitude'] else None,
+                longitude=float(loc['longitude']) if loc['longitude'] else None,
+                postal_code=loc['postal_code'],
+                created_at=loc['created_at']
+            )
+        return None
+
+
+class ListingImage:
+    def __init__(self, image_id, listing_id, image_filename, image_order=1, is_primary=False, uploaded_at=None):
+        self.id = image_id
+        self.listing_id = listing_id
+        self.image_filename = image_filename
+        self.image_order = image_order
+        self.is_primary = is_primary
+        self.uploaded_at = uploaded_at
+
+    @staticmethod
+    def create(listing_id, image_filename, image_order=1, is_primary=False):
+        """Create a new listing image"""
+        query = """
+            INSERT INTO listing_images (listing_id, image_filename, image_order, is_primary, uploaded_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        image_id = db.execute_insert(query, (listing_id, image_filename, image_order, is_primary, datetime.now()))
+        
+        if image_id:
+            return ListingImage.get(image_id)
+        return None
+
+    @staticmethod
+    def get(image_id):
+        """Get image by ID"""
+        query = "SELECT * FROM listing_images WHERE image_id = %s"
+        result = db.execute_query(query, (image_id,))
+        if result:
+            img = result[0]
+            return ListingImage(
+                image_id=img['image_id'],
+                listing_id=img['listing_id'],
+                image_filename=img['image_filename'],
+                image_order=img['image_order'],
+                is_primary=bool(img['is_primary']),
+                uploaded_at=img['uploaded_at']
+            )
+        return None
+
+    @staticmethod
+    def get_by_listing(listing_id):
+        """Get all images for a listing, ordered by image_order"""
+        query = """
+            SELECT * FROM listing_images 
+            WHERE listing_id = %s 
+            ORDER BY is_primary DESC, image_order ASC
+        """
+        results = db.execute_query(query, (listing_id,))
+        images = []
+        for img in results:
+            images.append(ListingImage(
+                image_id=img['image_id'],
+                listing_id=img['listing_id'],
+                image_filename=img['image_filename'],
+                image_order=img['image_order'],
+                is_primary=bool(img['is_primary']),
+                uploaded_at=img['uploaded_at']
+            ))
+        return images
+
+    @staticmethod
+    def set_primary(listing_id, image_id):
+        """Set an image as primary (and unset others)"""
+        # First, unset all primary images for this listing
+        query1 = "UPDATE listing_images SET is_primary = FALSE WHERE listing_id = %s"
+        db.execute_update(query1, (listing_id,))
+        
+        # Then set the specified image as primary
+        query2 = "UPDATE listing_images SET is_primary = TRUE WHERE image_id = %s AND listing_id = %s"
+        return db.execute_update(query2, (image_id, listing_id))
+
+    def delete(self):
+        """Delete this image"""
+        query = "DELETE FROM listing_images WHERE image_id = %s"
+        return db.execute_update(query, (self.id,))
+
+
 class Listing:
     def __init__(self, id, title, description, location, price, host_id, property_type='entire_place',
                  guests=1, bedrooms=1, bathrooms=1, amenities=None, address='', city='', country='Bangladesh',
-                 created_date=None, rating=0.0, reviews_count=0, available=True, images=None):
+                 created_date=None, rating=0.0, reviews_count=0, available=True, images=None, 
+                 latitude=None, longitude=None):
         self.id = id
         self.title = title
         self.description = description
@@ -215,40 +337,61 @@ class Listing:
         self.reviews_count = reviews_count
         self.available = available
         self.images = images or []
+        self.latitude = latitude
+        self.longitude = longitude
     
     @staticmethod
     def get(listing_id):
-        """Get listing by ID"""
-        query = "SELECT * FROM listings WHERE listing_id = %s"
+        """Get listing by ID with location and images"""
+        query = """
+            SELECT l.*, loc.address as location_address, loc.city as location_city, 
+                   loc.country as location_country, loc.latitude, loc.longitude 
+            FROM listings l 
+            LEFT JOIN locations loc ON l.location_id = loc.location_id 
+            WHERE l.listing_id = %s
+        """
         result = db.execute_query(query, (listing_id,))
         if result:
             listing_data = result[0]
+            
+            # Get listing images
+            images = ListingImage.get_by_listing(listing_id)
+            
             return Listing(
                 id=listing_data['listing_id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['city']}, {listing_data['country']}",
+                location=f"{listing_data['location_city']}, {listing_data['location_country']}" if listing_data['location_city'] else f"{listing_data['city']}, {listing_data['country']}",
                 price=float(listing_data['price_per_night']),
                 host_id=listing_data['host_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
-                bedrooms=1,  # Default, not in schema
-                bathrooms=1,  # Default, not in schema
+                bedrooms=listing_data['bedrooms'] or 1,
+                bathrooms=listing_data['bathrooms'] or 1,
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
-                address=listing_data['address'],
-                city=listing_data['city'],
-                country=listing_data['country'],
+                address=listing_data['location_address'] or listing_data['address'],
+                city=listing_data['location_city'] or listing_data['city'],
+                country=listing_data['location_country'] or listing_data['country'],
                 created_date=listing_data['created_at'],
                 rating=0.0,  # Will be calculated from reviews
                 reviews_count=0,  # Will be calculated from reviews
-                available=True  # Default
+                available=True,  # Default
+                images=[img.image_filename for img in images],
+                latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
+                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None
             )
         return None
     
     @staticmethod
     def get_all():
-        """Get all listings"""
-        query = "SELECT * FROM listings ORDER BY created_at DESC"
+        """Get all listings with location and images"""
+        query = """
+            SELECT l.*, loc.address as location_address, loc.city as location_city, 
+                   loc.country as location_country, loc.latitude, loc.longitude 
+            FROM listings l 
+            LEFT JOIN locations loc ON l.location_id = loc.location_id 
+            ORDER BY l.created_at DESC
+        """
         results = db.execute_query(query)
         listings = []
         for listing_data in results:
@@ -261,25 +404,31 @@ class Listing:
             avg_rating = float(rating_result[0]['avg_rating']) if rating_result[0]['avg_rating'] else 0.0
             review_count = rating_result[0]['review_count']
             
+            # Get listing images
+            images = ListingImage.get_by_listing(listing_data['listing_id'])
+            
             listing = Listing(
                 id=listing_data['listing_id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['city']}, {listing_data['country']}",
+                location=f"{listing_data['location_city']}, {listing_data['location_country']}" if listing_data['location_city'] else f"{listing_data['city']}, {listing_data['country']}",
                 price=float(listing_data['price_per_night']),
                 host_id=listing_data['host_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
-                bedrooms=1,
-                bathrooms=1,
+                bedrooms=listing_data['bedrooms'] or 1,
+                bathrooms=listing_data['bathrooms'] or 1,
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
-                address=listing_data['address'],
-                city=listing_data['city'],
-                country=listing_data['country'],
+                address=listing_data['location_address'] or listing_data['address'],
+                city=listing_data['location_city'] or listing_data['city'],
+                country=listing_data['location_country'] or listing_data['country'],
                 created_date=listing_data['created_at'],
                 rating=avg_rating,
                 reviews_count=review_count,
-                available=True
+                available=True,
+                images=[img.image_filename for img in images],
+                latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
+                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None
             )
             listings.append(listing)
         return listings
@@ -287,7 +436,13 @@ class Listing:
     @staticmethod
     def get_by_host(host_id):
         """Get all listings by a host"""
-        query = "SELECT * FROM listings WHERE host_id = %s ORDER BY created_at DESC"
+        query = """
+            SELECT l.*, loc.address, loc.city, loc.country, loc.latitude, loc.longitude 
+            FROM listings l 
+            LEFT JOIN locations loc ON l.location_id = loc.location_id 
+            WHERE l.host_id = %s 
+            ORDER BY l.created_at DESC
+        """
         results = db.execute_query(query, (host_id,))
         listings = []
         for listing_data in results:
@@ -309,24 +464,33 @@ class Listing:
                 created_date=listing_data['created_at'],
                 rating=0.0,
                 reviews_count=0,
-                available=True
+                available=True,
+                latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
+                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None
             )
             listings.append(listing)
         return listings
     
     @staticmethod
     def create(title, description, location, price, host_id, property_type='entire_place',
-               guests=1, bedrooms=1, bathrooms=1, amenities=None, address='', city='', country='Bangladesh'):
-        """Create a new listing"""
+               guests=1, bedrooms=1, bathrooms=1, amenities=None, location_id=None):
+        """Create a new listing with proper location_id reference"""
         amenities_str = ','.join(amenities) if amenities else ''
-        query = """
-            INSERT INTO listings (host_id, title, description, address, city, country, 
-                                room_type, price_per_night, max_guests, amenities, created_at)
+        
+        # Validate that location_id is provided
+        if not location_id:
+            print("Error: location_id is required for creating listings")
+            return None
+        
+        # Create the listing with the new schema (no location fields)
+        listing_query = """
+            INSERT INTO listings (host_id, title, description, room_type, price_per_night, 
+                                max_guests, bedrooms, bathrooms, amenities, location_id, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        listing_id = db.execute_insert(query, (
-            host_id, title, description, address, city, country, 
-            property_type, price, guests, amenities_str, datetime.now()
+        listing_id = db.execute_insert(listing_query, (
+            host_id, title, description, property_type, price, guests, 
+            bedrooms, bathrooms, amenities_str, location_id, datetime.now()
         ))
         
         if listing_id:
@@ -471,19 +635,28 @@ class Review:
     
     @staticmethod
     def get_by_listing(listing_id):
-        """Get all reviews for a listing"""
-        query = "SELECT * FROM reviews WHERE listing_id = %s ORDER BY review_date DESC"
+        """Get all reviews for a listing with user names"""
+        query = """
+            SELECT r.*, u.name as user_name 
+            FROM reviews r 
+            LEFT JOIN users u ON r.reviewer_id = u.user_id 
+            WHERE r.listing_id = %s 
+            ORDER BY r.review_date DESC
+        """
         results = db.execute_query(query, (listing_id,))
         reviews = []
         for review_data in results:
-            reviews.append(Review(
+            review = Review(
                 id=review_data['review_id'],
                 listing_id=review_data['listing_id'],
                 user_id=review_data['reviewer_id'],
                 rating=float(review_data['rating']),
                 comment=review_data['comments'],
                 created_date=review_data['review_date']
-            ))
+            )
+            # Add user name as an attribute
+            review.user_name = review_data['user_name']
+            reviews.append(review)
         return reviews
     
     @staticmethod
@@ -535,8 +708,9 @@ class Review:
 
 class Booking:
     def __init__(self, id, listing_id, user_id, check_in, check_out, total_price, 
-                 status='pending', created_date=None):
+                 status='pending', created_date=None, confirmed_by=None, confirmed_at=None):
         self.id = id
+        self.booking_id = id  # Alias for consistency
         self.listing_id = listing_id
         self.user_id = user_id
         self.check_in = check_in
@@ -544,6 +718,9 @@ class Booking:
         self.total_price = total_price
         self.status = status
         self.created_date = created_date or datetime.now()
+        self.created_at = created_date or datetime.now()  # Alias for consistency
+        self.confirmed_by = confirmed_by
+        self.confirmed_at = confirmed_at
     
     @staticmethod
     def get_all():
@@ -560,7 +737,9 @@ class Booking:
                 check_out=booking_data['check_out'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_at'],
+                confirmed_by=booking_data['confirmed_by'],
+                confirmed_at=booking_data['confirmed_at']
             ))
         return bookings
     
@@ -577,10 +756,11 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
-                guests=1,
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_at'],
+                confirmed_by=booking_data['confirmed_by'],
+                confirmed_at=booking_data['confirmed_at']
             ))
         return bookings
     
@@ -604,7 +784,9 @@ class Booking:
                 check_out=booking_data['check_out'],
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
-                created_date=booking_data['created_at']
+                created_date=booking_data['created_at'],
+                confirmed_by=booking_data['confirmed_by'],
+                confirmed_at=booking_data['confirmed_at']
             ))
         return bookings
     
@@ -693,3 +875,46 @@ class Booking:
                 self.status = new_status
                 return True
         return False
+
+
+class Location:
+    def __init__(self, location_id, address, city, country, latitude=0.0, longitude=0.0, postal_code=None, created_at=None):
+        self.location_id = location_id
+        self.address = address
+        self.city = city
+        self.country = country
+        self.latitude = latitude
+        self.longitude = longitude
+        self.postal_code = postal_code
+        self.created_at = created_at or datetime.now()
+    
+    @staticmethod
+    def create(address, city, country, latitude=0.0, longitude=0.0, postal_code=None):
+        """Create a new location"""
+        query = """
+        INSERT INTO locations (address, city, country, latitude, longitude, postal_code, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        result = db.execute_insert(query, (address, city, country, latitude, longitude, postal_code, datetime.now()))
+        if result:
+            return Location.get(result)
+        return None
+    
+    @staticmethod
+    def get(location_id):
+        """Get location by ID"""
+        query = "SELECT * FROM locations WHERE location_id = %s"
+        result = db.execute_query(query, (location_id,))
+        if result:
+            data = result[0]
+            return Location(
+                location_id=data['location_id'],
+                address=data['address'],
+                city=data['city'],
+                country=data['country'],
+                latitude=data['latitude'],
+                longitude=data['longitude'],
+                postal_code=data['postal_code'],
+                created_at=data['created_at']
+            )
+        return None

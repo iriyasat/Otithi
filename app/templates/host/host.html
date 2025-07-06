@@ -14,7 +14,11 @@
             <div class="row">
                 <div class="col-12">
                     <h1>
-                        <i class="fas fa-home"></i> 
+                        {% if user and user.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                        {% else %}
+                            <i class="fas fa-home"></i>
+                        {% endif %}
                         Host Dashboard
                     </h1>
                     <p class="lead">Welcome back, {{ user.full_name }}!</p>
@@ -102,22 +106,22 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3">
-                            <a href="{{ url_for('create_listing') }}" class="action-btn btn-outline-primary">
+                            <a href="{{ url_for('main.create_listing') }}" class="action-btn btn-outline-primary">
                                 <i class="fas fa-plus dashboard-icon"></i> Add New Listing
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ url_for('host_listings') }}" class="action-btn btn-outline-success">
+                            <a href="#" class="action-btn btn-outline-success" onclick="alert('Coming soon: Manage your listings')">
                                 <i class="fas fa-list dashboard-icon"></i> Manage Listings
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ url_for('host_bookings') }}" class="action-btn btn-outline-info">
+                            <a href="#" class="action-btn btn-outline-info" onclick="alert('Coming soon: View your bookings')">
                                 <i class="fas fa-calendar dashboard-icon"></i> View Bookings
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ url_for('host_analytics') }}" class="action-btn btn-outline-warning">
+                            <a href="#" class="action-btn btn-outline-warning" onclick="alert('Coming soon: View analytics')">
                                 <i class="fas fa-chart-bar dashboard-icon"></i> Analytics
                             </a>
                         </div>

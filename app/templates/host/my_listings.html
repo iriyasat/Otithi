@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block title %}My Listings - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1>
+                        {% if user.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/user-gear.png') }}" alt="Profile" class="dashboard-profile-image">
+                        {% endif %}
+                        My Listings
+                    </h1>
+                    <p class="lead">Welcome back, {{ user.full_name }}! Manage your property listings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Quick Actions -->
+        <div class="row mb-4 dashboard-animate">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-plus dashboard-icon"></i> Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <a href="{{ url_for('main.create_listing') }}" class="action-btn btn-outline-primary">
+                                    <i class="fas fa-plus dashboard-icon"></i> Add New Listing
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ url_for('main.dashboard') }}" class="action-btn btn-outline-secondary">
+                                    <i class="fas fa-tachometer-alt dashboard-icon"></i> Dashboard
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ url_for('main.profile') }}" class="action-btn btn-outline-info">
+                                    <i class="fas fa-user dashboard-icon"></i> My Profile
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ url_for('main.explore') }}" class="action-btn btn-outline-success">
+                                    <i class="fas fa-search dashboard-icon"></i> Browse Listings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listings Overview -->
+        <div class="row dashboard-stats dashboard-animate">
+            <div class="col-md-3">
+                <div class="card stat-card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Total Listings</h5>
+                                <h2>{{ listings|length }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-home fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Active Listings</h5>
+                                <h2>{{ listings|selectattr('available')|list|length }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Total Bookings</h5>
+                                <h2>{{ listings|sum(attribute='booking_count') or 0 }}</h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-calendar-check fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Avg Rating</h5>
+                                <h2>
+                                    {% if listings %}
+                                        {{ "%.1f"|format(listings|sum(attribute='rating')/listings|length) }}
+                                    {% else %}
+                                        0.0
+                                    {% endif %}
+                                </h2>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-star fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listings Table -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-home dashboard-icon"></i> Your Listings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if listings %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Listing</th>
+                                            <th>Location</th>
+                                            <th>Price/Night</th>
+                                            <th>Type</th>
+                                            <th>Guests</th>
+                                            <th>Rating</th>
+                                            <th>Bookings</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for listing in listings %}
+                                        <tr>
+                                            <td>
+                                                <div class="listing-info">
+                                                    <img src="{{ url_for('static', filename='img/' + listing.image) }}" 
+                                                         alt="{{ listing.title }}" class="listing-thumbnail">
+                                                    <div>
+                                                        <strong>{{ listing.title }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">ID: {{ listing.id }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="location-text">{{ listing.location }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="price-text">৳{{ "%.0f"|format(listing.price) }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ listing.type }}</span>
+                                            </td>
+                                            <td>{{ listing.guests }}</td>
+                                            <td>
+                                                {% if listing.rating > 0 %}
+                                                    <span class="rating">
+                                                        <i class="fas fa-star text-warning"></i> {{ "%.1f"|format(listing.rating) }}
+                                                        <small>({{ listing.reviews }})</small>
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">No reviews</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ listing.booking_count }}</span>
+                                            </td>
+                                            <td>
+                                                {% if listing.available %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group-sm">
+                                                    <a href="{{ url_for('main.listing_detail', listing_id=listing.id) }}" 
+                                                       class="btn btn-outline-primary btn-sm" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="#" onclick="alert('Edit functionality coming soon!')" 
+                                                       class="btn btn-outline-warning btn-sm" title="Edit Listing">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="#" onclick="alert('Delete functionality coming soon!')" 
+                                                       class="btn btn-outline-danger btn-sm" title="Delete Listing">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-home empty-state-icon"></i>
+                                    <h4>No Listings Yet</h4>
+                                    <p class="text-muted">You haven't created any listings yet. Start by adding your first property!</p>
+                                    <a href="{{ url_for('main.create_listing') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Create Your First Listing
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.dashboard-animate {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.listing-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.listing-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--neutral-200);
+}
+
+.price-text {
+    font-weight: bold;
+    color: var(--primary-600);
+}
+
+.location-text {
+    color: var(--neutral-600);
+}
+
+.rating {
+    color: #f39c12;
+}
+
+.empty-state {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 3rem 1rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--neutral-300);
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-icon {
+    margin-right: 0.5rem;
+}
+
+/* Enhanced table styling */
+.table th {
+    background-color: var(--neutral-50);
+    border-bottom: 2px solid var(--neutral-200);
+    font-weight: 600;
+    color: var(--neutral-700);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group-sm .btn {
+    margin-right: 0.25rem;
+}
+
+.btn-group-sm .btn:last-child {
+    margin-right: 0;
+}
+
+@media (max-width: 768px) {
+    .action-btn {
+        margin-bottom: 10px;
+    }
+}
+</style>
+{% endblock %}

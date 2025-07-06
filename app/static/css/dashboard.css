@@ -125,6 +125,45 @@
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
+.dashboard-header h1 .dashboard-profile-image {
+    width: 2.5em;
+    height: 2.5em;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.8);
+    object-fit: cover;
+    animation: profileBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+@keyframes profileBounce {
+    0%, 100% { 
+        transform: translateY(0) scale(1);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    50% { 
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+    }
+}
+
+/* Admin table enhancements - keep existing styling but add functionality */
+.verification-badge {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.verification-badge:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.verification-badge.updating {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 @keyframes slideInLeft {
     0% {
         opacity: 0;

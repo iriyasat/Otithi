@@ -22,7 +22,7 @@
     <nav class="otithi-navbar">
         <div class="navbar-content">
             <!-- Logo -->
-            <a href="/" class="otithi-logo">
+            <a href="{{ url_for('main.index') }}" class="otithi-logo">
                 <div class="logo-content">
                     <span class="logo-text">অ. Otithi</span>
                     <span class="logo-tagline">A Bangladeshi Hospitality Platform</span>
@@ -31,12 +31,18 @@
             
             <!-- Navigation Menu -->
             <div class="navbar-nav">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/explore" class="nav-link">Explore</a>
+                <a href="{{ url_for('main.index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                 {% if current_user.is_authenticated or is_temp_admin %}
-                    <a href="/dashboard" class="nav-link">Dashboard</a>
-                    <a href="/profile" class="nav-link">Profile</a>
-                    <a href="/listings" class="nav-link">My Listings</a>
+                    {% if current_user.user_type == 'guest' %}
+                        <a href="{{ url_for('main.my_bookings') }}" class="nav-link">My Bookings</a>
+                    {% else %}
+                        <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
+                    {% endif %}
+                    <a href="{{ url_for('main.profile') }}" class="nav-link">Profile</a>
+                    {% if current_user.user_type in ['host', 'admin'] %}
+                        <a href="{{ url_for('main.listings') }}" class="nav-link">My Listings</a>
+                    {% endif %}
                 {% endif %}
             </div>
             
@@ -45,15 +51,15 @@
                 {% if current_user.is_authenticated or is_temp_admin %}
                     <div class="user-menu">
                         {% if is_temp_admin %}
-                            <a href="/" class="btn-primary">Exit Test Mode</a>
+                            <a href="{{ url_for('main.index') }}" class="btn-primary">Exit Test Mode</a>
                         {% else %}
-                            <a href="/logout" class="btn-primary">Logout</a>
+                            <a href="{{ url_for('main.logout') }}" class="btn-primary">Logout</a>
                         {% endif %}
                     </div>
                 {% else %}
                     <div class="auth-buttons">
-                        <a href="/login" class="btn-ghost">Log in</a>
-                        <a href="/register" class="btn-primary">Sign up</a>
+                        <a href="{{ url_for('main.login') }}" class="btn-ghost">Log in</a>
+                        <a href="{{ url_for('main.register') }}" class="btn-primary">Sign up</a>
                     </div>
                 {% endif %}
             </div>

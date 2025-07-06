@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Admin Dashboard - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+.confirm-card {
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+}
+
+.form-floating label {
+    color: var(--neutral-600);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-700);
+    border-color: var(--primary-700);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Back Navigation -->
+                <div class="mb-4">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+
+                <!-- Edit User Card -->
+                <div class="card confirm-card">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-edit me-2"></i>
+                            Edit User
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- User Avatar -->
+                        <div class="user-avatar">
+                            {{ user.name[0].upper() }}
+                        </div>
+
+                        <!-- Current User Info -->
+                        <div class="text-center mb-4">
+                            <h5 class="mb-1">{{ user.name }}</h5>
+                            <p class="text-muted mb-2">{{ user.email }}</p>
+                            <span class="badge bg-{{ 'success' if user.user_type == 'admin' else 'primary' if user.user_type == 'host' else 'secondary' }}">
+                                {{ user.user_type.title() }}
+                            </span>
+                            <span class="badge bg-{{ 'success' if user.verified else 'warning' }} ms-2">
+                                {{ 'Verified' if user.verified else 'Unverified' }}
+                            </span>
+                        </div>
+
+                        <!-- Edit Form -->
+                        <form method="POST" action="{{ url_for('main.admin_edit_user', user_id=user.id) }}">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="full_name" name="full_name" 
+                                               value="{{ user.name }}" required>
+                                        <label for="full_name">Full Name</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-floating">
+                                        <input type="tel" class="form-control" id="phone" name="phone" 
+                                               value="{{ user.phone or '' }}">
+                                        <label for="phone">Phone Number</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-floating">
+                                    <select class="form-select" id="user_type" name="user_type" required>
+                                        <option value="guest" {{ 'selected' if user.user_type == 'guest' }}>Guest</option>
+                                        <option value="host" {{ 'selected' if user.user_type == 'host' }}>Host</option>
+                                        <option value="admin" {{ 'selected' if user.user_type == 'admin' }}>Admin</option>
+                                    </select>
+                                    <label for="user_type">User Type</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-floating">
+                                    <select class="form-select" id="verified" name="verified" required>
+                                        <option value="1" {{ 'selected' if user.verified }}>Verified</option>
+                                        <option value="0" {{ 'selected' if not user.verified }}>Unverified</option>
+                                    </select>
+                                    <label for="verified">Verification Status</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="bio" name="bio" style="height: 100px">{{ user.bio or '' }}</textarea>
+                                    <label for="bio">Bio</label>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-3 justify-content-center">
+                                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary px-4">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const fullName = document.getElementById('full_name').value.trim();
+        if (fullName.length < 2) {
+            e.preventDefault();
+            alert('Full name must be at least 2 characters long');
+            return;
+        }
+    });
+
+    // Add smooth transitions to form controls
+    document.querySelectorAll('.form-control, .form-select').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'translateY(-2px)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

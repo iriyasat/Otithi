@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ listing.title }} - Otithi{% endblock %}
+{% block title %}{{ listing['title'] }} - Otithi{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
@@ -12,23 +12,30 @@
     <nav style="margin-bottom: 24px;">
         <a href="/" style="color: var(--text-secondary); text-decoration: none;">Otithi</a>
         <span style="color: var(--text-muted); margin: 0 8px;">></span>
-        <a href="/search" style="color: var(--text-secondary); text-decoration: none;">{{ listing.city }}</a>
+        <a href="/search" style="color: var(--text-secondary); text-decoration: none;">{{ listing['city'] }}</a>
         <span style="color: var(--text-muted); margin: 0 8px;">></span>
-        <span style="color: var(--text-primary);">{{ listing.title }}</span>
+        <span style="color: var(--text-primary);">{{ listing['title'] }}</span>
     </nav>
     
     <!-- Title & Actions -->
     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
         <div>
-            <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 8px;">{{ listing.title }}</h1>
+            <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 8px;">{{ listing['title'] }}</h1>
             <div style="display: flex; align-items: center; gap: 16px; color: var(--text-secondary);">
+                {% if listing['reviews'] > 0 %}
                 <div style="display: flex; align-items: center; gap: 4px;">
                     <i class="bi bi-star-fill" style="color: #FFD700;"></i>
-                    <span>4.8 (127 reviews)</span>
+                    <span>{{ "%.1f"|format(listing['rating']) }} ({{ listing['reviews'] }} review{{ 's' if listing['reviews'] != 1 else '' }})</span>
                 </div>
+                {% else %}
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <i class="bi bi-star" style="color: #ddd;"></i>
+                    <span>No reviews yet</span>
+                </div>
+                {% endif %}
                 <div style="display: flex; align-items: center; gap: 4px;">
                     <i class="bi bi-geo-alt"></i>
-                    <span>{{ listing.city }}, {{ listing.country }}</span>
+                    <span>{{ listing['city'] }}, {{ listing['country'] }}</span>
                 </div>
             </div>
         </div>
@@ -43,10 +50,52 @@
     </div>
     
     <!-- Photo Gallery -->
-    <div style="border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 48px;">
-        <img src="{{ url_for('static', filename='img/' + (listing.image if listing.image else 'demo_listing_1.jpg')) }}" 
-             alt="{{ listing.title }}" 
-             style="width: 100%; height: 400px; object-fit: cover;">
+    <div style="margin-bottom: 48px;">
+        {% if listing['images'] and listing['images']|length > 1 %}
+        <!-- Multiple images - show gallery -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; height: 400px; border-radius: var(--radius-lg); overflow: hidden;">
+            <!-- Main image -->
+            <div style="grid-row: 1 / 3;">
+                <img src="{{ url_for('static', filename='uploads/listings/' + listing['images'][0]) if listing['images'][0] != 'demo_listing_1.jpg' else url_for('static', filename='img/' + listing['images'][0]) }}" 
+                     alt="{{ listing['title'] }}" 
+                     style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                     onclick="openImageModal(0)">
+            </div>
+            <!-- Secondary images -->
+            {% for image in listing['images'][1:3] %}
+            <div style="position: relative;">
+                <img src="{{ url_for('static', filename='uploads/listings/' + image) if image != 'demo_listing_1.jpg' else url_for('static', filename='img/' + image) }}" 
+                     alt="{{ listing['title'] }}" 
+                     style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+                     onclick="openImageModal({{ loop.index }})">
+                {% if loop.last and listing['images']|length > 3 %}
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; cursor: pointer;" onclick="openImageModal({{ loop.index }})">
+                    +{{ listing['images']|length - 3 }} more
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Single image -->
+        <div style="border-radius: var(--radius-lg); overflow: hidden;">
+            <img src="{{ url_for('static', filename='uploads/listings/' + listing['images'][0]) if listing['images'] and listing['images'][0] != 'demo_listing_1.jpg' else url_for('static', filename='img/demo_listing_1.jpg') }}" 
+                 alt="{{ listing['title'] }}" 
+                 style="width: 100%; height: 400px; object-fit: cover; cursor: pointer;"
+                 onclick="openImageModal(0)">
+        </div>
+        {% endif %}
+        
+        <!-- Image Modal -->
+        <div id="imageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000;">
+            <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                <button onclick="closeImageModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; padding: 10px; border-radius: 50%; cursor: pointer;">&times;</button>
+                <button onclick="prevImage()" style="position: absolute; left: 20px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; padding: 10px 15px; border-radius: 50%; cursor: pointer;">‹</button>
+                <button onclick="nextImage()" style="position: absolute; right: 60px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; padding: 10px 15px; border-radius: 50%; cursor: pointer;">›</button>
+                <img id="modalImage" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                <div id="imageCounter" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px;"></div>
+            </div>
+        </div>
     </div>
     
     <div class="row">
@@ -56,10 +105,21 @@
             <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 24px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
                 <div>
                     <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">
-                        {{ listing.room_type.replace('_', ' ').title() }} hosted by Host
+                        {{ listing['room_type'].replace('_', ' ').title() }} hosted by {{ listing['host']['name'] }}
                     </h2>
                     <p style="color: var(--text-secondary); margin: 0;">
-                        {{ listing.max_guests }} guests · 1 bedroom · 1 bed · 1 bath
+                        {% if listing['room_type'] == 'entire_place' %}
+                            {{ listing['max_guests'] }} guest{% if listing['max_guests'] != 1 %}s{% endif %} · 
+                            {{ listing['bedrooms'] }} bedroom{% if listing['bedrooms'] != 1 %}s{% endif %} · 
+                            {{ listing['bedrooms'] }} bed{% if listing['bedrooms'] != 1 %}s{% endif %} · 
+                            {{ listing['bathrooms']|int if listing['bathrooms'] == listing['bathrooms']|int else listing['bathrooms'] }} bathroom{% if listing['bathrooms'] != 1 %}s{% endif %}
+                        {% elif listing['room_type'] == 'private_room' %}
+                            {{ listing['max_guests'] }} guest{% if listing['max_guests'] != 1 %}s{% endif %} · 
+                            Private room · Shared bathroom
+                        {% elif listing['room_type'] == 'shared_room' %}
+                            {{ listing['max_guests'] }} guest{% if listing['max_guests'] != 1 %}s{% endif %} · 
+                            Shared room · Shared bathroom
+                        {% endif %}
                     </p>
                 </div>
                 <div style="width: 56px; height: 56px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 24px;">
@@ -70,7 +130,7 @@
             <!-- Description -->
             <div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
                 <p style="line-height: 1.6; color: var(--text-primary);">
-                    {{ listing.description or "Experience authentic Bangladeshi hospitality in this beautiful space. Perfect for travelers looking to immerse themselves in local culture while enjoying modern comforts." }}
+                    {{ listing['description'] or "Experience authentic Bangladeshi hospitality in this beautiful space. Perfect for travelers looking to immerse themselves in local culture while enjoying modern comforts." }}
                 </p>
             </div>
             
@@ -78,7 +138,7 @@
             <div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
                 <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 24px;">What this place offers</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                    {% set amenities_list = listing.amenities.split(',') if listing.amenities else ['Wi-Fi', 'Kitchen', 'Air conditioning', 'Parking'] %}
+                    {% set amenities_list = listing['amenities'].split(',') if listing['amenities'] else ['Wi-Fi', 'Kitchen', 'Air conditioning', 'Parking'] %}
                     {% for amenity in amenities_list[:6] %}
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <i class="bi bi-check-circle" style="color: var(--primary-green);"></i>
@@ -94,12 +154,12 @@
             <div style="position: sticky; top: 120px;">
                 <div style="background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-lg);">
                     <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 24px;">
-                        <span style="font-size: 22px; font-weight: 600;">${{ listing.price_per_night }}</span>
+                        <span style="font-size: 22px; font-weight: 600;">${{ listing['price_per_night'] }}</span>
                         <span style="color: var(--text-secondary);">night</span>
                     </div>
                     
                     <form action="/booking" method="GET" style="margin-bottom: 16px;">
-                        <input type="hidden" name="listing_id" value="{{ listing.listing_id }}">
+                        <input type="hidden" name="listing_id" value="{{ listing['listing_id'] }}">
                         
                         <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 16px;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr;">
@@ -134,16 +194,16 @@
                     
                     <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                            <span>${{ listing.price_per_night }} x 5 nights</span>
-                            <span>${{ listing.price_per_night * 5 }}</span>
+                            <span>${{ listing['price_per_night'] }} x 5 nights</span>
+                            <span>${{ listing['price_per_night'] * 5 }}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                             <span>Service fee</span>
-                            <span>${{ (listing.price_per_night * 5 * 0.1)|round(2) }}</span>
+                            <span>${{ (listing['price_per_night'] * 5 * 0.1)|round(2) }}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border-light); font-weight: 600;">
                             <span>Total before taxes</span>
-                            <span>${{ (listing.price_per_night * 5 * 1.1)|round(2) }}</span>
+                            <span>${{ (listing['price_per_night'] * 5 * 1.1)|round(2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -153,46 +213,195 @@
     
     <!-- Reviews Section -->
     <div style="margin-top: 48px; padding-top: 48px; border-top: 1px solid var(--border-light);">
+        {% if reviews %}
         <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 32px;">
             <i class="bi bi-star-fill" style="color: #FFD700; margin-right: 8px;"></i>
-            4.8 · 127 reviews
+            {{ "%.1f"|format(listing['rating']) }} · {{ reviews|length }} review{{ 's' if reviews|length != 1 else '' }}
         </h3>
         
         <div class="row g-4">
+            {% for review in reviews %}
             <div class="col-md-6">
                 <div style="padding: 16px 0;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                         <div style="width: 40px; height: 40px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                            A
+                            {{ review.user_name[0].upper() if review.user_name else 'U' }}
                         </div>
                         <div>
-                            <div style="font-weight: 600;">Ahmed</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">March 2025</div>
+                            <div style="font-weight: 600;">{{ review.user_name or 'Anonymous' }}</div>
+                            <div style="font-size: 14px; color: var(--text-secondary);">
+                                {{ review.created_date.strftime('%B %Y') }}
+                            </div>
+                            <div style="font-size: 14px; color: #FFD700;">
+                                {% for i in range(review.rating|int) %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% endfor %}
+                                {% if review.rating % 1 >= 0.5 %}
+                                    <i class="bi bi-star-half"></i>
+                                {% endif %}
+                                {% for i in range(5 - (review.rating|int + (1 if review.rating % 1 >= 0.5 else 0))) %}
+                                    <i class="bi bi-star"></i>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                     <p style="color: var(--text-primary); line-height: 1.6;">
-                        Amazing stay! The host was incredibly welcoming and the place was exactly as described. Highly recommend for anyone visiting Bangladesh.
+                        {{ review.comment }}
                     </p>
                 </div>
             </div>
-            
-            <div class="col-md-6">
-                <div style="padding: 16px 0;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                        <div style="width: 40px; height: 40px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                            S
-                        </div>
-                        <div>
-                            <div style="font-weight: 600;">Sarah</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">February 2025</div>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-primary); line-height: 1.6;">
-                        Beautiful location and excellent amenities. The cultural experience was authentic and memorable. Will definitely book again!
-                    </p>
-                </div>
-            </div>
+            {% endfor %}
         </div>
+        {% else %}
+        <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 16px;">
+            <i class="bi bi-star" style="color: #ddd; margin-right: 8px;"></i>
+            No reviews yet
+        </h3>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">Be the first to leave a review for this listing!</p>
+        {% endif %}
+        
+        <!-- Add Review Form -->
+        {% if current_user.is_authenticated and current_user.id != listing['host']['id'] %}
+        <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);">
+            <h4 style="font-size: 20px; font-weight: 600; margin-bottom: 24px;">Leave a Review</h4>
+            <form action="{{ url_for('main.add_review', listing_id=listing['id']) }}" method="POST" style="max-width: 600px;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 500; margin-bottom: 8px;">Rating</label>
+                    <div style="display: flex; gap: 4px; margin-bottom: 16px;">
+                        {% for i in range(1, 6) %}
+                        <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" style="display: none;" required>
+                        <label for="star{{ i }}" class="star-rating" style="font-size: 24px; color: #ddd; cursor: pointer; transition: color 0.2s;">
+                            <i class="bi bi-star-fill"></i>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label for="comment" style="display: block; font-weight: 500; margin-bottom: 8px;">Your Review</label>
+                    <textarea name="comment" id="comment" rows="4" 
+                              style="width: 100%; padding: 12px; border: 1px solid var(--border-light); border-radius: var(--radius-md); resize: vertical;"
+                              placeholder="Share your experience with future guests..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="padding: 12px 24px;">
+                    Submit Review
+                </button>
+            </form>
+        </div>
+        {% elif not current_user.is_authenticated %}
+        <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);">
+            <p style="color: var(--text-secondary);">
+                <a href="{{ url_for('main.login') }}" style="color: var(--primary-green); text-decoration: none;">Sign in</a> to leave a review.
+            </p>
+        </div>
+        {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Image gallery functionality
+let currentImageIndex = 0;
+let listingImages = {{ listing['images'] | tojson }};
+
+function openImageModal(index) {
+    currentImageIndex = index;
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const counter = document.getElementById('imageCounter');
+    
+    const imagePath = listingImages[currentImageIndex];
+    const imageUrl = imagePath === 'demo_listing_1.jpg' 
+        ? "{{ url_for('static', filename='img/demo_listing_1.jpg') }}"
+        : "{{ url_for('static', filename='uploads/listings/') }}" + imagePath;
+    
+    modalImage.src = imageUrl;
+    counter.textContent = `${currentImageIndex + 1} / ${listingImages.length}`;
+    modal.style.display = 'block';
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function nextImage() {
+    currentImageIndex = (currentImageIndex + 1) % listingImages.length;
+    openImageModal(currentImageIndex);
+}
+
+function prevImage() {
+    currentImageIndex = (currentImageIndex - 1 + listingImages.length) % listingImages.length;
+    openImageModal(currentImageIndex);
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+
+// Close modal on background click
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Star rating functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const starLabels = document.querySelectorAll('.star-rating');
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    
+    starLabels.forEach((label, index) => {
+        label.addEventListener('mouseover', function() {
+            // Highlight stars up to current one
+            for (let i = 0; i <= index; i++) {
+                starLabels[i].style.color = '#FFD700';
+            }
+            // Unhighlight stars after current one
+            for (let i = index + 1; i < starLabels.length; i++) {
+                starLabels[i].style.color = '#ddd';
+            }
+        });
+        
+        label.addEventListener('click', function() {
+            // Set the rating
+            ratingInputs[index].checked = true;
+            // Keep stars highlighted
+            for (let i = 0; i <= index; i++) {
+                starLabels[i].style.color = '#FFD700';
+            }
+            for (let i = index + 1; i < starLabels.length; i++) {
+                starLabels[i].style.color = '#ddd';
+            }
+        });
+    });
+    
+    // Reset stars on mouse leave if no rating selected
+    const starContainer = document.querySelector('.star-rating').parentNode;
+    if (starContainer) {
+        starContainer.addEventListener('mouseleave', function() {
+            const selectedRating = document.querySelector('input[name="rating"]:checked');
+            if (selectedRating) {
+                const selectedIndex = parseInt(selectedRating.value) - 1;
+                for (let i = 0; i <= selectedIndex; i++) {
+                    starLabels[i].style.color = '#FFD700';
+                }
+                for (let i = selectedIndex + 1; i < starLabels.length; i++) {
+                    starLabels[i].style.color = '#ddd';
+                }
+            } else {
+                starLabels.forEach(label => {
+                    label.style.color = '#ddd';
+                });
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
