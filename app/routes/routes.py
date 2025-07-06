@@ -743,18 +743,9 @@ def profile():
                          stats=stats, 
                          recent_activities=recent_activities)
 
-@bp.route('/profile/edit', methods=['GET', 'POST'])
+@bp.route('/profile/edit', methods=['GET'])
 @login_required
 def edit_profile():
-    if request.method == 'POST':
-        current_user.full_name = request.form.get('full_name', current_user.full_name)
-        current_user.phone = request.form.get('phone', current_user.phone)
-        current_user.bio = request.form.get('bio', current_user.bio)
-        current_user.save()
-        
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('main.profile'))
-    
     # Calculate user statistics
     stats = {
         'total_bookings': 0,
@@ -797,6 +788,10 @@ def edit_profile():
 @login_required
 def update_profile():
     """Update user profile information"""
+    import os
+    from werkzeug.utils import secure_filename
+    from flask import current_app
+    
     try:
         full_name = request.form.get('full_name', '').strip()
         phone = request.form.get('phone', '').strip()
@@ -804,16 +799,43 @@ def update_profile():
         
         # Handle profile photo upload
         profile_photo = request.files.get('profile_photo')
+        profile_photo_filename = None
+        
         if profile_photo and profile_photo.filename:
-            # Save the uploaded file (implement file upload logic)
-            # For now, we'll skip the actual file upload
-            pass
+            # Validate file type
+            allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+            if '.' in profile_photo.filename and \
+               profile_photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                
+                # Create filename with user name for organization
+                file_extension = profile_photo.filename.rsplit('.', 1)[1].lower()
+                # Clean the user name for filename (remove spaces, special chars)
+                clean_name = ''.join(c for c in current_user.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                clean_name = clean_name.replace(' ', '_')  # Replace spaces with underscores
+                clean_name = clean_name.lower()  # Convert to lowercase for consistency
+                
+                # Add user ID to prevent conflicts if multiple users have same name
+                profile_photo_filename = f"{clean_name}_{current_user.id}_profile.{file_extension}"
+                
+                # Create uploads directory if it doesn't exist
+                upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                # Save the file
+                file_path = os.path.join(upload_folder, profile_photo_filename)
+                profile_photo.save(file_path)
+                
+                # Remove old profile photo if it exists
+                if current_user.profile_photo and current_user.profile_photo != profile_photo_filename:
+                    old_file_path = os.path.join(upload_folder, current_user.profile_photo)
+                    if os.path.exists(old_file_path):
+                        os.remove(old_file_path)
+            else:
+                flash('Invalid file type. Please upload PNG, JPG, JPEG, or GIF files only.', 'error')
+                return redirect(url_for('main.edit_profile'))
         
         # Update user data
-        if current_user.update_profile(full_name=full_name, phone=phone):
-            # Update bio separately if needed
-            current_user.bio = bio
-            current_user.save()
+        if current_user.update_profile(full_name=full_name, phone=phone, profile_photo=profile_photo_filename, bio=bio):
             flash('Profile updated successfully!', 'success')
         else:
             flash('Error updating profile. Please try again.', 'error')

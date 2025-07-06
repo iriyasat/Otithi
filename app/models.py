@@ -134,7 +134,7 @@ class User(UserMixin):
         query = "UPDATE users SET user_type = %s WHERE user_id = %s"
         return db.execute_update(query, (new_user_type, self.id))
     
-    def update_profile(self, full_name=None, phone=None, profile_photo=None):
+    def update_profile(self, full_name=None, phone=None, profile_photo=None, bio=None):
         """Update user profile"""
         update_fields = []
         update_values = []
@@ -153,6 +153,11 @@ class User(UserMixin):
             update_fields.append("profile_photo = %s")
             update_values.append(profile_photo)
             self.profile_photo = profile_photo
+            
+        if bio is not None:
+            update_fields.append("bio = %s")
+            update_values.append(bio)
+            self.bio = bio
         
         if update_fields:
             query = f"UPDATE users SET {', '.join(update_fields)} WHERE user_id = %s"

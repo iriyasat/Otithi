@@ -8,37 +8,38 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/profile.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <div class="dashboard-header">
+<div class="profile-container">
+    <div class="profile-header">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center justify-content-center">
                 <div class="col-auto">
-                    <div class="profile-header-avatar">
+                    <div class="profile-avatar-container">
                         {% if current_user and current_user.profile_photo %}
-                            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_photo) }}" alt="{{ current_user.name if current_user else 'User' }}" class="profile-header-image">
+                            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_photo) }}" alt="{{ current_user.name if current_user else 'User' }}" class="profile-avatar-image">
                         {% else %}
-                            <div class="profile-header-placeholder">
+                            <div class="profile-avatar-placeholder">
                                 <i class="fas fa-user"></i>
                             </div>
                         {% endif %}
                     </div>
                 </div>
-                <div class="col">
-                    <h1 class="dashboard-title mb-2">{{ current_user.name if current_user else 'User Profile' }}</h1>
-                    <p class="lead mb-0">{{ (current_user.user_type|title) if current_user else 'Guest' }} Profile</p>
-                    <small class="text-white-50">Member since {{ current_user.joined_date.strftime('%B %Y') if current_user and current_user.joined_date else 'Recently' }}</small>
-                </div>
-                <div class="col-auto">
-                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill">
-                        {% if current_user and current_user.verified %}
-                            <i class="fas fa-check-circle me-1"></i>Verified
-                        {% else %}
-                            <i class="fas fa-clock me-1"></i>Unverified
-                        {% endif %}
-                    </span>
+                <div class="col-auto profile-header-content">
+                    <div class="profile-header-info">
+                        <h1 class="profile-name">{{ current_user.name if current_user else 'User Profile' }}</h1>
+                        <p class="profile-role">{{ (current_user.user_type|title) if current_user else 'Guest' }} Profile</p>
+                        <small class="profile-member-since">Member since {{ current_user.join_date.strftime('%B %Y') if current_user and current_user.join_date else 'Recently' }}</small>
+                        <div class="profile-verification-badge">
+                            {% if current_user and current_user.verified %}
+                                <i class="fas fa-check-circle"></i>Verified Account
+                            {% else %}
+                                <i class="fas fa-clock"></i>Unverified Account
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -46,49 +47,41 @@
 
     <div class="container">
         <!-- Profile Statistics -->
-        <div class="row dashboard-stats mb-5">
+        <div class="row profile-stats">
             <div class="col-md-3 col-sm-6 mb-4">
-                <div class="stat-card bg-primary text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon mb-3">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <h3 class="stat-value">{{ stats.total_bookings if stats else 0 }}</h3>
-                        <p class="stat-label mb-0">Total Bookings</p>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
                     </div>
+                    <h3 class="stat-value">{{ stats.total_bookings if stats else 0 }}</h3>
+                    <p class="stat-label">Total Bookings</p>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-4">
-                <div class="stat-card bg-success text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon mb-3">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <h3 class="stat-value">{{ "%.1f"|format(stats.average_rating if stats else 0) }}</h3>
-                        <p class="stat-label mb-0">Average Rating</p>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
                     </div>
+                    <h3 class="stat-value">{{ "%.1f"|format(stats.average_rating if stats else 0) }}</h3>
+                    <p class="stat-label">Average Rating</p>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-4">
-                <div class="stat-card bg-info text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon mb-3">
-                            <i class="fas fa-heart"></i>
-                        </div>
-                        <h3 class="stat-value">{{ stats.favorites if stats else 0 }}</h3>
-                        <p class="stat-label mb-0">Favorite Listings</p>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-heart"></i>
                     </div>
+                    <h3 class="stat-value">{{ stats.favorites if stats else 0 }}</h3>
+                    <p class="stat-label">Favorite Listings</p>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-4">
-                <div class="stat-card bg-warning text-white h-100">
-                    <div class="card-body text-center">
-                        <div class="stat-icon mb-3">
-                            <i class="fas fa-comment"></i>
-                        </div>
-                        <h3 class="stat-value">{{ stats.reviews_given if stats else 0 }}</h3>
-                        <p class="stat-label mb-0">Reviews Given</p>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-comment"></i>
                     </div>
+                    <h3 class="stat-value">{{ stats.reviews_given if stats else 0 }}</h3>
+                    <p class="stat-label">Reviews Given</p>
                 </div>
             </div>
         </div>
@@ -96,21 +89,21 @@
         <div class="row">
             <!-- Profile Information Card -->
             <div class="col-lg-8 mb-4">
-                <div class="card dashboard-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-user-edit me-2"></i>Profile Information
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-user-edit"></i>Profile Information
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <form method="POST" action="{{ url_for('main.update_profile') if not edit_mode else '' }}" enctype="multipart/form-data" id="profileForm">
+                    <div class="profile-card-body">
+                        <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data" id="profileForm" class="profile-form">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-6 form-group">
                                     <label for="full_name" class="form-label">Full Name</label>
                                     <input type="text" class="form-control" id="full_name" name="full_name" 
                                            value="{{ current_user.name if current_user else '' }}" {{ 'readonly' if not edit_mode else 'required' }}>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-6 form-group">
                                     <label for="email" class="form-label">Email Address</label>
                                     <input type="email" class="form-control" id="email" name="email" 
                                            value="{{ current_user.email if current_user else '' }}" readonly>
@@ -119,12 +112,12 @@
                             </div>
                             
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-6 form-group">
                                     <label for="phone" class="form-label">Phone Number</label>
                                     <input type="tel" class="form-control" id="phone" name="phone" 
                                            value="{{ current_user.phone if current_user else '' }}" placeholder="+880 1XXX-XXXXXX" {{ 'readonly' if not edit_mode else '' }}>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-6 form-group">
                                     <label for="user_type" class="form-label">Account Type</label>
                                     <input type="text" class="form-control" id="user_type" name="user_type" 
                                            value="{{ (current_user.user_type|title) if current_user else 'Guest' }}" readonly>
@@ -132,35 +125,40 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="form-group">
                                 <label for="bio" class="form-label">Bio</label>
                                 <textarea class="form-control" id="bio" name="bio" rows="3" 
                                           placeholder="Tell us about yourself..." {{ 'readonly' if not edit_mode else '' }}>{{ current_user.bio if current_user else '' }}</textarea>
                             </div>
 
+                            <!-- Hidden file input always present -->
+                            <input type="file" class="d-none" id="profile_photo" name="profile_photo" accept="image/*">
+                            
                             {% if edit_mode %}
-                            <div class="mb-3">
-                                <label for="profile_photo" class="form-label">Profile Photo</label>
-                                <input type="file" class="form-control" id="profile_photo" name="profile_photo" 
-                                       accept="image/*">
-                                <div class="form-text">Upload a new profile photo (JPG, PNG, max 5MB)</div>
+                            <div class="form-group">
+                                <label for="profile_photo_visible" class="form-label">Profile Photo</label>
+                                <div class="file-upload-area" onclick="document.getElementById('profile_photo').click()">
+                                    <i class="fas fa-camera"></i>
+                                    <p>Click to upload a new profile photo</p>
+                                    <small>JPG, PNG, max 5MB</small>
+                                </div>
                             </div>
                             {% endif %}
 
-                            <div class="d-flex gap-2">
+                            <div class="profile-actions">
                                 {% if edit_mode %}
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    <button type="submit" class="btn-profile btn-profile-primary">
+                                        <i class="fas fa-save"></i>Save Changes
                                     </button>
-                                    <a href="{{ url_for('main.profile') }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-times me-2"></i>Cancel
+                                    <a href="{{ url_for('main.profile') }}" class="btn-profile btn-profile-secondary">
+                                        <i class="fas fa-times"></i>Cancel
                                     </a>
                                 {% else %}
-                                    <a href="{{ url_for('main.edit_profile') if url_for else '#' }}" class="btn btn-primary">
-                                        <i class="fas fa-edit me-2"></i>Edit Profile
+                                    <a href="{{ url_for('main.edit_profile') if url_for else '#' }}" class="btn-profile btn-profile-primary">
+                                        <i class="fas fa-edit"></i>Edit Profile
                                     </a>
-                                    <a href="{{ url_for('main.dashboard') if url_for else '#' }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                    <a href="{{ url_for('main.dashboard') if url_for else '#' }}" class="btn-profile btn-profile-outline">
+                                        <i class="fas fa-arrow-left"></i>Back to Dashboard
                                     </a>
                                 {% endif %}
                             </div>
@@ -171,14 +169,14 @@
 
             <!-- Profile Picture & Quick Actions -->
             <div class="col-lg-4 mb-4">
-                <div class="card dashboard-card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-image me-2"></i>Profile Picture
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-image"></i>Profile Picture
                         </h5>
                     </div>
-                    <div class="card-body text-center">
-                        <div class="profile-picture-container mb-3">
+                    <div class="profile-card-body text-center">
+                        <div class="profile-picture-container">
                             {% if current_user and current_user.profile_photo %}
                                 <img src="{{ url_for('static', filename='uploads/' + current_user.profile_photo) }}" alt="{{ current_user.name }}" class="profile-picture">
                             {% else %}
@@ -186,34 +184,39 @@
                                     <i class="fas fa-user"></i>
                                 </div>
                             {% endif %}
+                            {% if edit_mode %}
+                            <div class="photo-upload-overlay" onclick="console.log('Upload overlay clicked'); document.getElementById('profile_photo').click()">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                            {% endif %}
                         </div>
                         <p class="text-muted small mb-3">{{ current_user.name if current_user else 'User' }}</p>
                         {% if edit_mode %}
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('profile_photo').click()">
-                            <i class="fas fa-camera me-1"></i>Change Photo
+                        <button type="button" class="btn-profile btn-profile-secondary" onclick="console.log('Change photo button clicked'); document.getElementById('profile_photo').click()">
+                            <i class="fas fa-camera"></i>Change Photo
                         </button>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- Account Actions -->
-                <div class="card dashboard-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-cog me-2"></i>Account Actions
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-cog"></i>Account Actions
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                                <i class="fas fa-key me-2"></i>Change Password
+                    <div class="profile-card-body">
+                        <div class="quick-actions-grid">
+                            <button type="button" class="quick-action-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                <i class="fas fa-key quick-action-icon"></i>Change Password
                             </button>
-                            <button type="button" class="btn btn-outline-info btn-sm" onclick="downloadUserData()">
-                                <i class="fas fa-download me-2"></i>Download My Data
+                            <button type="button" class="quick-action-btn" onclick="downloadUserData()">
+                                <i class="fas fa-download quick-action-icon"></i>Download My Data
                             </button>
                             <hr>
-                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                                <i class="fas fa-trash me-2"></i>Delete Account
+                            <button type="button" class="quick-action-btn danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                <i class="fas fa-trash quick-action-icon"></i>Delete Account
                             </button>
                         </div>
                     </div>
@@ -224,13 +227,13 @@
         <!-- Recent Activity -->
         <div class="row">
             <div class="col-12">
-                <div class="card dashboard-card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-clock me-2"></i>Recent Activity
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-clock"></i>Recent Activity
                         </h5>
                     </div>
-                    <div class="card-body">
+                    <div class="profile-card-body">
                         {% if recent_activities %}
                             <div class="activity-list">
                                 {% for activity in recent_activities %}
@@ -239,16 +242,16 @@
                                         <i class="fas {{ activity.icon }}"></i>
                                     </div>
                                     <div class="activity-content">
-                                        <p class="activity-text mb-1">{{ activity.description }}</p>
-                                        <small class="text-muted">{{ activity.date.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                                        <p class="activity-text">{{ activity.description }}</p>
+                                        <small class="activity-time">{{ activity.date.strftime('%B %d, %Y at %I:%M %p') }}</small>
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="text-center py-4">
-                                <i class="fas fa-history text-muted fa-3x mb-3"></i>
-                                <p class="text-muted">No recent activity to display</p>
+                            <div class="empty-state">
+                                <i class="fas fa-history empty-state-icon"></i>
+                                <p class="empty-state-text">No recent activity to display</p>
                             </div>
                         {% endif %}
                     </div>
@@ -351,25 +354,78 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmPassword.addEventListener('input', validatePasswords);
     }
     
-    // Profile photo preview
+    // Profile photo preview - handles both header and sidebar profile pictures
     const profilePhotoInput = document.getElementById('profile_photo');
     if (profilePhotoInput) {
+        console.log('Profile photo input found');
         profilePhotoInput.addEventListener('change', function(e) {
+            console.log('File input changed');
             const file = e.target.files[0];
             if (file) {
+                console.log('File selected:', file.name, file.size, file.type);
+                
+                // Validate file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please upload only JPG, PNG, or GIF files');
+                    this.value = '';
+                    return;
+                }
+                
+                console.log('File validation passed, creating preview');
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const profilePicture = document.querySelector('.profile-picture, .profile-picture-placeholder');
-                    if (profilePicture) {
-                        if (profilePicture.tagName === 'IMG') {
-                            profilePicture.src = e.target.result;
-                        } else {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.className = 'profile-picture';
-                            img.alt = 'Profile Preview';
-                            profilePicture.parentNode.replaceChild(img, profilePicture);
-                        }
+                    console.log('FileReader loaded');
+                    // Update header profile picture
+                    const headerProfilePicture = document.querySelector('.profile-avatar-image');
+                    const headerPlaceholder = document.querySelector('.profile-avatar-placeholder');
+                    
+                    if (headerProfilePicture) {
+                        console.log('Updating header profile picture');
+                        headerProfilePicture.src = e.target.result;
+                    } else if (headerPlaceholder) {
+                        console.log('Creating new header profile picture');
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'profile-avatar-image';
+                        img.alt = 'Profile Preview';
+                        headerPlaceholder.parentNode.replaceChild(img, headerPlaceholder);
+                    }
+                    
+                    // Update sidebar profile picture
+                    const sidebarProfilePicture = document.querySelector('.profile-picture');
+                    const sidebarPlaceholder = document.querySelector('.profile-picture-placeholder');
+                    
+                    if (sidebarProfilePicture) {
+                        console.log('Updating sidebar profile picture');
+                        sidebarProfilePicture.src = e.target.result;
+                    } else if (sidebarPlaceholder) {
+                        console.log('Creating new sidebar profile picture');
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'profile-picture';
+                        img.alt = 'Profile Preview';
+                        sidebarPlaceholder.parentNode.replaceChild(img, sidebarPlaceholder);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    } else {
+        console.log('Profile photo input NOT found');
+    }
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'profile-picture';
+                        img.alt = 'Profile Preview';
+                        sidebarPlaceholder.parentNode.replaceChild(img, sidebarPlaceholder);
                     }
                 };
                 reader.readAsDataURL(file);
@@ -381,13 +437,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function downloadUserData() {
     // Create and trigger download of user data
     const userData = {
-        name: "{{ current_user.name if current_user else '' }}",
-        email: "{{ current_user.email if current_user else '' }}",
-        phone: "{{ current_user.phone if current_user else '' }}",
-        user_type: "{{ current_user.user_type if current_user else '' }}",
-        joined_date: "{{ current_user.joined_date.strftime('%Y-%m-%d') if current_user and current_user.joined_date else '' }}",
-        bio: "{{ current_user.bio if current_user else '' }}",
-        verified: {{ 'true' if current_user and current_user.verified else 'false' }},
+        name: {{ (current_user.name|tojson) if current_user else '""' }},
+        email: {{ (current_user.email|tojson) if current_user else '""' }},
+        phone: {{ (current_user.phone|tojson) if current_user else '""' }},
+        user_type: {{ (current_user.user_type|tojson) if current_user else '""' }},
+        joined_date: {{ (current_user.join_date.strftime('%Y-%m-%d')|tojson) if current_user and current_user.join_date else '""' }},
+        bio: {{ (current_user.bio|tojson) if current_user else '""' }},
+        verified: {{ (current_user.verified|lower) if current_user else 'false' }},
         stats: {
             total_bookings: {{ stats.total_bookings if stats else 0 }},
             average_rating: {{ stats.average_rating if stats else 0 }},
@@ -428,128 +484,5 @@ function confirmDeleteAccount() {
 }
 </script>
 
-<style>
-/* Profile-specific styles */
-.profile-header-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-.profile-header-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.profile-header-placeholder {
-    color: white;
-    font-size: 2rem;
-}
-
-.profile-picture-container {
-    width: 150px;
-    height: 150px;
-    margin: 0 auto;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 4px solid var(--primary-100);
-    background: var(--neutral-50);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-picture {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.profile-picture-placeholder {
-    color: var(--text-muted);
-    font-size: 3rem;
-}
-
-.activity-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.activity-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--neutral-200);
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-}
-
-.activity-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--primary-100);
-    color: var(--primary-600);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.activity-content {
-    flex: 1;
-}
-
-.activity-text {
-    margin-bottom: 0.25rem;
-    color: var(--text-primary);
-}
-
-/* Form enhancements */
-.form-control:focus {
-    border-color: var(--primary-500);
-    box-shadow: 0 0 0 0.25rem rgba(0, 106, 78, 0.25);
-}
-
-/* Modal enhancements */
-.modal-content {
-    border: none;
-    box-shadow: var(--shadow-xl);
-}
-
-.modal-header {
-    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
-    color: white;
-    border-bottom: none;
-}
-
-.modal-header .btn-close {
-    filter: invert(1);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .dashboard-header .row {
-        text-align: center;
-    }
-    
-    .profile-header-avatar {
-        margin: 0 auto 1rem;
-    }
-    
-    .dashboard-stats .col-md-3 {
-        margin-bottom: 1rem;
-    }
-}
-</style>
 {% endblock %}
