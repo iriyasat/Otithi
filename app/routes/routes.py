@@ -1043,8 +1043,69 @@ def edit_profile():
             if total_reviews > 0:
                 stats['average_rating'] = total_rating / total_reviews
     
-    # Get recent activity (placeholder for now)
+    # Get recent activity
     recent_activities = []
+    
+    # Add recent bookings
+    if bookings:
+        for booking in bookings[:5]:  # Last 5 bookings
+            listing = Listing.get(booking.listing_id)
+            recent_activities.append({
+                'type': 'booking',
+                'action': f"Booked {listing.title if listing else 'a listing'}",
+                'date': booking.created_date,
+                'status': booking.status,
+                'icon': 'fas fa-calendar-check',
+                'color': 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger'
+            })
+    
+    # Add recent reviews given
+    if reviews:
+        for review in reviews[:3]:  # Last 3 reviews
+            listing = Listing.get(review.listing_id)
+            recent_activities.append({
+                'type': 'review',
+                'action': f"Reviewed {listing.title if listing else 'a listing'}",
+                'date': review.created_date,
+                'rating': review.rating,
+                'icon': 'fas fa-star',
+                'color': 'info'
+            })
+    
+    # Add host activities (if user is a host)
+    if current_user.user_type == 'host':
+        host_listings = Listing.get_by_host(current_user.id)
+        if host_listings:
+            for listing in host_listings[:3]:  # Last 3 listings
+                recent_activities.append({
+                    'type': 'listing',
+                    'action': f"Created listing: {listing.title}",
+                    'date': listing.created_date if hasattr(listing, 'created_date') and listing.created_date else None,
+                    'icon': 'fas fa-home',
+                    'color': 'primary'
+                })
+        
+        # Add recent bookings received (for hosts)
+        host_bookings = Booking.get_by_host(current_user.id)
+        if host_bookings:
+            for booking in host_bookings[:3]:  # Last 3 bookings received
+                guest = User.get(booking.user_id)
+                listing = Listing.get(booking.listing_id)
+                recent_activities.append({
+                    'type': 'host_booking',
+                    'action': f"Received booking from {guest.name if guest else 'a guest'} for {listing.title if listing else 'your listing'}",
+                    'date': booking.created_date,
+                    'status': booking.status,
+                    'icon': 'fas fa-user-check',
+                    'color': 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger'
+                })
+    
+    # Sort all activities by date (most recent first)
+    recent_activities = sorted(
+        [activity for activity in recent_activities if activity.get('date')],
+        key=lambda x: x['date'],
+        reverse=True
+    )[:10]  # Keep only the 10 most recent activities
     
     # Use shared template for all user types
     return render_template('profile.html', 
@@ -1192,6 +1253,46 @@ def check_email():
         user = User.get_by_email(email)
         return jsonify({'available': user is None})
     return jsonify({'available': False})
+
+@bp.route('/api/user/reviews')
+@login_required
+def get_user_reviews():
+    """API endpoint to get all reviews posted by the current user"""
+    try:
+        # Get all reviews by the current user
+        user_reviews = Review.get_by_user(current_user.id)
+        
+        # Convert reviews to JSON format with listing information
+        reviews_data = []
+        for review in user_reviews:
+            # Get the listing for this review
+            listing = Listing.get_by_id(review.listing_id)
+            
+            review_data = {
+                'id': review.id,
+                'rating': review.rating,
+                'comment': review.comment,
+                'created_date': review.created_date.strftime('%B %d, %Y') if review.created_date else '',
+                'listing_title': listing.title if listing else 'Listing not found',
+                'listing_location': listing.location if listing else '',
+                'listing_id': review.listing_id
+            }
+            reviews_data.append(review_data)
+        
+        # Sort by date (newest first)
+        reviews_data.sort(key=lambda x: x['created_date'], reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'reviews': reviews_data,
+            'total_count': len(reviews_data)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error fetching reviews: {str(e)}'
+        }), 500
 
 # Legacy routes (for compatibility)
 @bp.route('/host')
@@ -1694,26 +1795,117 @@ def dev_quick_login():
 def dev_force_profile(user_id):
     """Development route to force login and go to profile"""
     try:
-        print(f"DEBUG: Force profile for user {user_id}")
         user = User.get(user_id)
         if user:
-            print(f"DEBUG: User found: {user.name}")
             result = login_user(user, remember=True)
-            print(f"DEBUG: Login result: {result}")
             
             # Don't redirect, render profile directly with the user
             from flask_login import current_user
-            print(f"DEBUG: Current user authenticated: {current_user.is_authenticated}")
             
             if current_user.is_authenticated:
-                # Render profile template directly
-                return render_template('profile.html', user=current_user)
+                # Calculate user statistics (same logic as profile route)
+                stats = {
+                    'total_bookings': 0,
+                    'average_rating': 0.0,
+                    'favorites': 0,
+                    'reviews_given': 0
+                }
+                
+                # Get user bookings
+                bookings = Booking.get_by_user(current_user.id)
+                stats['total_bookings'] = len(bookings) if bookings else 0
+                
+                # Get user reviews given
+                reviews = Review.get_by_user(current_user.id)
+                stats['reviews_given'] = len(reviews) if reviews else 0
+                
+                # Calculate average rating received (for hosts)
+                if current_user.user_type == 'host':
+                    host_listings = Listing.get_by_host(current_user.id)
+                    if host_listings:
+                        total_rating = 0
+                        total_reviews = 0
+                        for listing in host_listings:
+                            if listing.rating > 0:
+                                total_rating += listing.rating * listing.reviews_count
+                                total_reviews += listing.reviews_count
+                        if total_reviews > 0:
+                            stats['average_rating'] = total_rating / total_reviews
+                
+                # Get recent activity
+                recent_activities = []
+                
+                # Add recent bookings
+                if bookings:
+                    for booking in bookings[:5]:  # Last 5 bookings
+                        listing = Listing.get(booking.listing_id)
+                        recent_activities.append({
+                            'type': 'booking',
+                            'action': f"Booked {listing.title if listing else 'a listing'}",
+                            'date': booking.created_date,
+                            'status': booking.status,
+                            'icon': 'fas fa-calendar-check',
+                            'color': 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger'
+                        })
+                
+                # Add recent reviews given
+                if reviews:
+                    for review in reviews[:3]:  # Last 3 reviews
+                        listing = Listing.get(review.listing_id)
+                        recent_activities.append({
+                            'type': 'review',
+                            'action': f"Reviewed {listing.title if listing else 'a listing'}",
+                            'date': review.created_date,
+                            'rating': review.rating,
+                            'icon': 'fas fa-star',
+                            'color': 'info'
+                        })
+                
+                # Add host activities (if user is a host)
+                if current_user.user_type == 'host':
+                    host_listings = Listing.get_by_host(current_user.id)
+                    if host_listings:
+                        for listing in host_listings[:3]:  # Last 3 listings
+                            recent_activities.append({
+                                'type': 'listing',
+                                'action': f"Created listing: {listing.title}",
+                                'date': listing.created_date if hasattr(listing, 'created_date') and listing.created_date else None,
+                                'icon': 'fas fa-home',
+                                'color': 'primary'
+                            })
+                    
+                    # Add recent bookings received (for hosts)
+                    host_bookings = Booking.get_by_host(current_user.id)
+                    if host_bookings:
+                        for booking in host_bookings[:3]:  # Last 3 bookings received
+                            guest = User.get(booking.user_id)
+                            listing = Listing.get(booking.listing_id)
+                            recent_activities.append({
+                                'type': 'host_booking',
+                                'action': f"Received booking from {guest.name if guest else 'a guest'} for {listing.title if listing else 'your listing'}",
+                                'date': booking.created_date,
+                                'status': booking.status,
+                                'icon': 'fas fa-user-check',
+                                'color': 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger'
+                            })
+                
+                # Sort all activities by date (most recent first)
+                recent_activities = sorted(
+                    [activity for activity in recent_activities if activity.get('date')],
+                    key=lambda x: x['date'],
+                    reverse=True
+                )[:10]  # Keep only the 10 most recent activities
+                
+                # Render profile template with stats
+                return render_template('profile.html', 
+                                     edit_mode=False, 
+                                     stats=stats, 
+                                     recent_activities=recent_activities)
             else:
                 return f"<h1>Login failed for user {user.name}</h1><p><a href='/dev/users'>Back to users</a></p>"
         else:
             return f"<h1>User {user_id} not found</h1><p><a href='/dev/users'>Back to users</a></p>"
     except Exception as e:
-        print(f"DEBUG: Force profile error: {str(e)}")
         import traceback
         traceback.print_exc()
         return f"<h1>Error: {str(e)}</h1><p><a href='/dev/users'>Back to users</a></p>"
