@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Development Portal - Othiti{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+.dev-portal {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.dev-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #dee2e6;
+}
+.dev-section h3 {
+    color: #007bff;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+    font-weight: 600;
+}
+.dev-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+.dev-item {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.dev-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    border-color: #007bff;
+}
+.dev-item h5 {
+    color: #212529;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+.dev-item p {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+.dev-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+.dev-btn:hover {
+    background: #0056b3;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+}
+.dev-btn.secondary {
+    background: #6c757d;
+    color: white;
+}
+.dev-btn.secondary:hover {
+    background: #5a6268;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(108,117,125,0.3);
+}
+.alert-dev {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.badge-primary {
+    background-color: #007bff;
+    color: white;
+}
+.badge-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.user-badge {
+    font-size: 11px;
+    margin-left: 8px;
+}
+.user-email {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+.user-id {
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+.user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.dev-btn-small {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dev-portal">
+    <div class="text-center mb-5">
+        <h1>🚀 Development Portal</h1>
+        <p class="lead">Quick access to development tools and testing routes</p>
+    </div>
+
+    <div class="alert-dev">
+        <strong>⚠️ Development Mode Only:</strong> These tools are for development and testing purposes only. Do not use in production.
+    </div>
+
+    <!-- System Statistics -->
+    <div class="dev-section">
+        <h3>� System Statistics</h3>
+        <div class="dev-grid">
+            <div class="dev-item">
+                <h5>Total Users</h5>
+                <p><strong>{{ stats.total_users }}</strong> registered users</p>
+                <small>Admin: {{ stats.admin_count }} | Host: {{ stats.host_count }} | Guest: {{ stats.guest_count }}</small>
+            </div>
+            <div class="dev-item">
+                <h5>Total Listings</h5>
+                <p><strong>{{ stats.total_listings }}</strong> property listings</p>
+                <a href="/explore" class="dev-btn secondary">Browse All</a>
+            </div>
+            <div class="dev-item">
+                <h5>Total Bookings</h5>
+                <p><strong>{{ stats.total_bookings }}</strong> bookings made</p>
+                <a href="/my-bookings" class="dev-btn secondary">View Bookings</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Users - Quick Login -->
+    <div class="dev-section">
+        <h3>� All Users - Quick Login & Testing</h3>
+        <p>Switch between any user for testing. Click to login, view profile, or test dashboard.</p>
+        <div class="dev-grid">
+            {% for user in users %}
+            <div class="dev-item">
+                <h5>
+                    {{ user.name }}
+                    <span class="badge {% if user.user_type == 'admin' %}badge-danger{% elif user.user_type == 'host' %}badge-primary{% else %}badge-secondary{% endif %} user-badge">
+                        {{ user.user_type.upper() }}
+                    </span>
+                </h5>
+                <p class="user-email">{{ user.email }}</p>
+                <p class="user-id">ID: {{ user.user_id }}</p>
+                <div class="user-actions">
+                    <a href="/dev/login/{{ user.user_id }}" class="dev-btn dev-btn-small">Login</a>
+                    <a href="/dev/force_profile/{{ user.user_id }}" class="dev-btn secondary dev-btn-small">Profile</a>
+                    <a href="/dev/force_dashboard/{{ user.user_id }}" class="dev-btn secondary dev-btn-small">Dashboard</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Application Features -->
+    <div class="dev-section">
+        <h3>🏠 Core Features</h3>
+        <div class="dev-grid">
+            <div class="dev-item">
+                <h5>Listings</h5>
+                <p>Browse and manage property listings</p>
+                <a href="/explore" class="dev-btn secondary">Explore Listings</a>
+                <a href="/listings" class="dev-btn secondary">My Listings</a>
+            </div>
+            <div class="dev-item">
+                <h5>Bookings</h5>
+                <p>View and manage bookings</p>
+                <a href="/my-bookings" class="dev-btn secondary">My Bookings</a>
+            </div>
+            <div class="dev-item">
+                <h5>Admin Panel</h5>
+                <p>Administrative controls and management</p>
+                <a href="/admin" class="dev-btn secondary">Admin Dashboard</a>
+                <a href="/admin/users" class="dev-btn secondary">Manage Users</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Development Tools -->
+    <div class="dev-section">
+        <h3>🛠️ Development Tools</h3>
+        <div class="dev-grid">
+            <div class="dev-item">
+                <h5>Database Debug</h5>
+                <p>Debug database connections and queries</p>
+                <a href="/dev/debug_session/8" class="dev-btn secondary">Debug Session</a>
+            </div>
+            <div class="dev-item">
+                <h5>Test User</h5>
+                <p>Test specific user functionality</p>
+                <a href="/dev/test_user/1" class="dev-btn secondary">Test Admin</a>
+                <a href="/dev/test_user/8" class="dev-btn secondary">Test Guest</a>
+            </div>
+            <div class="dev-item">
+                <h5>Authentication</h5>
+                <p>Test login and registration flows</p>
+                <a href="/login" class="dev-btn secondary">Login Page</a>
+                <a href="/register" class="dev-btn secondary">Register Page</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dev-section">
+        <h3>⚡ Quick Actions</h3>
+        <div class="dev-grid">
+            <div class="dev-item">
+                <h5>Create Listing</h5>
+                <p>Test listing creation flow</p>
+                <a href="/create_listing" class="dev-btn secondary">New Listing</a>
+            </div>
+            <div class="dev-item">
+                <h5>User Profile</h5>
+                <p>Edit user profile and settings</p>
+                <a href="/profile" class="dev-btn secondary">My Profile</a>
+            </div>
+            <div class="dev-item">
+                <h5>Search & Filter</h5>
+                <p>Test search and filtering functionality</p>
+                <a href="/search" class="dev-btn secondary">Search Listings</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Status -->
+    <div class="dev-section">
+        <h3>📊 Current Session & Environment</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <h5>Authentication Status</h5>
+                {% if current_user.is_authenticated %}
+                    <p class="text-success">✅ Logged in as: <strong>{{ current_user.full_name }}</strong></p>
+                    <p><strong>User Type:</strong> {{ current_user.user_type.title() }}</p>
+                    <p><strong>User ID:</strong> {{ current_user.user_id }}</p>
+                    <a href="/logout" class="dev-btn">Logout</a>
+                {% else %}
+                    <p class="text-warning">❌ Not logged in</p>
+                    <a href="/login" class="dev-btn">Login</a>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <h5>Environment Info</h5>
+                <p><strong>Debug Mode:</strong> {{ config.DEBUG }}</p>
+                <p><strong>Environment:</strong> Development</p>
+                <p><strong>Database:</strong> Connected ✅</p>
+                <p><strong>Users:</strong> {{ stats.total_users }}</p>
+            </div>
+            <div class="col-md-4">
+                <h5>System Stats</h5>
+                <p><strong>Listings:</strong> {{ stats.total_listings }}</p>
+                <p><strong>Bookings:</strong> {{ stats.total_bookings }}</p>
+                <p><strong>Admin Users:</strong> {{ stats.admin_count }}</p>
+                <p><strong>Host Users:</strong> {{ stats.host_count }}</p>
+                <p><strong>Guest Users:</strong> {{ stats.guest_count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <a href="/" class="dev-btn">← Back to Home</a>
+    </div>
+</div>
+{% endblock %}

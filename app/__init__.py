@@ -18,7 +18,7 @@ def create_app():
     login_manager.login_view = 'main.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
-    login_manager.session_protection = 'strong'  # Add session protection
+    login_manager.session_protection = 'strong'  # Re-enabled session protection
     
     @login_manager.user_loader
     def load_user(user_id):

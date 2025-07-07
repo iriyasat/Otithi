@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User, Listing, Booking, Review
 from app.location_models import Location, ListingImage
@@ -1562,12 +1562,23 @@ def dev_login(user_id):
             result = login_user(user, remember=True)
             print(f"DEBUG: login_user result: {result}")
             
+            # Make session permanent
+            from flask import session
+            session.permanent = True
+            
             from flask_login import current_user
             print(f"DEBUG: current_user.is_authenticated: {current_user.is_authenticated}")
             print(f"DEBUG: current_user ID: {current_user.get_id() if current_user.is_authenticated else 'None'}")
             
             flash(f'Development login as {user.name} (ID: {user.id})', 'success')
-            return redirect(url_for('main.dashboard'))
+            
+            # Determine the best redirect based on user type
+            if user.user_type == 'admin':
+                return redirect(url_for('main.admin_dashboard'))
+            elif user.user_type == 'host':
+                return redirect(url_for('main.dashboard'))
+            else:  # guest
+                return redirect(url_for('main.dashboard'))
         else:
             print(f"DEBUG: User with ID {user_id} not found")
             flash('User not found', 'error')
@@ -1861,3 +1872,32 @@ def listings():
         })
     
     return render_template('host/my_listings.html', listings=listings_data, user=current_user)
+
+@bp.route('/dev/portal')
+def dev_portal():
+    """Development portal - dynamic portal with all users"""
+    from app.database import db
+    
+    # Get all users for dynamic display
+    users_query = "SELECT user_id, name, email, user_type FROM users ORDER BY user_type, user_id"
+    users = db.execute_query(users_query)
+    
+    # Get some stats for the portal
+    stats = {
+        'total_users': len(users),
+        'admin_count': len([u for u in users if u['user_type'] == 'admin']),
+        'host_count': len([u for u in users if u['user_type'] == 'host']),
+        'guest_count': len([u for u in users if u['user_type'] == 'guest']),
+    }
+    
+    # Get listings count
+    listings_query = "SELECT COUNT(*) as count FROM listings"
+    listings_result = db.execute_query(listings_query)
+    stats['total_listings'] = listings_result[0]['count'] if listings_result else 0
+    
+    # Get bookings count
+    bookings_query = "SELECT COUNT(*) as count FROM bookings"
+    bookings_result = db.execute_query(bookings_query)
+    stats['total_bookings'] = bookings_result[0]['count'] if bookings_result else 0
+    
+    return render_template('dev/portal.html', users=users, stats=stats)

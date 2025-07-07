@@ -1,0 +1,12 @@
+{
+    "git.path": "/usr/bin/git",
+    "git.enabled": true,
+    "git.autorefresh": true,
+    "gitlens.currentLine.enabled": true,
+    "gitlens.hovers.enabled": true,
+    "gitlens.statusBar.enabled": true,
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true
+}
