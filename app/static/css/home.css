@@ -240,7 +240,7 @@
     transition: all var(--transition-base);
     cursor: pointer;
     border: 1px solid var(--neutral-100);
-    height: 400px;
+    height: 460px;
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -295,7 +295,7 @@
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    height: 160px;
+    height: 220px;
     justify-content: space-between;
 }
 
@@ -303,9 +303,9 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
     gap: var(--space-2);
-    min-height: 50px;
+    min-height: 60px;
 }
 
 .listing-title {
@@ -320,7 +320,7 @@
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    max-height: 2.4em;
+    max-height: 2.8em;
 }
 
 .listing-rating {
@@ -345,21 +345,21 @@
 .listing-location {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    margin: 0 0 var(--space-1) 0;
+    margin: 0 0 var(--space-2) 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    height: 1.2em;
+    height: 1.4em;
 }
 
 .listing-details {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
-    margin: 0 0 var(--space-3) 0;
+    margin: 0 0 var(--space-4) 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    height: 1.2em;
+    height: 1.4em;
 }
 
 .listing-price {
@@ -665,7 +665,7 @@
     }
     
     .listing-card {
-        height: 380px;
+        height: 420px;
     }
     
     .listing-image-container {
@@ -673,7 +673,7 @@
     }
     
     .listing-content {
-        height: 160px;
+        height: 200px;
     }
     
     .listing-title {
@@ -688,7 +688,7 @@
     }
     
     .listing-card {
-        height: 360px;
+        height: 400px;
     }
     
     .listing-image-container {
@@ -696,6 +696,6 @@
     }
     
     .listing-content {
-        height: 160px;
+        height: 200px;
     }
 }
