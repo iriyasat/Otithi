@@ -24,21 +24,14 @@ def create_app():
     def load_user(user_id):
         from app.models import User
         try:
-            print(f"DEBUG: User loader called with ID: {user_id} (type: {type(user_id)})")
             # Convert to int if it's a string
             if isinstance(user_id, str):
                 user_id = int(user_id)
             user = User.get(user_id)
-            if user:
-                print(f"DEBUG: User loader found: {user.name} (ID: {user.id})")
-            else:
-                print(f"DEBUG: User loader - no user found for ID: {user_id}")
             return user
-        except (ValueError, TypeError) as e:
-            print(f"DEBUG: User loader error for ID {user_id}: {e}")
+        except (ValueError, TypeError):
             return None
-        except Exception as e:
-            print(f"DEBUG: Unexpected user loader error: {e}")
+        except Exception:
             return None
     
     from app.routes.routes import bp as main_bp

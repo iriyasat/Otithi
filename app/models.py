@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app.database import db
@@ -515,11 +515,31 @@ class Listing:
         """
         results = db.execute_query(query, (self.id,))
         unavailable_dates = []
+        
         for booking in results:
-            current_date = booking['check_in']
-            while current_date < booking['check_out']:
-                unavailable_dates.append(current_date.strftime('%Y-%m-%d'))
-                current_date += date.timedelta(days=1)
+            try:
+                # Get the date values
+                check_in_date = booking['check_in']
+                check_out_date = booking['check_out']
+                
+                # Convert datetime to date if needed
+                if hasattr(check_in_date, 'date') and not isinstance(check_in_date, date):
+                    check_in_date = check_in_date.date()
+                if hasattr(check_out_date, 'date') and not isinstance(check_out_date, date):
+                    check_out_date = check_out_date.date()
+                
+                # Generate all dates in the range using date arithmetic
+                current = check_in_date
+                one_day = timedelta(days=1)  # Use the module-level import
+                
+                while current < check_out_date:
+                    unavailable_dates.append(current.strftime('%Y-%m-%d'))
+                    current = current + one_day
+                    
+            except Exception:
+                # Skip any problematic booking records
+                continue
+                
         return unavailable_dates
     
     def calculate_total_price(self, check_in, check_out, guests=1):
@@ -527,7 +547,7 @@ class Listing:
         nights = (check_out - check_in).days
         base_price = self.price * nights
         cleaning_fee = 500  # Fixed cleaning fee
-        service_fee = base_price * 0.1  # 10% service fee
+        service_fee = base_price * 0.15  # 15% service fee
         total = base_price + cleaning_fee + service_fee
         
         return {
@@ -635,9 +655,9 @@ class Review:
     
     @staticmethod
     def get_by_listing(listing_id):
-        """Get all reviews for a listing with user names"""
+        """Get all reviews for a listing with user names and profile photos"""
         query = """
-            SELECT r.*, u.name as user_name 
+            SELECT r.*, u.name as user_name, u.profile_photo 
             FROM reviews r 
             LEFT JOIN users u ON r.reviewer_id = u.user_id 
             WHERE r.listing_id = %s 
@@ -654,8 +674,9 @@ class Review:
                 comment=review_data['comments'],
                 created_date=review_data['review_date']
             )
-            # Add user name as an attribute
+            # Add user name and profile photo as attributes
             review.user_name = review_data['user_name']
+            review.user_profile_photo = review_data['profile_photo']
             reviews.append(review)
         return reviews
     

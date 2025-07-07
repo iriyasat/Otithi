@@ -45,15 +45,6 @@
         </div>
     </div>
 
-    <!-- Temporary Debug Buttons -->
-    <div class="container mb-3">
-        <div class="alert alert-info">
-            <strong>🧪 Debug:</strong>
-            <button class="btn btn-primary btn-sm ms-2" onclick="showUserReviews()">Test Reviews Modal</button>
-            <button class="btn btn-secondary btn-sm ms-2" onclick="alert('Basic onclick works!')">Test Basic Click</button>
-        </div>
-    </div>
-
     <div class="container">
         <!-- Profile Statistics -->
         <div class="row profile-stats">
@@ -85,7 +76,7 @@
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 mb-4">
-                <div class="stat-card clickable-stat" onclick="showUserReviews()" style="cursor: pointer; position: relative; z-index: 10;">
+                <div class="stat-card clickable-stat" onclick="showUserReviews()">
                     <div class="stat-icon">
                         <i class="fas fa-comment"></i>
                     </div>
@@ -487,18 +478,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add click event listener for reviews stat card
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, looking for reviews stat card...'); // Debug
     const reviewsStatCard = document.querySelector('.stat-card.clickable-stat');
     if (reviewsStatCard) {
-        console.log('Found reviews stat card, adding click listener'); // Debug
         reviewsStatCard.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Reviews stat card clicked via event listener!'); // Debug
             showUserReviews();
         });
-    } else {
-        console.error('Reviews stat card not found!');
     }
 });
 
@@ -552,15 +538,10 @@ function confirmDeleteAccount() {
 }
 
 function showUserReviews() {
-    console.log('showUserReviews function called!'); // Debug log
-    alert('Reviews modal clicked! Check console for more details.'); // Temporary debug alert
-    
     // Show the modal
     const modalElement = document.getElementById('userReviewsModal');
-    console.log('Modal element:', modalElement); // Debug log
     
     if (!modalElement) {
-        console.error('Modal element not found!');
         return;
     }
     
@@ -575,7 +556,6 @@ function showUserReviews() {
     // Fetch user reviews
     fetch('/api/user/reviews')
         .then(response => {
-            console.log('API response status:', response.status); // Debug log
             return response.json();
         })
         .then(data => {

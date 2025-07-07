@@ -2,8 +2,8 @@
 {% block title %}Otithi - Experience Bangladesh Like a Local{% endblock %}
 
 {% block extra_css %}
-<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/home.css') }}?v=2025010801" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/responsive.css') }}?v=2025010801" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -63,28 +63,30 @@
                 {% for listing in listings %}
                 <div class="listing-card">
                     <div class="listing-image-container">
-                        <img src="{{ url_for('static', filename='img/' + listing.image) }}" 
+                        <img src="{{ url_for('static', filename='uploads/listings/' + listing.image) if listing.image != 'demo_listing_1.jpg' else url_for('static', filename='img/' + listing.image) }}" 
                              alt="{{ listing.title }}" class="listing-image">
                         <div class="listing-badge">Featured</div>
                     </div>
                     <div class="listing-content">
                         <div class="listing-header">
                             <h3 class="listing-title">{{ listing.title }}</h3>
+                            {% if listing.rating > 0 %}
                             <div class="listing-rating">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="#FF5A5F">
                                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                                 </svg>
-                                <span>4.8</span>
+                                <span>{{ listing.rating }}</span>
                             </div>
+                            {% endif %}
                         </div>
                         <p class="listing-location">{{ listing.location }}</p>
                         <p class="listing-details">{{ listing.type }} · {{ listing.guests }} guests</p>
                         <div class="listing-price">
-                            <span class="price">${{ listing.price }}</span>
+                            <span class="price">৳{{ listing.price }}</span>
                             <span class="period">night</span>
                         </div>
                     </div>
-                    <a href="/listing/{{ listing.id }}" class="listing-link"></a>
+                    <a href="/listings/{{ listing.id }}" class="listing-link" title="View {{ listing.title }}"></a>
                 </div>
                 {% endfor %}
             {% else %}

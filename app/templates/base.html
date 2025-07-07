@@ -41,7 +41,7 @@
                     {% endif %}
                     <a href="{{ url_for('main.profile') }}" class="nav-link">Profile</a>
                     {% if current_user.user_type in ['host', 'admin'] %}
-                        <a href="{{ url_for('main.listings') }}" class="nav-link">My Listings</a>
+                        <a href="{{ url_for('main.my_listings') }}" class="nav-link">My Listings</a>
                     {% endif %}
                 {% endif %}
             </div>

@@ -594,7 +594,6 @@ function toggleFavorite(listingId) {
     
     // Here you would typically make an AJAX request to save the favorite state
     // For now, we'll just update the UI
-    console.log(`Toggled favorite for listing ${listingId}`);
     
     // Optional: Add animation feedback
     button.style.transform = 'scale(1.2)';

@@ -244,12 +244,10 @@ function setupRealtimeUpdates() {
 
 function updateDashboardStats() {
     // This would typically fetch updated stats from the server
-    console.log('Updating dashboard stats...');
 }
 
 function updateSystemStatus() {
     // This would typically check system health
-    console.log('Checking system status...');
 }
 
 // Utility Functions

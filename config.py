@@ -1,10 +1,10 @@
 import os
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-for-othiti-2025'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'prod-secret-key-change-in-production'
     
     # Session configuration
-    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_SECURE = True  # HTTPS required in production
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hour

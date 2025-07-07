@@ -42,7 +42,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="total_price" class="form-label">Total Price ($)</label>
+                        <label for="total_price" class="form-label">Total Price (৳)</label>
                         <input type="number" step="0.01" class="form-control" id="total_price" name="total_price" 
                                placeholder="Total price" required>
                     </div>
@@ -85,7 +85,7 @@
         <div class="col-lg-5">
             <div style="background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; position: sticky; top: 120px;">
                 <div style="display: flex; gap: 16px; margin-bottom: 24px;">
-                    <img src="{{ url_for('static', filename='img/demo_listing_1.jpg') }}" 
+                    <img src="{{ url_for('static', filename='uploads/listings/' + listing.image) if listing.image != 'demo_listing_1.jpg' else url_for('static', filename='img/' + listing.image) }}" 
                          style="width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm);">
                     <div>
                         <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Booking Summary</h4>
@@ -99,19 +99,19 @@
                     <h5 style="font-size: 22px; font-weight: 600; margin-bottom: 16px;">Price details</h5>
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                        <span>$0.00 x 0 nights</span>
-                        <span>$0.00</span>
+                        <span id="nights-breakdown">৳0.00 x 0 nights</span>
+                        <span id="base-total">৳0.00</span>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                         <span>Service fee</span>
-                        <span>$0.00</span>
+                        <span id="service-fee-total">৳0.00</span>
                     </div>
                     
                     <div style="border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 16px;">
                         <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 16px;">
-                            <span>Total (USD)</span>
-                            <span>$0.00</span>
+                            <span>Total (BDT)</span>
+                            <span id="final-total">৳0.00</span>
                         </div>
                     </div>
                 </div>
@@ -119,4 +119,56 @@
         </div>
     </div>
 </div>
+
+<script>
+// Dynamic price calculation for booking page
+function updateBookingPricing() {
+    const checkInInput = document.getElementById('check_in');
+    const checkOutInput = document.getElementById('check_out');
+    const totalPriceInput = document.getElementById('total_price');
+    
+    if (!checkInInput.value || !checkOutInput.value) {
+        // Clear all pricing displays
+        document.getElementById('nights-breakdown').textContent = '৳0.00 x 0 nights';
+        document.getElementById('base-total').textContent = '৳0.00';
+        document.getElementById('service-fee-total').textContent = '৳0.00';
+        document.getElementById('final-total').textContent = '৳0.00';
+        totalPriceInput.value = '';
+        return;
+    }
+    
+    const checkIn = new Date(checkInInput.value);
+    const checkOut = new Date(checkOutInput.value);
+    
+    if (checkOut <= checkIn) {
+        // Clear all pricing displays
+        document.getElementById('nights-breakdown').textContent = '৳0.00 x 0 nights';
+        document.getElementById('base-total').textContent = '৳0.00';
+        document.getElementById('service-fee-total').textContent = '৳0.00';
+        document.getElementById('final-total').textContent = '৳0.00';
+        totalPriceInput.value = '';
+        return;
+    }
+    
+    const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+    const pricePerNight = {{ listing.price_per_night }};
+    const basePrice = pricePerNight * nights;
+    const serviceFee = basePrice * 0.15; // 15% service fee
+    const total = basePrice + serviceFee;
+    
+    // Update displays
+    document.getElementById('nights-breakdown').textContent = `৳${pricePerNight} x ${nights} night${nights > 1 ? 's' : ''}`;
+    document.getElementById('base-total').textContent = `৳${basePrice.toFixed(2)}`;
+    document.getElementById('service-fee-total').textContent = `৳${serviceFee.toFixed(2)}`;
+    document.getElementById('final-total').textContent = `৳${total.toFixed(2)}`;
+    totalPriceInput.value = total.toFixed(2);
+}
+
+// Add event listeners for date changes
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('check_in').addEventListener('change', updateBookingPricing);
+    document.getElementById('check_out').addEventListener('change', updateBookingPricing);
+});
+</script>
+
 {% endblock %}

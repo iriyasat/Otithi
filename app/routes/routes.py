@@ -20,14 +20,25 @@ def index():
     # Convert to format expected by template (limit to 5 for homepage)
     listings_data = []
     for listing in real_listings[:5]:  # Only show first 5 listings on homepage
+        # Get listing images
+        listing_images = ListingImage.get_by_listing(listing.id)
+        
+        # Calculate real-time rating and review count
+        listing_reviews = Review.get_by_listing(listing.id)
+        avg_rating = 0.0
+        review_count = len(listing_reviews)
+        if listing_reviews:
+            total_rating = sum(review.rating for review in listing_reviews)
+            avg_rating = round(total_rating / review_count, 1)
+        
         listings_data.append({
             'id': listing.id,
             'title': listing.title,
             'location': listing.location,
             'price': listing.price,
-            'rating': listing.rating,
-            'reviews': listing.reviews_count,
-            'image': 'demo_listing_1.jpg',  # Default image
+            'rating': avg_rating,
+            'reviews': review_count,
+            'image': listing_images[0].image_filename if listing_images else 'demo_listing_1.jpg',  # Use real image or fallback
             'type': listing.property_type.title(),
             'guests': listing.guests,
             'bedrooms': listing.bedrooms,
@@ -110,6 +121,17 @@ def explore():
     # Convert to format expected by template
     listings_data = []
     for listing in page_listings:
+        # Get listing images
+        listing_images = ListingImage.get_by_listing(listing.id)
+        
+        # Calculate real-time rating and review count
+        listing_reviews = Review.get_by_listing(listing.id)
+        avg_rating = 0.0
+        review_count = len(listing_reviews)
+        if listing_reviews:
+            total_rating = sum(review.rating for review in listing_reviews)
+            avg_rating = round(total_rating / review_count, 1)
+        
         listings_data.append({
             'id': listing.id,
             'title': listing.title,
@@ -117,9 +139,9 @@ def explore():
             'city': listing.city,
             'country': listing.country,
             'price': listing.price,
-            'rating': listing.rating,
-            'reviews': listing.reviews_count,
-            'image': 'demo_listing_1.jpg',  # Default image
+            'rating': avg_rating,
+            'reviews': review_count,
+            'image': listing_images[0].image_filename if listing_images else 'demo_listing_1.jpg',  # Use real image or fallback
             'type': listing.property_type.title(),
             'guests': listing.guests,
             'bedrooms': listing.bedrooms,
@@ -177,18 +199,30 @@ def search():
     # Convert to template format
     listings_data = []
     for listing in listings:
+        # Get listing images
+        listing_images = ListingImage.get_by_listing(listing.id)
+        
+        # Calculate real-time rating and review count
+        listing_reviews = Review.get_by_listing(listing.id)
+        avg_rating = 0.0
+        review_count = len(listing_reviews)
+        if listing_reviews:
+            total_rating = sum(review.rating for review in listing_reviews)
+            avg_rating = round(total_rating / review_count, 1)
+        
         listings_data.append({
             'id': listing.id,
             'title': listing.title,
             'location': listing.location,
             'price': listing.price,
-            'rating': listing.rating,
-            'reviews': listing.reviews_count,
-            'image': 'demo_listing_1.jpg',
+            'rating': avg_rating,
+            'reviews': review_count,
+            'image': listing_images[0].image_filename if listing_images else 'demo_listing_1.jpg',
             'type': listing.property_type.title(),
             'guests': listing.guests,
             'bedrooms': listing.bedrooms,
-            'bathrooms': listing.bathrooms
+            'bathrooms': listing.bathrooms,
+            'price_per_night': listing.price  # Add for template compatibility
         })
     
     return render_template('host/search.html', 
@@ -200,28 +234,6 @@ def search():
                          guests=guests)
 
 # Listing Routes
-
-# Helper route to show available listings (for development/debugging)
-@bp.route('/available-listings')
-def available_listings():
-    """Show all available listings for debugging"""
-    listings = Listing.get_all()
-    html = """
-    <h1>Available Listings</h1>
-    <p>Use these URLs to access existing listings:</p>
-    <ul>
-    """
-    for listing in listings:
-        html += f'<li><a href="/listings/{listing.id}">{listing.title} (ID: {listing.id})</a></li>'
-    
-    if not listings:
-        html += '<li>No listings available</li>'
-    
-    html += """
-    </ul>
-    <p><a href="/">← Back to Home</a></p>
-    """
-    return html
 
 # Redirect singular /listing/ to plural /listings/ for better UX
 @bp.route('/listing/<int:listing_id>')
@@ -237,21 +249,37 @@ def listing_detail(listing_id):
         # Get available listings for helpful error message
         available_listings = Listing.get_all()
         error_html = f"""
-        <div style="max-width: 600px; margin: 50px auto; padding: 20px; font-family: system-ui;">
-            <h1>Listing Not Found</h1>
-            <p>Sorry, we couldn't find a listing with ID {listing_id}.</p>
-            <h3>Available Listings:</h3>
-            <ul>
-        """
-        for available_listing in available_listings:
-            error_html += f'<li><a href="/listings/{available_listing.id}" style="color: #007bff; text-decoration: none;">{available_listing.title} (ID: {available_listing.id})</a></li>'
-        
-        if not available_listings:
-            error_html += '<li>No listings available at the moment.</li>'
-        
-        error_html += """
-            </ul>
-            <p><a href="/" style="color: #007bff; text-decoration: none;">← Back to Home</a></p>
+        <div style="max-width: 600px; margin: 50px auto; padding: 20px; font-family: system-ui; text-align: center;">
+            <h1 style="color: #dc3545; margin-bottom: 20px;">Listing Not Found</h1>
+            <p style="font-size: 18px; color: #6c757d; margin-bottom: 30px;">
+                Sorry, we couldn't find a listing with ID {listing_id}.
+            </p>
+            
+            {f'''
+            <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                <h3 style="color: #006a4e; margin-bottom: 15px;">Available Listings:</h3>
+                <div style="display: grid; gap: 10px;">
+                    {"".join([f'''
+                    <div style="background: white; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px;">
+                        <h4 style="margin: 0 0 5px 0;">
+                            <a href="/listings/{available_listing.id}" style="color: #006a4e; text-decoration: none;">
+                                {available_listing.title}
+                            </a>
+                        </h4>
+                        <p style="margin: 0; color: #6c757d; font-size: 14px;">
+                            {available_listing.location} • ৳{available_listing.price}/night
+                        </p>
+                    </div>
+                    ''' for available_listing in available_listings[:5]])}
+                </div>
+            </div>
+            ''' if available_listings else '<p style="color: #6c757d;">No listings are currently available.</p>'}
+            
+            <div style="margin-top: 30px;">
+                <a href="/" style="background: #006a4e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                    ← Back to Home
+                </a>
+            </div>
         </div>
         """
         return error_html, 404
@@ -303,7 +331,7 @@ def listing_detail(listing_id):
         'host': {
             'id': host.id if host else None,
             'name': host.full_name if host else 'Unknown Host',
-            'avatar': 'user-gear.png',
+            'avatar': host.profile_photo if host and host.profile_photo else 'user-gear.png',
             'joined': host.joined_date.year if host else '2023',
             'verified': host.verified if host else False,
             'bio': host.bio if host else ''
@@ -449,7 +477,8 @@ def create_listing():
             longitude = float(longitude)
             # Basic coordinate validation for Bangladesh region
             if not (20.5 <= latitude <= 26.5 and 88.0 <= longitude <= 93.0):
-                print(f"Warning: Coordinates outside Bangladesh region: {latitude}, {longitude}")
+                # Log warning but don't block listing creation for international properties
+                pass
         except (ValueError, TypeError):
             errors.append('Invalid coordinates. Please select a valid location on the map.')
         
@@ -508,7 +537,6 @@ def create_listing():
                 flash('Failed to create location. Please try again.', 'error')
                 return render_template('host/create_listing.html')
         except Exception as e:
-            print(f"Error creating location: {e}")
             flash('An error occurred while creating location. Please try again.', 'error')
             return render_template('host/create_listing.html')
         
@@ -560,7 +588,7 @@ def create_listing():
                             except:
                                 pass
                     except Exception as e:
-                        print(f"Error saving image {order}: {e}")
+                        # Skip this image if there's an error
                         continue
                 
                 if saved_images:
@@ -572,7 +600,6 @@ def create_listing():
             else:
                 flash('Failed to create listing. Please try again.', 'error')
         except Exception as e:
-            print(f"Error creating listing: {e}")
             flash('An error occurred while creating the listing. Please try again.', 'error')
     
     return render_template('host/create_listing.html')
@@ -599,15 +626,20 @@ def book_listing(listing_id):
     # Get unavailable dates
     unavailable_dates = listing.get_unavailable_dates()
     
+    # Get listing images
+    listing_images = ListingImage.get_by_listing(listing_id)
+    
     # Prepare listing data
     listing_data = {
         'id': listing.id,
         'title': listing.title,
         'location': listing.location,
         'price': listing.price,
+        'price_per_night': listing.price,  # Add for template compatibility
         'rating': listing.rating,
         'reviews': listing.reviews_count,
-        'image': 'demo_listing_1.jpg',
+        'images': [img.image_filename for img in listing_images] if listing_images else ['demo_listing_1.jpg'],
+        'image': listing_images[0].image_filename if listing_images else 'demo_listing_1.jpg',
         'type': listing.property_type.title(),
         'guests': listing.guests,
         'bedrooms': listing.bedrooms,
@@ -902,8 +934,8 @@ def register():
                         user.update_profile(profile_photo=final_filename)
                         
                 except Exception as e:
-                    # If file operations fail, continue with registration but log the error
-                    print(f"Profile photo upload error during registration: {e}")
+                    # If file operations fail, continue with registration
+                    pass
             
             login_user(user)
             flash(f'Welcome to Otithi, {user.full_name}! Your account has been created successfully.', 'success')
@@ -1244,6 +1276,27 @@ def delete_account():
     
     return redirect(url_for('main.index'))
 
+# My Listings Route for Hosts
+
+@bp.route('/my-listings')
+@login_required
+def my_listings():
+    """Display user's listings (for hosts) or redirect guests"""
+    if current_user.user_type not in ['host', 'admin']:
+        flash('Access denied. Only hosts can view listings.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    # Get user's listings
+    user_listings = Listing.get_by_host(current_user.id)
+    
+    # Get bookings for these listings
+    host_bookings = Booking.get_by_host(current_user.id)
+    
+    return render_template('host/my_listings.html', 
+                         listings=user_listings,
+                         bookings=host_bookings,
+                         user=current_user)
+
 # API Routes for AJAX requests
 
 @bp.route('/api/check-email')
@@ -1364,35 +1417,6 @@ def admin_toggle_verification(user_id):
         })
     else:
         return jsonify({'success': False, 'message': 'Failed to update verification status'})
-
-# Temporary dev route without authentication for testing - REMOVE IN PRODUCTION
-# @bp.route('/dev/admin/users/<int:user_id>/toggle-verification', methods=['POST'])
-# def dev_admin_toggle_verification(user_id):
-#     """DEV: Admin panel - toggle user verification status (no auth required)"""
-#     user = User.get(user_id)
-#     if not user:
-#         return jsonify({'success': False, 'message': 'User not found'})
-#     
-#     new_status = not user.verified
-#     if user.update_verification_status(new_status):
-#         status_text = 'Verified' if new_status else 'Unverified'
-#         badge_class = 'success' if new_status else 'warning'
-#         btn_class = 'warning' if new_status else 'success'
-#         btn_icon = 'times-circle' if new_status else 'check-circle'
-#         btn_title = 'Unverify User' if new_status else 'Verify User'
-#         
-#         return jsonify({
-#             'success': True, 
-#             'message': f'User verification status updated to {status_text}',
-#             'verified': new_status,
-#             'badge_class': badge_class,
-#             'status_text': status_text,
-#             'btn_class': btn_class,
-#             'btn_icon': btn_icon,
-#             'btn_title': btn_title
-#         })
-#     else:
-#         return jsonify({'success': False, 'message': 'Failed to update verification status'})
 
 @bp.route('/admin/users/<int:user_id>/edit-confirm')
 @login_required
@@ -1647,449 +1671,6 @@ def admin_stats():
     }
     
     return render_template('admin/stats.html', stats=stats)
-
-# Development/Testing Routes (Remove in production)
-@bp.route('/dev/login/<int:user_id>')
-def dev_login(user_id):
-    """Development-only route for quick login testing"""
-    try:
-        print(f"DEBUG: Attempting to login user ID {user_id}")
-        user = User.get(user_id)
-        if user:
-            print(f"DEBUG: User found - ID: {user.id}, Name: {user.name}, Email: {user.email}")
-            print(f"DEBUG: User get_id(): {user.get_id()}")
-            
-            # Test the login
-            result = login_user(user, remember=True)
-            print(f"DEBUG: login_user result: {result}")
-            
-            # Make session permanent
-            from flask import session
-            session.permanent = True
-            
-            from flask_login import current_user
-            print(f"DEBUG: current_user.is_authenticated: {current_user.is_authenticated}")
-            print(f"DEBUG: current_user ID: {current_user.get_id() if current_user.is_authenticated else 'None'}")
-            
-            flash(f'Development login as {user.name} (ID: {user.id})', 'success')
-            
-            # Determine the best redirect based on user type
-            if user.user_type == 'admin':
-                return redirect(url_for('main.admin_dashboard'))
-            elif user.user_type == 'host':
-                return redirect(url_for('main.dashboard'))
-            else:  # guest
-                return redirect(url_for('main.dashboard'))
-        else:
-            print(f"DEBUG: User with ID {user_id} not found")
-            flash('User not found', 'error')
-            return redirect(url_for('main.login'))
-    except Exception as e:
-        print(f"DEBUG: Login error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        flash(f'Login error: {str(e)}', 'error')
-        return redirect(url_for('main.login'))
-
-@bp.route('/dev/users')
-def dev_users():
-    """Development-only route to see all users"""
-    try:
-        users = User.get_all()
-        user_list = []
-        for user in users:
-            user_list.append({
-                'id': user.id,
-                'name': user.name,
-                'email': user.email,
-                'user_type': user.user_type,
-                'login_link': url_for('main.dev_login', user_id=user.id)
-            })
-        
-        html = """
-        <html>
-        <head>
-            <title>Development Users</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .user-card { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
-                .login-btn { background: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; }
-                .login-btn:hover { background: #0056b3; }
-                .form-login { display: inline; margin-left: 10px; }
-                .form-login button { background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
-            </style>
-        </head>
-        <body>
-            <h1>Development Users - Choose a user to login as:</h1>
-        """
-        
-        for user in user_list:
-            html += f"""
-            <div class="user-card">
-                <strong>{user['name']}</strong> ({user['email']}) - {user['user_type']}
-                <br>
-                <a href="{user['login_link']}" class="login-btn">Login as {user['name']}</a>
-                <a href="/dev/force_profile/{user['id']}" class="login-btn" style="background: #17a2b8;">Test Profile</a>
-                <a href="/dev/force_dashboard/{user['id']}" class="login-btn" style="background: #28a745;">Test Dashboard</a>
-                <a href="/dev/debug_session/{user['id']}" class="login-btn" style="background: #6f42c1;">Debug Session</a>
-                <form method="post" action="/dev/quick_login" class="form-login">
-                    <input type="hidden" name="user_id" value="{user['id']}">
-                    <button type="submit">Quick Login</button>
-                </form>
-            </div>
-            """
-        
-        html += """
-            <hr>
-            <p><a href="/">← Back to Homepage</a></p>
-        </body>
-        </html>
-        """
-        return html
-    except Exception as e:
-        return f"<h1>Error loading users</h1><p>{str(e)}</p>"
-
-@bp.route('/dev/test_user/<int:user_id>')
-def dev_test_user(user_id):
-    """Test user retrieval"""
-    try:
-        user = User.get(user_id)
-        if user:
-            return f"<h1>User Found</h1><p>ID: {user.id}<br>Name: {user.name}<br>Email: {user.email}<br>Type: {user.user_type}</p>"
-        else:
-            return f"<h1>User Not Found</h1><p>No user with ID {user_id}</p>"
-    except Exception as e:
-        return f"<h1>Error</h1><p>{str(e)}</p>"
-
-@bp.route('/dev/quick_login', methods=['POST'])
-def dev_quick_login():
-    """Development-only POST route for form-based quick login"""
-    try:
-        user_id = int(request.form.get('user_id'))
-        print(f"DEBUG: Quick login attempt for user ID {user_id}")
-        
-        user = User.get(user_id)
-        if user:
-            print(f"DEBUG: User found - ID: {user.id}, Name: {user.name}")
-            result = login_user(user, remember=True)
-            print(f"DEBUG: login_user result: {result}")
-            
-            from flask_login import current_user
-            print(f"DEBUG: current_user.is_authenticated: {current_user.is_authenticated}")
-            
-            if current_user.is_authenticated:
-                flash(f'Successfully logged in as {user.name}!', 'success')
-                return redirect(url_for('main.dashboard'))
-            else:
-                flash('Login failed - session not created', 'error')
-                return redirect(url_for('main.dev_users'))
-        else:
-            flash('User not found', 'error')
-            return redirect(url_for('main.dev_users'))
-    except Exception as e:
-        print(f"DEBUG: Quick login error: {str(e)}")
-        flash(f'Login error: {str(e)}', 'error')
-        return redirect(url_for('main.dev_users'))
-
-@bp.route('/dev/force_profile/<int:user_id>')
-def dev_force_profile(user_id):
-    """Development route to force login and go to profile"""
-    try:
-        user = User.get(user_id)
-        if user:
-            result = login_user(user, remember=True)
-            
-            # Don't redirect, render profile directly with the user
-            from flask_login import current_user
-            
-            if current_user.is_authenticated:
-                # Calculate user statistics (same logic as profile route)
-                stats = {
-                    'total_bookings': 0,
-                    'average_rating': 0.0,
-                    'favorites': 0,
-                    'reviews_given': 0
-                }
-                
-                # Get user bookings
-                bookings = Booking.get_by_user(current_user.id)
-                stats['total_bookings'] = len(bookings) if bookings else 0
-                
-                # Get user reviews given
-                reviews = Review.get_by_user(current_user.id)
-                stats['reviews_given'] = len(reviews) if reviews else 0
-                
-                # Calculate average rating received (for hosts)
-                if current_user.user_type == 'host':
-                    host_listings = Listing.get_by_host(current_user.id)
-                    if host_listings:
-                        total_rating = 0
-                        total_reviews = 0
-                        for listing in host_listings:
-                            if listing.rating > 0:
-                                total_rating += listing.rating * listing.reviews_count
-                                total_reviews += listing.reviews_count
-                        if total_reviews > 0:
-                            stats['average_rating'] = total_rating / total_reviews
-                
-                # Get recent activity
-                recent_activities = []
-                
-                # Add recent bookings
-                if bookings:
-                    for booking in bookings[:5]:  # Last 5 bookings
-                        listing = Listing.get(booking.listing_id)
-                        recent_activities.append({
-                            'type': 'booking',
-                            'action': f"Booked {listing.title if listing else 'a listing'}",
-                            'date': booking.created_date,
-                            'status': booking.status,
-                            'icon': 'fas fa-calendar-check',
-                            'color': 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger'
-                        })
-                
-                # Add recent reviews given
-                if reviews:
-                    for review in reviews[:3]:  # Last 3 reviews
-                        listing = Listing.get(review.listing_id)
-                        recent_activities.append({
-                            'type': 'review',
-                            'action': f"Reviewed {listing.title if listing else 'a listing'}",
-                            'date': review.created_date,
-                            'rating': review.rating,
-                            'icon': 'fas fa-star',
-                            'color': 'info'
-                        })
-                
-                # Add host activities (if user is a host)
-                if current_user.user_type == 'host':
-                    host_listings = Listing.get_by_host(current_user.id)
-                    if host_listings:
-                        for listing in host_listings[:3]:  # Last 3 listings
-                            recent_activities.append({
-                                'type': 'listing',
-                                'action': f"Created listing: {listing.title}",
-                                'date': listing.created_date if hasattr(listing, 'created_date') and listing.created_date else None,
-                                'icon': 'fas fa-home',
-                                'color': 'primary'
-                            })
-                    
-                    # Add recent bookings received (for hosts)
-                    host_bookings = Booking.get_by_host(current_user.id)
-                    if host_bookings:
-                        for booking in host_bookings[:3]:  # Last 3 bookings received
-                            guest = User.get(booking.user_id)
-                            listing = Listing.get(booking.listing_id)
-                            recent_activities.append({
-                                'type': 'host_booking',
-                                'action': f"Received booking from {guest.name if guest else 'a guest'} for {listing.title if listing else 'your listing'}",
-                                'date': booking.created_date,
-                                'status': booking.status,
-                                'icon': 'fas fa-user-check',
-                                'color': 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger'
-                            })
-                
-                # Sort all activities by date (most recent first)
-                recent_activities = sorted(
-                    [activity for activity in recent_activities if activity.get('date')],
-                    key=lambda x: x['date'],
-                    reverse=True
-                )[:10]  # Keep only the 10 most recent activities
-                
-                # Render profile template with stats
-                return render_template('profile.html', 
-                                     edit_mode=False, 
-                                     stats=stats, 
-                                     recent_activities=recent_activities)
-            else:
-                return f"<h1>Login failed for user {user.name}</h1><p><a href='/dev/users'>Back to users</a></p>"
-        else:
-            return f"<h1>User {user_id} not found</h1><p><a href='/dev/users'>Back to users</a></p>"
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return f"<h1>Error: {str(e)}</h1><p><a href='/dev/users'>Back to users</a></p>"
-
-@bp.route('/dev/force_dashboard/<int:user_id>')
-def dev_force_dashboard(user_id):
-    """Development route to force login and go to dashboard"""
-    try:
-        print(f"DEBUG: Force dashboard for user {user_id}")
-        user = User.get(user_id)
-        if user:
-            print(f"DEBUG: User found: {user.name}")
-            result = login_user(user, remember=True)
-            print(f"DEBUG: Login result: {result}")
-            
-            from flask_login import current_user
-            print(f"DEBUG: Current user authenticated: {current_user.is_authenticated}")
-            
-            if current_user.is_authenticated:
-                # Render dashboard directly based on user type
-                if user.user_type == 'admin':
-                    # Get all data for admin dashboard
-                    all_users = User.get_all()
-                    all_listings = Listing.get_all()
-                    all_bookings = Booking.get_all()
-                    
-                    return render_template('admin/admin.html', 
-                                         user=current_user, 
-                                         users=all_users,
-                                         bookings=all_bookings, 
-                                         listings=all_listings,
-                                         debug_msg="Direct dashboard access - login successful")
-                else:
-                    # Get user's bookings
-                    bookings = Booking.get_by_user(user.id)
-                    
-                    # Get user's listings (if host)
-                    listings = []
-                    host_bookings = []
-                    if user.user_type == 'host':
-                        listings = Listing.get_by_host(user.id)
-                        host_bookings = Booking.get_by_host(user.id)
-                    
-                    template = 'host/host.html' if user.user_type == 'host' else 'guest/guest.html'
-                    return render_template(template, 
-                                         user=current_user, 
-                                         bookings=bookings, 
-                                         listings=listings,
-                                         host_bookings=host_bookings,
-                                         debug_msg="Direct dashboard access - login successful")
-            else:
-                return f"<h1>Login failed for user {user.name}</h1><p><a href='/dev/users'>Back to users</a></p>"
-        else:
-            return f"<h1>User {user_id} not found</h1><p><a href='/dev/users'>Back to users</a></p>"
-    except Exception as e:
-        print(f"DEBUG: Force dashboard error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return f"<h1>Error: {str(e)}</h1><p><a href='/dev/users'>Back to users</a></p>"
-
-@bp.route('/dev/debug_session/<int:user_id>')
-def dev_debug_session(user_id):
-    """Debug session and login state"""
-    try:
-        from flask import session
-        from flask_login import current_user
-        
-        print(f"DEBUG: Starting session debug for user {user_id}")
-        
-        # Before login
-        before_login = {
-            'session_keys_before': list(session.keys()),
-            'session_data_before': dict(session),
-            'current_user_before': current_user.is_authenticated if hasattr(current_user, 'is_authenticated') else 'No current_user'
-        }
-        
-        # Get and login user
-        user = User.get(user_id)
-        if user:
-            print(f"DEBUG: Found user: {user.name}")
-            result = login_user(user, remember=True)
-            print(f"DEBUG: Login result: {result}")
-            
-            # After login
-            after_login = {
-                'session_keys_after': list(session.keys()),
-                'session_data_after': dict(session),
-                'current_user_after': current_user.is_authenticated if hasattr(current_user, 'is_authenticated') else 'No current_user',
-                'user_id_in_session': session.get('_user_id', 'Not found'),
-                'user_get_id': user.get_id()
-            }
-            
-            html = f"""
-            <h1>Session Debug for User {user.name}</h1>
-            
-            <h2>Before Login:</h2>
-            <pre>{before_login}</pre>
-            
-            <h2>After Login:</h2>
-            <pre>{after_login}</pre>
-            
-            <h2>Test Links:</h2>
-            <p><a href="/dashboard">Try Dashboard</a> (will likely fail)</p>
-            <p><a href="/profile">Try Profile</a> (will likely fail)</p>
-            <p><a href="/dev/force_profile/{user_id}">Force Profile</a> (will work)</p>
-            <p><a href="/dev/force_dashboard/{user_id}">Force Dashboard</a> (will work)</p>
-            <p><a href="/dev/users">Back to Users</a></p>
-            """
-            return html
-        else:
-            return f"User {user_id} not found"
-    except Exception as e:
-        import traceback
-        return f"<h1>Error: {str(e)}</h1><pre>{traceback.format_exc()}</pre>"
-
-@bp.route('/listings')
-@login_required
-def listings():
-    """Show current user's listings (My Listings page)"""
-    # Only hosts and admins can view listings page
-    if current_user.user_type not in ['host', 'admin']:
-        flash('Only hosts can access the listings page.', 'error')
-        return redirect(url_for('main.dashboard'))
-    
-    # Get current user's listings (or all listings if admin)
-    if current_user.user_type == 'admin':
-        user_listings = Listing.get_all()
-    else:
-        user_listings = Listing.get_by_host(current_user.id)
-    
-    # Convert to format expected by template
-    listings_data = []
-    for listing in user_listings:
-        # Get booking count for this listing
-        listing_bookings = Booking.get_by_listing(listing.id)
-        
-        listings_data.append({
-            'id': listing.id,
-            'title': listing.title,
-            'location': listing.location,
-            'city': listing.city,
-            'country': listing.country,
-            'price': listing.price,
-            'rating': listing.rating,
-            'reviews': listing.reviews_count,
-            'image': 'demo_listing_1.jpg',  # Default image
-            'type': listing.property_type.title(),
-            'guests': listing.guests,
-            'bedrooms': listing.bedrooms,
-            'bathrooms': listing.bathrooms,
-            'description': listing.description,
-            'amenities': listing.amenities,
-            'created_date': listing.created_date,
-            'available': listing.available,
-            'booking_count': len(listing_bookings)
-        })
-    
-    return render_template('host/my_listings.html', listings=listings_data, user=current_user)
-
-@bp.route('/dev/portal')
-def dev_portal():
-    """Development portal - dynamic portal with all users"""
-    from app.database import db
-    
-    # Get all users for dynamic display
-    users_query = "SELECT user_id, name, email, user_type FROM users ORDER BY user_type, user_id"
-    users = db.execute_query(users_query)
-    
-    # Get some stats for the portal
-    stats = {
-        'total_users': len(users),
-        'admin_count': len([u for u in users if u['user_type'] == 'admin']),
-        'host_count': len([u for u in users if u['user_type'] == 'host']),
-        'guest_count': len([u for u in users if u['user_type'] == 'guest']),
-    }
-    
-    # Get listings count
-    listings_query = "SELECT COUNT(*) as count FROM listings"
-    listings_result = db.execute_query(listings_query)
-    stats['total_listings'] = listings_result[0]['count'] if listings_result else 0
-    
-    # Get bookings count
-    bookings_query = "SELECT COUNT(*) as count FROM bookings"
-    bookings_result = db.execute_query(bookings_query)
-    stats['total_bookings'] = bookings_result[0]['count'] if bookings_result else 0
-    
-    return render_template('dev/portal.html', users=users, stats=stats)
+# =============================================================================
+# END OF PRODUCTION ROUTES
+# =============================================================================

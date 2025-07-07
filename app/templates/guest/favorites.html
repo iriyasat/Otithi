@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% set page_title = "My Favorites" %}
+
+{% block title %}{{ page_title }} | Otithi{% endblock %}
+
+{% block body_class %}guest-dashboard{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="dashboard-sidebar">
+                    <div class="sidebar-header">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                {% if user.profile_photo %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.name }}">
+                                {% else %}
+                                    <i class="fas fa-user"></i>
+                                {% endif %}
+                            </div>
+                            <div class="user-details">
+                                <h6>{{ user.full_name }}</h6>
+                                <span class="user-type">{{ user.user_type.title() }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <nav class="sidebar-nav">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                                    <i class="fas fa-home"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.my_bookings') }}">
+                                    <i class="fas fa-calendar-check"></i> My Bookings
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link active" href="{{ url_for('main.favorites') }}">
+                                    <i class="fas fa-heart"></i> Favorites
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.profile') }}">
+                                    <i class="fas fa-user"></i> Profile
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <div class="dashboard-header">
+                    <h1>{{ page_title }}</h1>
+                    <p class="text-muted">Your saved favorite listings</p>
+                </div>
+
+                <div class="dashboard-content">
+                    {% if favorites and favorites|length > 0 %}
+                        <div class="row">
+                            {% for favorite in favorites %}
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="listing-card">
+                                    <div class="listing-image">
+                                        <img src="{{ url_for('static', filename='img/' + favorite.image) }}" alt="{{ favorite.title }}">
+                                        <div class="listing-actions">
+                                            <button class="btn btn-sm btn-outline-light favorite-btn" data-listing-id="{{ favorite.id }}">
+                                                <i class="fas fa-heart text-danger"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="listing-info">
+                                        <h6 class="listing-title">
+                                            <a href="{{ url_for('main.listing_detail', listing_id=favorite.id) }}">{{ favorite.title }}</a>
+                                        </h6>
+                                        <p class="listing-location">
+                                            <i class="fas fa-map-marker-alt"></i> {{ favorite.location }}
+                                        </p>
+                                        <div class="listing-rating">
+                                            <span class="rating-stars">
+                                                {% for i in range(5) %}
+                                                    {% if i < favorite.rating|int %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            <span class="rating-text">{{ "%.1f"|format(favorite.rating) }} ({{ favorite.reviews }} reviews)</span>
+                                        </div>
+                                        <div class="listing-price">
+                                            <strong>৳{{ "{:,.0f}"|format(favorite.price) }}</strong> per night
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <h3>No Favorites Yet</h3>
+                            <p class="text-muted">Start exploring listings and save your favorites here!</p>
+                            <a href="{{ url_for('main.explore') }}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Explore Listings
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.listing-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.listing-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.listing-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.listing-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.listing-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.listing-info {
+    padding: 15px;
+}
+
+.listing-title a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.listing-title a:hover {
+    color: var(--primary-500);
+}
+
+.listing-location {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.listing-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+}
+
+.rating-stars {
+    color: #ffc107;
+}
+
+.listing-price {
+    font-size: 1.1rem;
+    color: var(--primary-600);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: #e9ecef;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.favorite-btn {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.favorite-btn:hover {
+    background: rgba(255,255,255,1);
+}
+</style>
+
+<script>
+// Handle favorite toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const listingId = this.dataset.listingId;
+            const heartIcon = this.querySelector('i');
+            
+            // Remove from favorites (since this is the favorites page)
+            if (confirm('Remove this listing from your favorites?')) {
+                // Here you would make an AJAX call to remove from favorites
+                // For now, we'll just hide the card
+                const card = this.closest('.col-lg-4, .col-md-6');
+                if (card) {
+                    card.style.opacity = '0.5';
+                    setTimeout(() => {
+                        card.remove();
+                        
+                        // Check if no more favorites
+                        const remainingCards = document.querySelectorAll('.listing-card');
+                        if (remainingCards.length === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
