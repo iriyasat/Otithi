@@ -1,0 +1,113 @@
+Software Requirements Specification (SRS)
+Otithi Vacation Rental Platform
+
+1. Introduction
+-------------------
+Background:
+Otithi is a web-based vacation rental platform designed for the Bangladeshi market, enabling hosts to list properties and guests to book accommodations online.
+
+Motivation:
+The growing demand for short-term rentals and digital hospitality solutions in Bangladesh motivates the development of a secure, user-friendly, and scalable platform.
+
+Problem Statement:
+There is a lack of a robust, localized platform for vacation rentals in Bangladesh that supports real-time booking, secure payments, and dynamic listings with local currency support.
+
+Objectives:
+- Provide a seamless experience for hosts and guests
+- Ensure secure, real-time booking and payment
+- Support dynamic pricing and real images
+- Offer robust admin, host, and guest management
+
+2. System Overview
+-------------------
+Otithi is a full-stack web application with user authentication, listing management, booking, reviews, and admin controls. It uses Python (Flask), MySQL, and modern frontend technologies.
+
+3. System Life Cycle
+-------------------
+- Requirements Analysis
+- System Design
+- Implementation
+- Testing
+- Deployment
+- Maintenance & Updates
+
+4. Functional Requirements
+-------------------
+List of Features:
+- User Registration & Authentication
+- Host Listing Management
+- Guest Booking System
+- Real-Time Price Calculation
+- Review & Rating System
+- Admin Dashboard
+- Image Upload & Gallery
+- Search & Explore Listings
+- Profile Management
+- Secure Payment Integration
+
+Feature Table:
+| Feature                  | Description                                 |
+|--------------------------|---------------------------------------------|
+| User Registration        | Sign up/login for guests and hosts          |
+| Listing Management       | Hosts can create, edit, and delete listings |
+| Booking System           | Guests can book available listings          |
+| Price Calculation        | Dynamic, real-time pricing in Taka          |
+| Reviews & Ratings        | Guests can review and rate listings         |
+| Admin Dashboard          | Admins manage users, listings, and reviews  |
+| Image Gallery            | Upload and display real listing images      |
+| Search/Explore           | Filter and search for listings              |
+| Profile Management       | Edit user info and view bookings/listings   |
+| Payment Integration      | Secure online payments                      |
+
+5. System Specification Diagrams
+-------------------
+- Use Case Diagram: (see attached diagram)
+- Narrative Table: (see below)
+- Data Flow Diagram (DFD): (see attached diagram)
+- Sequence Diagram: (see attached diagram)
+- Activity Diagram: (see attached diagram)
+- Class Diagram: (see attached diagram)
+
+Use Case Narrative Table:
+| Actor   | Use Case                | Description                        |
+|---------|-------------------------|------------------------------------|
+| Guest   | Register/Login          | Create or access account           |
+| Guest   | Search Listings         | Find available properties          |
+| Guest   | Book Listing            | Reserve a property                 |
+| Guest   | Leave Review            | Submit feedback after stay         |
+| Host    | Manage Listings         | Add/edit/remove property listings  |
+| Host    | View Bookings           | See guest bookings                 |
+| Admin   | Manage Users/Listings   | Oversee platform activity          |
+
+6. Non-Functional Requirements
+-------------------
+1. Security: All user data and transactions must be secure (HTTPS, hashed passwords).
+2. Performance: Pages should load within 2 seconds under normal load.
+3. Scalability: System must support growth in users and listings.
+4. Usability: UI must be intuitive and accessible.
+5. Availability: 99.5% uptime required.
+6. Localization: All currency in Bangladeshi Taka (৳), support for Bengali/English.
+7. Responsiveness: Fully functional on mobile, tablet, and desktop.
+8. Maintainability: Codebase must be modular and well-documented.
+
+7. Risk Analysis (SWOT)
+-------------------
+Strengths:
+- Localized solution, real-time data, robust security
+Weaknesses:
+- Initial user adoption, dependency on internet
+Opportunities:
+- Growing travel/tourism sector, digital payments
+Threats:
+- Competition, regulatory changes, data breaches
+
+8. Conclusion
+-------------------
+Otithi aims to be the leading vacation rental platform in Bangladesh, providing a secure, user-friendly, and scalable solution for both hosts and guests.
+
+References
+-------------------
+- Flask Documentation: https://flask.palletsprojects.com/
+- MySQL Documentation: https://dev.mysql.com/doc/
+- Airbnb, Booking.com (industry references)
+- Project internal documentation
