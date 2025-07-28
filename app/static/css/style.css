@@ -1,9 +1,24 @@
 /* Otithi CSS Architecture - Modular Imports */
-@import 'variables.css';
-@import 'components.css';
-@import 'nav.css';
+/* Main stylesheet that imports all modular CSS files */
 
-/* Bootstrap Override - Ensure custom green primary color */
+/* ===== CORE IMPORTS ===== */
+@import 'variables.css';
+@import 'base.css';
+@import 'layout.css';
+@import 'components.css';
+@import 'navigation.css';
+@import 'animations.css';
+@import 'utilities.css';
+
+/* ===== PAGE-SPECIFIC IMPORTS ===== */
+@import 'auth.css';
+@import 'home.css';
+@import 'dashboard.css';
+@import 'profile.css';
+@import 'responsive.css';
+
+/* ===== BOOTSTRAP OVERRIDES ===== */
+/* Ensure custom green primary color */
 .btn-primary,
 .btn-primary:hover,
 .btn-primary:focus,
@@ -16,4 +31,41 @@
 .btn-primary:not(:disabled):not(.disabled):active {
     background-color: var(--primary-600) !important;
     border-color: var(--primary-600) !important;
+}
+
+/* ===== GLOBAL OVERRIDES ===== */
+/* Ensure consistent styling across all pages */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family);
+    line-height: var(--line-height-normal);
+    color: var(--text-primary);
+    background-color: var(--neutral-0);
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .otithi-navbar,
+    .otithi-footer,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .container {
+        max-width: none !important;
+        padding: 0 !important;
+    }
 }

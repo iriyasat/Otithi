@@ -221,39 +221,5 @@
 }
 </style>
 
-<script>
-// Handle favorite toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-    
-    favoriteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const listingId = this.dataset.listingId;
-            const heartIcon = this.querySelector('i');
-            
-            // Remove from favorites (since this is the favorites page)
-            if (confirm('Remove this listing from your favorites?')) {
-                // Here you would make an AJAX call to remove from favorites
-                // For now, we'll just hide the card
-                const card = this.closest('.col-lg-4, .col-md-6');
-                if (card) {
-                    card.style.opacity = '0.5';
-                    setTimeout(() => {
-                        card.remove();
-                        
-                        // Check if no more favorites
-                        const remainingCards = document.querySelectorAll('.listing-card');
-                        if (remainingCards.length === 0) {
-                            location.reload(); // Reload to show empty state
-                        }
-                    }, 300);
-                }
-            }
-        });
-    });
-});
-</script>
+
 {% endblock %}

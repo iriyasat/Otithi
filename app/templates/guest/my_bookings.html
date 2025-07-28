@@ -240,28 +240,5 @@
     </div>
 </div>
 
-<script>
-function cancelBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        // You can implement the cancel booking functionality here
-        fetch(`/bookings/${bookingId}/cancel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Failed to cancel booking. Please try again.');
-            }
-        });
-    }
-}
 
-function showBookingDetails(bookingId) {
-    // You can implement a modal or redirect to booking details page
-    alert(`Showing details for booking #${bookingId}`);
-}
-</script>
 {% endblock %}

@@ -1,57 +1,178 @@
-// Main JavaScript file for Otithi
+/**
+ * Otithi Main JavaScript
+ * Main entry point and essential functionality
+ */
 
+// Import modular JavaScript files
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    // Load core functionality
+    loadScript('/static/js/core.js');
+    
+    // Load page-specific functionality
+    loadPageSpecificScripts();
+});
 
-    // Search form enhancements
-    const searchForm = document.querySelector('.search-form');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(e) {
-            const searchInput = this.querySelector('input[name="query"]');
-            if (!searchInput.value.trim()) {
-                e.preventDefault();
-                searchInput.focus();
-            }
+/**
+ * Load page-specific scripts based on current page
+ */
+function loadPageSpecificScripts() {
+    const currentPath = window.location.pathname;
+    
+    // Booking pages
+    if (currentPath.includes('/booking') || currentPath.includes('/my_bookings')) {
+        loadScript('/static/js/booking.js');
+    }
+    
+    // Favorites pages
+    if (currentPath.includes('/favorites')) {
+        loadScript('/static/js/favorites.js');
+    }
+    
+    // Maps functionality (create listing, listing details)
+    if (currentPath.includes('/create_listing') || currentPath.includes('/listing/')) {
+        loadScript('/static/js/maps.js');
+    }
+    
+    // Admin pages
+    if (currentPath.includes('/admin')) {
+        loadScript('/static/js/admin.js');
+        if (currentPath.includes('/users')) {
+            loadScript('/static/js/admin-verification.js');
+        }
+    }
+}
+
+/**
+ * Load script dynamically
+ * @param {string} src - Script source URL
+ */
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+/**
+ * User type selection for registration
+ * @param {string} type - User type (guest, host)
+ * @param {HTMLElement} element - The clicked element
+ */
+function selectUserType(type, element) {
+    // Remove active class from all user type cards
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Add active class to selected card
+    element.classList.add('active');
+    
+    // Update hidden input
+    const userTypeInput = document.getElementById('user_type');
+    if (userTypeInput) {
+        userTypeInput.value = type;
+    }
+    
+    // Update form validation
+    updateUserTypeValidation(type);
+}
+
+/**
+ * Update form validation based on user type
+ * @param {string} type - Selected user type
+ */
+function updateUserTypeValidation(type) {
+    const hostFields = document.querySelectorAll('.host-field');
+    const guestFields = document.querySelectorAll('.guest-field');
+    
+    if (type === 'host') {
+        hostFields.forEach(field => {
+            field.style.display = 'block';
+            field.querySelector('input')?.setAttribute('required', 'required');
+        });
+        guestFields.forEach(field => {
+            field.style.display = 'none';
+            field.querySelector('input')?.removeAttribute('required');
+        });
+    } else {
+        hostFields.forEach(field => {
+            field.style.display = 'none';
+            field.querySelector('input')?.removeAttribute('required');
+        });
+        guestFields.forEach(field => {
+            field.style.display = 'block';
+            field.querySelector('input')?.setAttribute('required', 'required');
         });
     }
+}
 
-    // Listing card click handlers
-    const listingCards = document.querySelectorAll('.listing-card');
-    listingCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Don't navigate if clicking on heart button
-            if (e.target.closest('.btn')) {
-                return;
-            }
-            
-            const listingId = this.dataset.listingId || 1;
-            window.location.href = `/listing/${listingId}`;
-        });
-    });
+/**
+ * Show terms and conditions modal
+ * @param {Event} event - Click event
+ */
+function showTermsModal(event) {
+    event.preventDefault();
+    showModal('Terms and Conditions', getTermsContent());
+}
 
-    // Heart button toggle
-    const heartButtons = document.querySelectorAll('.btn[title*="wishlist"], .btn[title*="Save"]');
-    heartButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('bi-heart')) {
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill');
-                this.classList.add('text-danger');
-            } else {
-                icon.classList.remove('bi-heart-fill');
-                icon.classList.add('bi-heart');
-                this.classList.remove('text-danger');
-            }
-        });
-    });
+/**
+ * Show privacy policy modal
+ * @param {Event} event - Click event
+ */
+function showPrivacyModal(event) {
+    event.preventDefault();
+    showModal('Privacy Policy', getPrivacyContent());
+}
 
-    // Filter chips
+/**
+ * Get terms and conditions content
+ * @returns {string} HTML content for terms
+ */
+function getTermsContent() {
+    return `
+        <div class="terms-content">
+            <h6>Terms and Conditions</h6>
+            <p>By using Otithi, you agree to the following terms:</p>
+            <ul>
+                <li>You must be at least 18 years old to use our services</li>
+                <li>You are responsible for the accuracy of your listing information</li>
+                <li>You agree to treat other users with respect and courtesy</li>
+                <li>We reserve the right to modify these terms at any time</li>
+                <li>Violation of these terms may result in account suspension</li>
+            </ul>
+            <p>For complete terms, please contact our support team.</p>
+        </div>
+    `;
+}
+
+/**
+ * Get privacy policy content
+ * @returns {string} HTML content for privacy policy
+ */
+function getPrivacyContent() {
+    return `
+        <div class="privacy-content">
+            <h6>Privacy Policy</h6>
+            <p>Your privacy is important to us. This policy describes how we collect and use your information:</p>
+            <ul>
+                <li>We collect information you provide when creating an account</li>
+                <li>We use cookies to improve your browsing experience</li>
+                <li>We do not sell your personal information to third parties</li>
+                <li>You can request deletion of your data at any time</li>
+                <li>We implement security measures to protect your information</li>
+            </ul>
+            <p>For complete privacy policy, please contact our support team.</p>
+        </div>
+    `;
+}
+
+/**
+ * Initialize filter chips functionality
+ */
+function initializeFilterChips() {
     const filterChips = document.querySelectorAll('.filter-chip');
     filterChips.forEach(chip => {
         chip.addEventListener('click', function(e) {
@@ -62,542 +183,148 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add active to clicked chip
             this.classList.add('active');
+            
+            // Apply filter
+            const filterValue = this.dataset.filter;
+            applyFilter(filterValue);
         });
     });
+}
 
-    // Booking form validation
-    const bookingForm = document.querySelector('.booking-card form');
-    if (bookingForm) {
-        bookingForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const checkin = this.querySelector('input[name="checkin"]').value;
-            const checkout = this.querySelector('input[name="checkout"]').value;
-            
-            if (!checkin || !checkout) {
-                alert('Please select check-in and check-out dates.');
-                return;
-            }
-            
-            if (new Date(checkin) >= new Date(checkout)) {
-                alert('Check-out date must be after check-in date.');
-                return;
-            }
-            
-            // Simulate booking process
-            const button = this.querySelector('button[type="submit"]');
-            const originalText = button.textContent;
-            button.innerHTML = '<span class="loading"></span> Processing...';
-            button.disabled = true;
-            
-            setTimeout(() => {
-                alert('Booking request submitted successfully!');
-                button.textContent = originalText;
-                button.disabled = false;
-            }, 2000);
-        });
-    }
-
-    // Earnings calculator
-    const calculatorButton = document.querySelector('button[type="button"]');
-    if (calculatorButton && calculatorButton.textContent.includes('Calculate')) {
-        calculatorButton.addEventListener('click', function() {
-            const location = document.querySelector('input[placeholder*="address"]').value;
-            const propertyType = this.closest('form').querySelector('select').value;
-            
-            if (!location.trim()) {
-                alert('Please enter your location.');
-                return;
-            }
-            
-            // Simulate calculation
-            this.innerHTML = '<span class="loading"></span> Calculating...';
-            this.disabled = true;
-            
-            setTimeout(() => {
-                const earnings = Math.floor(Math.random() * 20000) + 10000;
-                const earningsDisplay = document.querySelector('.text-primary.fw-bold');
-                if (earningsDisplay) {
-                    earningsDisplay.textContent = `৳${earnings.toLocaleString()}`;
-                }
-                
-                this.textContent = 'Calculate earnings';
-                this.disabled = false;
-            }, 1500);
-        });
-    }
-
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Auto-update copyright year
-    const footerParagraphs = document.querySelectorAll('footer p');
-    footerParagraphs.forEach(p => {
-        if (p.textContent.includes('©')) {
-            const currentYear = new Date().getFullYear();
-            p.innerHTML = p.innerHTML.replace(/\d{4}/, currentYear);
+/**
+ * Apply filter to listings
+ * @param {string} filterValue - Filter value to apply
+ */
+function applyFilter(filterValue) {
+    const listings = document.querySelectorAll('.listing-card');
+    
+    listings.forEach(listing => {
+        let shouldShow = true;
+        
+        switch (filterValue) {
+            case 'all':
+                shouldShow = true;
+                break;
+            case 'available':
+                const availability = listing.dataset.availability;
+                shouldShow = availability === 'available';
+                break;
+            case 'price-low':
+                const price = parseFloat(listing.dataset.price);
+                shouldShow = price <= 1000;
+                break;
+            case 'price-high':
+                const priceHigh = parseFloat(listing.dataset.price);
+                shouldShow = priceHigh > 1000;
+                break;
+            case 'rating-high':
+                const rating = parseFloat(listing.dataset.rating);
+                shouldShow = rating >= 4.0;
+                break;
+            default:
+                shouldShow = true;
+        }
+        
+        if (shouldShow) {
+            listing.style.display = 'block';
+            listing.style.opacity = '1';
+        } else {
+            listing.style.display = 'none';
         }
     });
-
-    // Form validation
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const requiredFields = this.querySelectorAll('[required]');
-            let isValid = true;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    field.classList.remove('is-invalid');
-                }
-            });
-            
-            // Email validation
-            const emailFields = this.querySelectorAll('input[type="email"]');
-            emailFields.forEach(field => {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (field.value && !emailRegex.test(field.value)) {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                } else if (field.value) {
-                    field.classList.remove('is-invalid');
-                }
-            });
-            
-            // Password confirmation
-            const password = this.querySelector('input[name="password"]');
-            const confirmPassword = this.querySelector('input[name="confirmPassword"]');
-            if (password && confirmPassword && password.value !== confirmPassword.value) {
-                confirmPassword.classList.add('is-invalid');
-                isValid = false;
-            } else if (confirmPassword) {
-                confirmPassword.classList.remove('is-invalid');
-            }
-            
-            if (!isValid) {
-                e.preventDefault();
-            }
-        });
-    });
-
-    // Mobile menu enhancements
-    const navbarToggler = document.querySelector('.navbar-toggler');
-    if (navbarToggler) {
-        navbarToggler.addEventListener('click', function() {
-            const icon = this.querySelector('.navbar-toggler-icon');
-            setTimeout(() => {
-                if (this.getAttribute('aria-expanded') === 'true') {
-                    icon.style.transform = 'rotate(90deg)';
-                } else {
-                    icon.style.transform = 'rotate(0deg)';
-                }
-            }, 10);
-        });
-    }
-
-    // Lazy loading for images
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src || img.src;
-                    img.classList.remove('lazy');
-                    observer.unobserve(img);
-                }
-            });
-        });
-
-        document.querySelectorAll('img.lazy').forEach(img => {
-            imageObserver.observe(img);
-        });
-    }
-
-    // User type selection for registration
-    const userTypeCards = document.querySelectorAll('.user-type-card');
-    userTypeCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Get the user type from the radio input inside this card
-            const radioInput = this.querySelector('input[type="radio"]');
-            if (radioInput) {
-                // Remove active class from all cards
-                userTypeCards.forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked card
-                this.classList.add('active');
-                
-                // Check the corresponding radio button
-                radioInput.checked = true;
-            }
-        });
-    });
-
-    // Initialize user type selection on page load
-    // Set guest as default selected
-    const guestCard = document.querySelector('.user-type-card');
-    if (guestCard) {
-        guestCard.classList.add('active');
-        const guestRadio = guestCard.querySelector('input[type="radio"]');
-        if (guestRadio) {
-            guestRadio.checked = true;
-        }
-    }
-
-    // View toggle functionality for explore page
-    const viewToggleBtns = document.querySelectorAll('.view-btn');
-    const listingsContainer = document.getElementById('listings-container');
     
-    if (viewToggleBtns.length > 0 && listingsContainer) {
-        viewToggleBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Prevent multiple rapid clicks
-                if (this.classList.contains('switching')) return;
-                
-                // Remove active class from all buttons
-                viewToggleBtns.forEach(b => {
-                    b.classList.remove('active');
-                    b.classList.remove('switching');
-                });
-                
-                // Add switching state to prevent rapid clicks
-                this.classList.add('switching');
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Get the view type
-                const viewType = this.dataset.view;
-                
-                // Add fade out effect
-                listingsContainer.style.opacity = '0.7';
-                listingsContainer.style.transform = 'scale(0.98)';
-                
-                // After a short delay, change the view
-                setTimeout(() => {
-                    // Toggle the grid/list view
-                    if (viewType === 'list') {
-                        listingsContainer.classList.add('listings-list');
-                        listingsContainer.classList.remove('listings-grid');
-                    } else {
-                        listingsContainer.classList.remove('listings-list');
-                        listingsContainer.classList.add('listings-grid');
-                    }
-                    
-                    // Fade back in with new layout
-                    listingsContainer.style.opacity = '1';
-                    listingsContainer.style.transform = 'scale(1)';
-                    
-                    // Remove switching state
-                    this.classList.remove('switching');
-                }, 150);
-            });
-        });
-    }
-});
+    // Update results count
+    updateResultsCount();
+}
 
-// Global function for user type selection (backup for inline events)
-function selectUserType(type, element) {
-    // Remove active class from all cards
-    document.querySelectorAll('.user-type-card').forEach(card => {
-        card.classList.remove('active');
-    });
+/**
+ * Update results count display
+ */
+function updateResultsCount() {
+    const visibleListings = document.querySelectorAll('.listing-card[style*="display: block"], .listing-card:not([style*="display: none"])');
+    const countElement = document.querySelector('.results-count');
     
-    // Add active class to selected card
-    element.classList.add('active');
-    
-    // Check the corresponding radio button
-    const radioInput = document.getElementById(type);
-    if (radioInput) {
-        radioInput.checked = true;
+    if (countElement) {
+        countElement.textContent = visibleListings.length;
     }
 }
 
-// Utility functions
-function formatCurrency(amount) {
-    return `৳${amount.toLocaleString()}`;
-}
-
-function showNotification(message, type = 'success') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    notification.style.top = '20px';
-    notification.style.right = '20px';
-    notification.style.zIndex = '9999';
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+/**
+ * Initialize view toggle functionality
+ */
+function initializeViewToggle() {
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const listingsGrid = document.querySelector('.listings-grid');
     
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        notification.remove();
-    }, 5000);
-}
-
-// API helper functions
-async function fetchListings(filters = {}) {
-    try {
-        const params = new URLSearchParams(filters);
-        const response = await fetch(`/api/listings?${params}`);
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching listings:', error);
-        return [];
-    }
-}
-
-// Export functions for use in other scripts
-window.OtithiApp = {
-    formatCurrency,
-    showNotification,
-    fetchListings
-};
-
-// File Upload Enhancement
-function initFileUpload() {
-    const fileInputs = document.querySelectorAll('.file-input');
-    
-    fileInputs.forEach(input => {
-        const container = input.closest('.file-upload-container');
-        const label = container.querySelector('.file-upload-label');
-        const uploadContent = container.querySelector('.file-upload-content');
-        const filePreview = container.querySelector('.file-preview');
-        const previewImage = container.querySelector('.preview-image');
-        const removeBtn = container.querySelector('.remove-file-btn');
-        const mainText = container.querySelector('.upload-main-text');
-        const subText = container.querySelector('.upload-sub-text');
-
-        // Handle file selection
-        input.addEventListener('change', function(e) {
-            handleFileSelect(e.target.files[0]);
-        });
-
-        // Handle drag and drop
-        label.addEventListener('dragover', function(e) {
+    viewButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            this.classList.add('drag-over');
-            uploadContent.style.borderColor = 'var(--primary-500)';
-            uploadContent.style.background = 'var(--primary-50)';
-        });
-
-        label.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.remove('drag-over');
-            uploadContent.style.borderColor = 'var(--neutral-300)';
-            uploadContent.style.background = 'var(--neutral-50)';
-        });
-
-        label.addEventListener('drop', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.remove('drag-over');
-            uploadContent.style.borderColor = 'var(--neutral-300)';
-            uploadContent.style.background = 'var(--neutral-50)';
             
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileSelect(files[0]);
-            }
+            // Remove active from all buttons
+            viewButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active to clicked button
+            this.classList.add('active');
+            
+            // Apply view
+            const viewType = this.dataset.view;
+            applyView(viewType);
         });
-
-        // Remove file button
-        if (removeBtn) {
-            removeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                removeFile();
-            });
-        }
-
-        function handleFileSelect(file) {
-            if (!file) return;
-
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                showNotification('Please select an image file', 'error');
-                return;
-            }
-
-            // Validate file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                showNotification('File size must be less than 5MB', 'error');
-                return;
-            }
-
-            // Create preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                uploadContent.style.display = 'none';
-                filePreview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-
-            // Update input
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            input.files = dt.files;
-        }
-
-        function removeFile() {
-            input.value = '';
-            previewImage.src = '';
-            uploadContent.style.display = 'flex';
-            filePreview.style.display = 'none';
-        }
     });
 }
 
-// Initialize file upload when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initFileUpload();
-});
-
-// Terms and Privacy Policy Modal Functions
-function showTermsModal(event) {
-    event.preventDefault();
-    showModal('Terms of Service', getTermsContent());
+/**
+ * Apply view type to listings
+ * @param {string} viewType - View type to apply
+ */
+function applyView(viewType) {
+    const listingsGrid = document.querySelector('.listings-grid');
+    
+    if (!listingsGrid) return;
+    
+    switch (viewType) {
+        case 'grid':
+            listingsGrid.className = 'listings-grid grid-view';
+            break;
+        case 'list':
+            listingsGrid.className = 'listings-grid list-view';
+            break;
+        case 'map':
+            // Show map view (implement map functionality)
+            showMapView();
+            break;
+        default:
+            listingsGrid.className = 'listings-grid grid-view';
+    }
 }
 
-function showPrivacyModal(event) {
-    event.preventDefault();
-    showModal('Privacy Policy', getPrivacyContent());
-}
-
-function showModal(title, content) {
-    // Create modal HTML
-    const modalHTML = `
-        <div class="modal-overlay" onclick="closeModal()">
-            <div class="modal-content" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <h3 class="modal-title">${title}</h3>
-                    <button class="modal-close" onclick="closeModal()">×</button>
-                </div>
-                <div class="modal-body">
-                    ${content}
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-primary" onclick="closeModal()">Close</button>
-                </div>
+/**
+ * Show map view of listings
+ */
+function showMapView() {
+    // This would integrate with the maps.js functionality
+    // For now, just show a placeholder
+    const listingsContainer = document.querySelector('.listings-container');
+    if (listingsContainer) {
+        listingsContainer.innerHTML = `
+            <div class="map-view-placeholder">
+                <h4>Map View</h4>
+                <p>Map view functionality will be implemented here.</p>
             </div>
-        </div>
-    `;
-    
-    // Add modal to page
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-    const modal = document.querySelector('.modal-overlay');
-    if (modal) {
-        modal.remove();
-        document.body.style.overflow = 'auto';
+        `;
     }
 }
 
-function getTermsContent() {
-    return `
-        <div class="terms-content">
-            <h4>1. Acceptance of Terms</h4>
-            <p>By using Otithi, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>
-            
-            <h4>2. Service Description</h4>
-            <p>Otithi is a platform that connects travelers with local hosts in Bangladesh, facilitating short-term accommodation bookings.</p>
-            
-            <h4>3. User Accounts</h4>
-            <p>You must create an account to use our services. You are responsible for maintaining the security of your account credentials.</p>
-            
-            <h4>4. Booking and Payments</h4>
-            <p>All bookings are subject to host approval. Payment processing is handled securely through our platform.</p>
-            
-            <h4>5. Host Responsibilities</h4>
-            <p>Hosts must provide accurate listing information and maintain their properties to the standards described.</p>
-            
-            <h4>6. Guest Responsibilities</h4>
-            <p>Guests must respect host properties and follow house rules as outlined in each listing.</p>
-            
-            <h4>7. Cancellation Policy</h4>
-            <p>Cancellation policies vary by listing. Please review the specific policy before booking.</p>
-            
-            <h4>8. Limitation of Liability</h4>
-            <p>Otithi acts as a platform and is not responsible for the conduct of hosts or guests.</p>
-        </div>
-    `;
-}
-
-function getPrivacyContent() {
-    return `
-        <div class="privacy-content">
-            <h4>1. Information We Collect</h4>
-            <p>We collect information you provide when creating an account, making bookings, and using our services.</p>
-            
-            <h4>2. How We Use Your Information</h4>
-            <p>Your information is used to facilitate bookings, improve our services, and communicate with you about your account.</p>
-            
-            <h4>3. Information Sharing</h4>
-            <p>We share necessary information between hosts and guests to facilitate bookings. We do not sell your personal information.</p>
-            
-            <h4>4. Data Security</h4>
-            <p>We implement appropriate security measures to protect your personal information against unauthorized access.</p>
-            
-            <h4>5. Cookies</h4>
-            <p>We use cookies to enhance your experience and analyze website usage.</p>
-            
-            <h4>6. Your Rights</h4>
-            <p>You have the right to access, update, or delete your personal information at any time.</p>
-            
-            <h4>7. Contact Us</h4>
-            <p>If you have questions about this Privacy Policy, please contact us at privacy@otithi.com</p>
-        </div>
-    `;
-}
-
-// Favorite toggle function for listings
-function toggleFavorite(listingId) {
-    // Get the button that was clicked
-    const button = event.target.closest('.favorite-btn');
-    if (!button) return;
+// Initialize additional functionality when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize filter chips
+    initializeFilterChips();
     
-    const icon = button.querySelector('i');
-    const isCurrentlyFavorited = icon.classList.contains('bi-heart-fill');
+    // Initialize view toggle
+    initializeViewToggle();
     
-    // Toggle the icon
-    if (isCurrentlyFavorited) {
-        icon.classList.remove('bi-heart-fill');
-        icon.classList.add('bi-heart');
-        button.classList.remove('favorited');
-    } else {
-        icon.classList.remove('bi-heart');
-        icon.classList.add('bi-heart-fill');
-        button.classList.add('favorited');
+    // Initialize file upload if present
+    if (document.querySelector('input[type="file"]')) {
+        initFileUpload();
     }
-    
-    // Here you would typically make an AJAX request to save the favorite state
-    // For now, we'll just update the UI
-    
-    // Optional: Add animation feedback
-    button.style.transform = 'scale(1.2)';
-    setTimeout(() => {
-        button.style.transform = 'scale(1)';
-    }, 150);
-}
+});
