@@ -211,14 +211,14 @@
                                     </button>
                                     
                                     <!-- Edit User -->
-                                    <a href="{{ url_for('main.admin_edit_user_confirm', user_id=user.id) }}" 
+                                    <a href="{{ url_for('admin.edit_user_confirm', user_id=user.id) }}" 
                                        class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
                                     
                                     <!-- Delete User (if not current user) -->
                                     {% if user.id != current_user.id %}
-                                    <a href="{{ url_for('main.admin_delete_user_confirm', user_id=user.id) }}" 
+                                    <a href="{{ url_for('admin.delete_user_confirm', user_id=user.id) }}" 
                                        class="btn btn-sm btn-outline-danger">
                                         <i class="fas fa-trash"></i> Delete
                                     </a>
