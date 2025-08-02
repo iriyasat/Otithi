@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, current_user
 from app.models import User
 import os
+import re
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -23,27 +24,33 @@ def login():
         try:
             user = User.get_by_email(email)
             
-            if user and user.check_password(password):
-                login_user(user, remember=remember_me)
+            if user:
+                password_valid = user.check_password(password)
                 
-                # Log successful login
-                flash(f'Welcome back, {user.full_name}!', 'success')
-                
-                # Redirect to next page or dashboard
-                next_page = request.args.get('next')
-                if next_page:
-                    return redirect(next_page)
-                else:
-                    if user.user_type == 'admin':
-                        return redirect(url_for('admin.dashboard'))
+                if password_valid:
+                    login_user(user, remember=remember_me)
+                    
+                    # Log successful login
+                    flash(f'Welcome back, {user.full_name}!', 'success')
+                    
+                    # Redirect to next page or dashboard
+                    next_page = request.args.get('next')
+                    if next_page:
+                        return redirect(next_page)
                     else:
-                        return redirect(url_for('main.dashboard'))
+                        if user.user_type == 'admin':
+                            return redirect(url_for('main.dashboard'))
+                        elif user.user_type == 'host':
+                            return redirect(url_for('main.dashboard'))
+                        else:  # guest
+                            return redirect(url_for('main.dashboard'))
+                else:
+                    flash('Invalid email or password.', 'error')
             else:
                 flash('Invalid email or password.', 'error')
                 
         except Exception as e:
             flash('Login failed. Please try again.', 'error')
-            print(f"Login error: {e}")  # For debugging
     
     return render_template('auth/login.html')
 
@@ -62,6 +69,48 @@ def register():
         bio = request.form.get('bio', '').strip()
         user_type = request.form.get('user_type', 'guest')
         terms_agreement = request.form.get('terms_agreement')
+        
+        # Handle profile photo upload
+        profile_photo = request.files.get('profile_photo')
+        profile_photo_filename = None
+        
+        if profile_photo and profile_photo.filename:
+            # Validate file type
+            allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+            if '.' in profile_photo.filename and \
+               profile_photo.filename.rsplit('.', 1)[1].lower() in allowed_extensions:
+                
+                # Validate file size (5MB max)
+                profile_photo.seek(0, 2)  # Seek to end
+                file_size = profile_photo.tell()
+                profile_photo.seek(0)  # Reset to beginning
+                
+                if file_size > 5 * 1024 * 1024:  # 5MB limit
+                    flash('File size too large. Please upload an image smaller than 5MB.', 'error')
+                    return render_template('auth/register.html')
+                
+                # Create filename with user name for organization
+                file_extension = profile_photo.filename.rsplit('.', 1)[1].lower()
+                # Clean the user name for filename (remove spaces, special chars)
+                clean_name = ''.join(c for c in full_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+                clean_name = clean_name.replace(' ', '_')  # Replace spaces with underscores
+                clean_name = clean_name.lower()  # Convert to lowercase for consistency
+                
+                # Create temporary filename (we'll update with user ID after user creation)
+                import time
+                timestamp = int(time.time())
+                profile_photo_filename = f"{clean_name}_{timestamp}_profile.{file_extension}"
+                
+                # Create uploads directory if it doesn't exist
+                upload_folder = os.path.join(current_app.root_path, 'static', 'uploads')
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                # Save the file temporarily
+                temp_file_path = os.path.join(upload_folder, profile_photo_filename)
+                profile_photo.save(temp_file_path)
+            else:
+                flash('Invalid file type. Please upload PNG, JPG, JPEG, or GIF files only.', 'error')
+                return render_template('auth/register.html')
         
         # Validation
         errors = []
@@ -94,41 +143,6 @@ def register():
             existing_user = User.get_by_email(email)
             if existing_user:
                 flash('An account with this email already exists.', 'error')
-                return render_template('auth/register.html')
-            
-            # Create new user
-            user = User.create(
-                full_name=full_name,
-                email=email,
-                password=password,
-                phone=phone,
-                bio=bio,
-                user_type=user_type
-            )
-            
-            if user:
-                login_user(user)
-                flash(f'Welcome to Otithi, {user.full_name}! Your account has been created successfully.', 'success')
-                return redirect(url_for('main.dashboard'))
-            else:
-                flash('Registration failed. Please try again.', 'error')
-                
-        except Exception as e:
-            flash('Registration failed. Please try again.', 'error')
-            print(f"Registration error: {e}")  # For debugging
-    
-    return render_template('auth/register.html')
-
-@auth_bp.route('/logout')
-def logout():
-    """User logout"""
-    logout_user()
-    flash('You have been logged out successfully.', 'info')
-    return redirect(url_for('main.index'))
-            
-            if errors:
-                for error in errors:
-                    flash(error, 'error')
                 return render_template('auth/register.html')
             
             # Create new user
@@ -176,7 +190,8 @@ def logout():
                 flash('Registration failed. Please try again.', 'error')
         
         except Exception as e:
-            flash('An error occurred during registration. Please try again.', 'error')
+            flash('Registration failed. Please try again.', 'error')
+            print(f"Registration error: {e}")
     
     return render_template('auth/register.html')
 

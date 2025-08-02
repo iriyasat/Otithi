@@ -40,9 +40,9 @@
                 <div class="user-type-selection">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <div class="user-type-card active">
+                            <div class="user-type-card active" onclick="selectGuestType()">
                                 <input type="radio" name="user_type" value="guest" id="guest" checked style="display: none;">
-                                <label for="guest" class="w-100 text-center">
+                                <label for="guest" class="w-100 text-center" style="pointer-events: none;">
                                     <div class="user-type-icon">
                                         <i class="bi bi-airplane" style="font-size: 2rem; color: #006a4e;"></i>
                                     </div>
@@ -52,9 +52,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="user-type-card">
+                            <div class="user-type-card" onclick="selectHostType()">
                                 <input type="radio" name="user_type" value="host" id="host" style="display: none;">
-                                <label for="host" class="w-100 text-center">
+                                <label for="host" class="w-100 text-center" style="pointer-events: none;">
                                     <div class="user-type-icon">
                                         <i class="bi bi-house-door" style="font-size: 2rem; color: #006a4e;"></i>
                                     </div>
@@ -181,5 +181,34 @@ document.addEventListener('DOMContentLoaded', function() {
         previewImage.src = '';
     });
 });
+
+// Global functions for user type selection
+function selectGuestType() {
+    // Remove active class from all cards
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Add active class to guest card
+    document.querySelector('.user-type-card').classList.add('active');
+    
+    // Check guest radio button
+    document.getElementById('guest').checked = true;
+    document.getElementById('host').checked = false;
+}
+
+function selectHostType() {
+    // Remove active class from all cards
+    document.querySelectorAll('.user-type-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Add active class to host card (second card)
+    document.querySelectorAll('.user-type-card')[1].classList.add('active');
+    
+    // Check host radio button
+    document.getElementById('host').checked = true;
+    document.getElementById('guest').checked = false;
+}
 </script>
 {% endblock %}

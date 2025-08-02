@@ -53,13 +53,13 @@
                         {% if is_temp_admin %}
                             <a href="{{ url_for('main.index') }}" class="btn-primary">Exit Test Mode</a>
                         {% else %}
-                            <a href="{{ url_for('main.logout') }}" class="btn-primary">Logout</a>
+                            <a href="{{ url_for('auth.logout') }}" class="btn-primary">Logout</a>
                         {% endif %}
                     </div>
                 {% else %}
                     <div class="auth-buttons">
-                        <a href="{{ url_for('main.login') }}" class="btn-ghost">Log in</a>
-                        <a href="{{ url_for('main.register') }}" class="btn-primary">Sign up</a>
+                        <a href="{{ url_for('auth.login') }}" class="btn-ghost">Log in</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn-primary">Sign up</a>
                     </div>
                 {% endif %}
             </div>

@@ -307,7 +307,7 @@
         {% elif not current_user.is_authenticated %}
         <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);">
             <p style="color: var(--text-secondary);">
-                <a href="{{ url_for('main.login') }}" style="color: var(--primary-green); text-decoration: none;">Sign in</a> to leave a review.
+                <a href="{{ url_for('auth.login') }}" style="color: var(--primary-green); text-decoration: none;">Sign in</a> to leave a review.
             </p>
         </div>
         {% endif %}

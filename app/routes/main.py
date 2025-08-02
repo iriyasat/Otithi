@@ -223,27 +223,104 @@ def dashboard():
     try:
         if current_user.user_type == 'admin':
             return redirect(url_for('admin.dashboard'))
-        
+
         # Get user's bookings and listings
-        from app.models import Booking
         bookings = Booking.get_by_user(current_user.id)
         
         if current_user.user_type == 'host':
             listings = Listing.get_by_host(current_user.id)
             host_bookings = Booking.get_by_host(current_user.id)
-            return render_template('dashboard/host.html', 
+            return render_template('host/host.html', 
                                  listings=listings, 
                                  bookings=bookings,
                                  host_bookings=host_bookings)
         else:
-            return render_template('dashboard/guest.html', bookings=bookings)
-            
+            return render_template('guest/guest.html', bookings=bookings)
     except Exception as e:
         print(f"Error loading dashboard: {e}")
-        return render_template('dashboard/guest.html', bookings=[])
+        return render_template('guest/guest.html', bookings=[])
+
+@main_bp.route('/my-bookings')
+@login_required
+def my_bookings():
+    """View user's bookings"""
+    try:
+        bookings = Booking.get_by_user(current_user.id)
+        
+        # Enrich bookings with listing information
+        enriched_bookings = []
+        for booking in bookings:
+            listing = Listing.get(booking.listing_id)
+            host = User.get(listing.host_id) if listing else None
+            confirmed_by_user = User.get(booking.confirmed_by) if booking.confirmed_by else None
+            
+            booking_data = {
+                'booking_id': booking.booking_id,
+                'user_id': booking.user_id,
+                'listing_id': booking.listing_id,
+                'check_in': booking.check_in,
+                'check_out': booking.check_out,
+                'total_price': booking.total_price,
+                'status': booking.status,
+                'created_at': booking.created_at,
+                'confirmed_by': booking.confirmed_by,
+                'confirmed_at': booking.confirmed_at,
+                'confirmed_by_name': confirmed_by_user.full_name if confirmed_by_user else None,
+                'listing': {
+                    'id': listing.id if listing else None,
+                    'title': listing.title if listing else 'Unknown Listing',
+                    'location': listing.location if listing else '',
+                    'image': 'demo_listing_1.jpg',
+                    'host_name': host.full_name if host else 'Unknown Host'
+                } if listing else None
+            }
+            enriched_bookings.append(booking_data)
+        
+        # Sort by creation date
+        enriched_bookings.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return render_template('guest/my_bookings.html', bookings=enriched_bookings, user=current_user)
+    
+    except Exception as e:
+        flash('Error loading bookings.', 'error')
+        return render_template('guest/my_bookings.html', bookings=[], user=current_user)
+
+@main_bp.route('/my-listings')
+@login_required
+def my_listings():
+    """Display user's listings (for hosts)"""
+    if current_user.user_type not in ['host', 'admin']:
+        flash('Access denied. Only hosts can view listings.', 'error')
+        return redirect(url_for('main.dashboard'))
+    
+    user_listings = Listing.get_by_host(current_user.id)
+    host_bookings = Booking.get_by_host(current_user.id)
+    
+    return render_template('host/my_listings.html', 
+                         listings=user_listings,
+                         bookings=host_bookings,
+                         user=current_user)
 
 @main_bp.route('/profile')
 @login_required
 def profile():
     """User profile page"""
     return render_template('profile.html', user=current_user)
+
+# Remove the redirect routes - auth blueprint handles /login and /register directly
+
+@main_bp.route('/logout')
+def logout():
+    """Redirect to auth blueprint logout"""
+    return redirect(url_for('auth.logout'))
+
+@main_bp.route('/listings/<int:listing_id>')
+def listing_detail(listing_id):
+    """Listing detail page - redirect to listings blueprint"""
+    return redirect(url_for('listings.listing_detail', listing_id=listing_id))
+
+@main_bp.route('/book/<int:listing_id>')
+@login_required
+def book_listing(listing_id):
+    """Booking page - redirect to bookings blueprint"""
+    return redirect(url_for('bookings.book_listing', listing_id=listing_id))
