@@ -276,7 +276,7 @@ def listing_detail(listing_id):
             ''' if available_listings else '<p style="color: #6c757d;">No listings are currently available.</p>'}
             
             <div style="margin-top: 30px;">
-                <a href="/" style="background: #006a4e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+                <a href="/" style="background: #006a4e; color: white, padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
                     ← Back to Home
                 </a>
             </div>
@@ -790,24 +790,31 @@ def login():
             flash('Please provide both email and password.', 'error')
             return render_template('auth/login.html')
         
-        user = User.get_by_email(email)
-        
-        if user and user.check_password(password):
-            login_user(user, remember=remember)
-            flash(f'Welcome back, {user.full_name}!', 'success')
+        try:
+            user = User.get_by_email(email)
             
-            # Redirect to next page or appropriate dashboard based on user type
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            
-            # Redirect based on user type
-            if user.user_type in ['admin', 'host']:
-                return redirect(url_for('main.dashboard'))  # Admin and hosts go to their dashboards
+            if user and user.check_password(password):
+                login_user(user, remember=remember)
+                flash(f'Welcome back, {user.full_name}!', 'success')
+                
+                # Redirect to next page or appropriate dashboard based on user type
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                
+                # Fix the redirect logic - redirect to dashboard for admin
+                if user.user_type == 'admin':
+                    return redirect(url_for('main.dashboard'))
+                elif user.user_type == 'host':
+                    return redirect(url_for('main.dashboard'))
+                else:  # guest
+                    return redirect(url_for('main.dashboard'))  # Changed from index to dashboard
             else:
-                return redirect(url_for('main.index'))      # Guests go to search/browse
-        else:
-            flash('Invalid email or password.', 'error')
+                flash('Invalid email or password.', 'error')
+                
+        except Exception as e:
+            print(f"Login error: {e}")  # Debug print
+            flash('An error occurred during login. Please try again.', 'error')
     
     return render_template('auth/login.html')
 

@@ -58,14 +58,14 @@ class User(UserMixin):
             user_data = result[0]
             return User(
                 id=user_data['user_id'],
-                full_name=user_data['name'],
+                full_name=user_data['name'],  # Use 'name' column as per your schema
                 email=user_data['email'],
                 password_hash=user_data.get('password_hash', ''),
-                phone=user_data['phone'],
+                phone=user_data.get('phone', ''),
                 bio=user_data.get('bio', ''),
-                user_type=user_data['user_type'],
-                profile_photo=user_data['profile_photo'],
-                joined_date=user_data['join_date'],
+                user_type=user_data.get('user_type', 'guest'),
+                profile_photo=user_data.get('profile_photo', ''),
+                joined_date=user_data.get('join_date', datetime.now()),
                 verified=user_data.get('verified', False)
             )
         return None
@@ -234,7 +234,33 @@ class Location:
                 created_at=loc['created_at']
             )
         return None
-
+    
+    @staticmethod
+    def find_or_create(address, city, country, latitude=0.0, longitude=0.0, postal_code=None):
+        """Find existing location or create a new one"""
+        # First try to find existing location with same address and city
+        query = """
+        SELECT * FROM locations 
+        WHERE address = %s AND city = %s AND country = %s
+        """
+        result = db.execute_query(query, (address, city, country))
+        
+        if result:
+            data = result[0]
+            return Location(
+                location_id=data['location_id'],
+                address=data['address'],
+                city=data['city'],
+                country=data['country'],
+                latitude=data['latitude'],
+                longitude=data['longitude'],
+                postal_code=data['postal_code'],
+                created_at=data['created_at']
+            )
+        else:
+            # Create new location
+            return Location.create(address, city, country, latitude, longitude, postal_code)
+        
 
 class ListingImage:
     def __init__(self, image_id, listing_id, image_filename, image_order=1, is_primary=False, uploaded_at=None):
@@ -939,3 +965,29 @@ class Location:
                 created_at=data['created_at']
             )
         return None
+    
+    @staticmethod
+    def find_or_create(address, city, country, latitude=0.0, longitude=0.0, postal_code=None):
+        """Find existing location or create a new one"""
+        # First try to find existing location with same address and city
+        query = """
+        SELECT * FROM locations 
+        WHERE address = %s AND city = %s AND country = %s
+        """
+        result = db.execute_query(query, (address, city, country))
+        
+        if result:
+            data = result[0]
+            return Location(
+                location_id=data['location_id'],
+                address=data['address'],
+                city=data['city'],
+                country=data['country'],
+                latitude=data['latitude'],
+                longitude=data['longitude'],
+                postal_code=data['postal_code'],
+                created_at=data['created_at']
+            )
+        else:
+            # Create new location
+            return Location.create(address, city, country, latitude, longitude, postal_code)

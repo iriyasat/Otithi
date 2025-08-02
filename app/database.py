@@ -76,7 +76,7 @@ class Database:
     def execute_query(self, query, params=None):
         """Execute a SELECT query"""
         try:
-            cursor = self.connection.cursor(dictionary=True)
+            cursor = self.connection.cursor(dictionary=True)  # Always use dictionary cursor
             cursor.execute(query, params or ())
             result = cursor.fetchall()
             cursor.close()
@@ -88,7 +88,7 @@ class Database:
     def execute_insert(self, query, params=None):
         """Execute an INSERT query and return the last inserted ID"""
         try:
-            cursor = self.connection.cursor()
+            cursor = self.connection.cursor(dictionary=True)  # Use dictionary cursor
             cursor.execute(query, params or ())
             last_id = cursor.lastrowid
             cursor.close()
@@ -100,7 +100,7 @@ class Database:
     def execute_update(self, query, params=None):
         """Execute an UPDATE/DELETE query"""
         try:
-            cursor = self.connection.cursor()
+            cursor = self.connection.cursor(dictionary=True)  # Use dictionary cursor
             cursor.execute(query, params or ())
             affected_rows = cursor.rowcount
             cursor.close()
