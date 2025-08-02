@@ -9,6 +9,10 @@ profile_bp = Blueprint('profile', __name__)
 @login_required
 def profile():
     """User profile page"""
+    # Redirect admin users to admin profile
+    if current_user.user_type == 'admin':
+        return redirect(url_for('admin.profile'))
+        
     stats = {
         'total_bookings': 0,
         'average_rating': 0.0,

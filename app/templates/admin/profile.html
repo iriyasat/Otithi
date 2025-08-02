@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Profile - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+.profile-card {
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 24px;
+}
+
+.profile-card-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 16px 24px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.profile-card-body {
+    padding: 24px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+}
+
+.admin-badge {
+    background: linear-gradient(135deg, #dc3545, #fd7e14);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-section {
+    background: var(--secondary-color);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.form-section h5 {
+    color: var(--primary-color);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1>
+                        <i class="fas fa-user-shield"></i>
+                        Admin Profile
+                    </h1>
+                    <p class="lead">Manage your administrator account settings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Profile Information -->
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="profile-card-body text-center">
+                        <!-- Profile Avatar -->
+                        <div class="profile-avatar">
+                            {{ user.full_name[0].upper() if user.full_name else 'A' }}
+                        </div>
+                        
+                        <h4 class="mb-2">{{ user.full_name or 'Administrator' }}</h4>
+                        
+                        <div class="admin-badge mb-3">
+                            <i class="fas fa-crown"></i>
+                            Administrator
+                        </div>
+                        
+                        <p class="text-muted mb-3">{{ user.email }}</p>
+                        
+                        {% if user.phone %}
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-phone me-2"></i>{{ user.phone }}
+                        </p>
+                        {% endif %}
+                        
+                        <p class="text-muted small">
+                            <i class="fas fa-calendar me-2"></i>
+                            Joined {{ user.joined_date.strftime('%B %Y') if user.joined_date else 'N/A' }}
+                        </p>
+                        
+                        {% if user.verified %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>Verified Account
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Admin Statistics
+                        </h5>
+                    </div>
+                    <div class="profile-card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h4 class="text-primary mb-1">{{ stats.total_users if stats else '0' }}</h4>
+                                <small class="text-muted">Users</small>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="text-success mb-1">{{ stats.total_bookings if stats else '0' }}</h4>
+                                <small class="text-muted">Bookings</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Settings -->
+            <div class="col-lg-8">
+                <!-- Update Profile Form -->
+                <div class="form-section">
+                    <h5>
+                        <i class="fas fa-edit me-2"></i>
+                        Update Profile Information
+                    </h5>
+                    
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update_profile">
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="full_name" name="full_name" 
+                                           value="{{ user.full_name or '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                           value="{{ user.phone or '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" readonly>
+                            <small class="form-text text-muted">Email cannot be changed</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update Profile
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Change Password Form -->
+                <div class="form-section">
+                    <h5>
+                        <i class="fas fa-key me-2"></i>
+                        Change Password
+                    </h5>
+                    
+                    <form method="POST">
+                        <input type="hidden" name="action" value="change_password">
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" 
+                                   name="current_password" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" class="form-control" id="new_password" 
+                                           name="new_password" minlength="6" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="confirm_password" 
+                                           name="confirm_password" minlength="6" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Admin Actions -->
+                <div class="form-section">
+                    <h5>
+                        <i class="fas fa-tools me-2"></i>
+                        Admin Actions
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="fas fa-users me-2"></i>Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ url_for('admin.bookings') }}" class="btn btn-outline-success w-100 mb-2">
+                                <i class="fas fa-calendar-check me-2"></i>Manage Bookings
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password confirmation validation
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePassword() {
+        if (newPassword.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Passwords do not match');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    if (newPassword && confirmPassword) {
+        newPassword.addEventListener('input', validatePassword);
+        confirmPassword.addEventListener('input', validatePassword);
+    }
+});
+</script>
+{% endblock %}

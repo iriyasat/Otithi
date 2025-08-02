@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
 from flask_login import login_user, logout_user, current_user
 from app.models import User
 import os
 import re
+import time
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -17,21 +18,33 @@ def login():
         password = request.form.get('password', '')
         remember_me = bool(request.form.get('remember_me'))
         
+        # Debug: Log received form data
+        current_app.logger.info(f"Raw form data: {dict(request.form)}")
+        current_app.logger.info(f"Email received: '{email}' (length: {len(email)})")
+        current_app.logger.info(f"Password received: '{password}' (length: {len(password)})")
+        current_app.logger.info(f"Password bytes: {password.encode('utf-8')}")
+        
         if not email or not password:
             flash('Please enter both email and password.', 'error')
             return render_template('auth/login.html')
         
         try:
             user = User.get_by_email(email)
+            current_app.logger.info(f"Login attempt for email: {email}")
             
             if user:
+                current_app.logger.info(f"User found: {user.full_name}, type: {user.user_type}")
+                current_app.logger.info(f"User password_hash exists: {bool(user.password_hash)}")
+                
                 password_valid = user.check_password(password)
+                current_app.logger.info(f"Password validation result: {password_valid}")
                 
                 if password_valid:
                     login_user(user, remember=remember_me)
                     
                     # Log successful login
                     flash(f'Welcome back, {user.full_name}!', 'success')
+                    current_app.logger.info(f"Login successful for: {user.full_name}")
                     
                     # Redirect to next page or dashboard
                     next_page = request.args.get('next')
@@ -45,8 +58,10 @@ def login():
                         else:  # guest
                             return redirect(url_for('main.dashboard'))
                 else:
+                    current_app.logger.info("Password validation failed")
                     flash('Invalid email or password.', 'error')
             else:
+                current_app.logger.info(f"No user found with email: {email}")
                 flash('Invalid email or password.', 'error')
                 
         except Exception as e:
@@ -197,7 +212,44 @@ def register():
 
 @auth_bp.route('/logout')
 def logout():
-    """User logout"""
-    logout_user()
-    flash('You have been logged out successfully.', 'info')
+    """User logout with enhanced protection"""
+    # Immediate check for user agent
+    user_agent = request.headers.get('User-Agent', 'Unknown')
+    
+    # If this is VS Code Simple Browser causing issues, just redirect immediately
+    if 'VSCode' in user_agent or 'Simple Browser' in user_agent:
+        current_app.logger.info(f"VSCode/Simple Browser logout redirect: {user_agent}")
+        return redirect(url_for('main.index'))
+    
+    # Check for rapid logout attempts
+    last_logout_time = session.get('last_logout_time', 0)
+    current_time = time.time()
+    
+    # Log the request for debugging
+    referer = request.headers.get('Referer', 'No referer')
+    current_app.logger.info(f"Logout request from {request.remote_addr} - User-Agent: {user_agent[:50]}... - Referer: {referer}")
+    
+    # Prevent logout spam - only allow one logout per 5 seconds
+    if current_time - last_logout_time < 5:
+        current_app.logger.info("Logout rate limited - too many requests")
+        return redirect(url_for('main.index'))
+    
+    # Update last logout time
+    session['last_logout_time'] = current_time
+    
+    if current_user.is_authenticated:
+        logout_user()
+        flash('You have been logged out successfully.', 'info')
+        current_app.logger.info("User logged out successfully")
+    else:
+        current_app.logger.info("Logout attempt with no authenticated user")
+    
+    # Clear the session completely to prevent issues
+    session.clear()
+    
     return redirect(url_for('main.index'))
+
+@auth_bp.route('/logout-complete')
+def logout_complete():
+    """Logout completion page to break redirect loops"""
+    return render_template('auth/logout_complete.html')

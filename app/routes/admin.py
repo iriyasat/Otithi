@@ -270,21 +270,22 @@ def update_booking_status(booking_id):
     """Admin panel - update booking status"""
     booking = Booking.get(booking_id)
     if not booking:
-        return jsonify({'success': False, 'message': 'Booking not found'})
+        flash('Booking not found.', 'error')
+        return redirect(url_for('admin.bookings'))
     
-    try:
-        data = request.get_json()
-        new_status = data.get('status') if data else None
-    except:
-        new_status = None
+    # Get status from form data
+    new_status = request.form.get('status')
         
     if new_status not in ['pending', 'confirmed', 'cancelled']:
-        return jsonify({'success': False, 'message': 'Invalid status'})
+        flash('Invalid status.', 'error')
+        return redirect(url_for('admin.bookings'))
     
     if booking.update_status(new_status):
-        return jsonify({'success': True, 'message': 'Status updated successfully'})
+        flash(f'Booking status updated to {new_status.title()}.', 'success')
     else:
-        return jsonify({'success': False, 'message': 'Failed to update status'})
+        flash('Failed to update booking status.', 'error')
+    
+    return redirect(url_for('admin.bookings'))
 
 # Admin profile management
 @admin_bp.route('/profile', methods=['GET', 'POST'])
@@ -323,7 +324,16 @@ def profile():
         
         return redirect(url_for('admin.profile'))
     
-    return render_template('admin/profile.html', user=current_user)
+    # Get statistics for the profile page
+    users = User.get_all()
+    bookings = Booking.get_all()
+    
+    stats = {
+        'total_users': len(users) if users else 0,
+        'total_bookings': len(bookings) if bookings else 0,
+    }
+    
+    return render_template('admin/profile.html', user=current_user, stats=stats)
 
 # Statistics and reporting
 @admin_bp.route('/stats')

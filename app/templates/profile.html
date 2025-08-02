@@ -97,7 +97,7 @@
                         </h5>
                     </div>
                     <div class="profile-card-body">
-                        <form method="POST" action="{{ url_for('main.update_profile') }}" enctype="multipart/form-data" id="profileForm" class="profile-form">
+                        <form method="POST" action="{{ url_for('profile.update_profile') }}" enctype="multipart/form-data" id="profileForm" class="profile-form">
                             <div class="row">
                                 <div class="col-md-6 form-group">
                                     <label for="full_name" class="form-label">Full Name</label>
@@ -151,11 +151,11 @@
                                     <button type="submit" class="btn-profile btn-profile-primary">
                                         <i class="fas fa-save"></i>Save Changes
                                     </button>
-                                    <a href="{{ url_for('main.profile') }}" class="btn-profile btn-profile-secondary">
+                                    <a href="{{ url_for('profile.profile') }}" class="btn-profile btn-profile-secondary">
                                         <i class="fas fa-times"></i>Cancel
                                     </a>
                                 {% else %}
-                                    <a href="{{ url_for('main.edit_profile') if url_for else '#' }}" class="btn-profile btn-profile-primary">
+                                    <a href="{{ url_for('profile.edit_profile') if url_for else '#' }}" class="btn-profile btn-profile-primary">
                                         <i class="fas fa-edit"></i>Edit Profile
                                     </a>
                                     <a href="{{ url_for('main.dashboard') if url_for else '#' }}" class="btn-profile btn-profile-outline">

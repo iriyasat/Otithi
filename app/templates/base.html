@@ -32,17 +32,26 @@
             <!-- Navigation Menu -->
             <div class="navbar-nav">
                 <a href="{{ url_for('main.index') }}" class="nav-link">Home</a>
-                <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                 {% if current_user.is_authenticated or is_temp_admin %}
-                    {% if current_user.user_type == 'guest' %}
+                    {% if current_user.user_type == 'admin' %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('admin.users') }}" class="nav-link">Manage Users</a>
+                        <a href="{{ url_for('admin.bookings') }}" class="nav-link">Manage Bookings</a>
+                    {% elif current_user.user_type == 'guest' %}
+                        <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                         <a href="{{ url_for('main.my_bookings') }}" class="nav-link">My Bookings</a>
-                    {% else %}
+                    {% elif current_user.user_type == 'host' %}
+                        <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                         <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
+                        <a href="{{ url_for('profile.my_listings') }}" class="nav-link">My Listings</a>
                     {% endif %}
-                    <a href="{{ url_for('main.profile') }}" class="nav-link">Profile</a>
-                    {% if current_user.user_type in ['host', 'admin'] %}
-                        <a href="{{ url_for('main.my_listings') }}" class="nav-link">My Listings</a>
+                    {% if current_user.user_type == 'admin' %}
+                        <a href="{{ url_for('admin.profile') }}" class="nav-link">Profile</a>
+                    {% else %}
+                        <a href="{{ url_for('profile.profile') }}" class="nav-link">Profile</a>
                     {% endif %}
+                {% else %}
+                    <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                 {% endif %}
             </div>
             
@@ -53,7 +62,7 @@
                         {% if is_temp_admin %}
                             <a href="{{ url_for('main.index') }}" class="btn-primary">Exit Test Mode</a>
                         {% else %}
-                            <a href="{{ url_for('auth.logout') }}" class="btn-primary">Logout</a>
+                            <a href="{{ url_for('auth.logout') }}" class="btn-primary" id="logoutBtn" onclick="handleLogout(event)">Logout</a>
                         {% endif %}
                     </div>
                 {% else %}
@@ -163,6 +172,37 @@
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     <script src="{{ url_for('static', filename='js/loader.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+    // Logout protection
+    let lastLogoutTime = 0;
+    function handleLogout(event) {
+        const now = Date.now();
+        if (now - lastLogoutTime < 3000) { // 3 second cooldown
+            event.preventDefault();
+            console.log('Logout blocked - too frequent');
+            return false;
+        }
+        lastLogoutTime = now;
+        
+        // Disable the logout button temporarily
+        const btn = event.currentTarget;
+        btn.style.pointerEvents = 'none';
+        btn.innerHTML = 'Logging out...';
+        
+        // Allow the request to proceed
+        return true;
+    }
+    
+    // Prevent multiple logout attempts
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+    });
+    </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

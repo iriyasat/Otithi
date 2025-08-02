@@ -216,6 +216,85 @@ def search():
         flash('Error performing search.', 'error')
         return render_template('host/search.html', listings=[])
 
+@main_bp.route('/test-password/<password>')
+def test_password(password):
+    """Test password against admin hash"""
+    from werkzeug.security import check_password_hash
+    
+    # Admin hash from database
+    admin_hash = 'pbkdf2:sha256:600000$BMlfFUDFo6o5PCbL$83629fe92704f02e2fedbd014ee8ec31da52f2e9f15d14ce79f470ee2c4dcf38'
+    
+    # Test password
+    result = check_password_hash(admin_hash, password)
+    
+    return f"""
+    <h2>Password Test</h2>
+    <p>Testing password: <strong>{password}</strong></p>
+    <p>Result: <strong>{'VALID' if result else 'INVALID'}</strong></p>
+    
+    <h3>Common passwords to try:</h3>
+    <ul>
+        <li><a href="/test-password/admin">admin</a></li>
+        <li><a href="/test-password/password">password</a></li>
+        <li><a href="/test-password/123456">123456</a></li>
+        <li><a href="/test-password/admin123">admin123</a></li>
+        <li><a href="/test-password/otithi">otithi</a></li>
+        <li><a href="/test-password/admin@otithi.com">admin@otithi.com</a></li>
+    </ul>
+    
+    <p><a href="/">Back to Home</a></p>
+    """
+
+@main_bp.route('/debug-users')
+def debug_users():
+    """Debug route to check users in database"""
+    from app.models import User
+    from app.database import db
+    
+    # Get all users
+    query = "SELECT user_id, name, email, user_type, verified FROM users"
+    result = db.execute_query(query)
+    
+    users_info = []
+    for user_data in result:
+        users_info.append({
+            'id': user_data['user_id'],
+            'name': user_data['name'],
+            'email': user_data['email'],
+            'type': user_data['user_type'],
+            'verified': user_data['verified']
+        })
+    
+    # Try to get admin user specifically
+    admin_user = User.get_by_email('admin@otithi.com')
+    admin_info = None
+    if admin_user:
+        admin_info = {
+            'found': True,
+            'name': admin_user.full_name,
+            'type': admin_user.user_type,
+            'has_password_hash': bool(admin_user.password_hash),
+            'password_hash_length': len(admin_user.password_hash) if admin_user.password_hash else 0
+        }
+    else:
+        admin_info = {'found': False}
+    
+    return f"""
+    <h2>Database Debug Info</h2>
+    <h3>All Users:</h3>
+    <pre>{users_info}</pre>
+    
+    <h3>Admin User Check:</h3>
+    <pre>{admin_info}</pre>
+    
+    <p><a href="/">Back to Home</a></p>
+    """
+
+@main_bp.route('/status')
+def status():
+    """Application status page"""
+    return render_template('status.html')
+
 @main_bp.route('/dashboard')
 @login_required  
 def dashboard():
@@ -284,28 +363,6 @@ def my_bookings():
     except Exception as e:
         flash('Error loading bookings.', 'error')
         return render_template('guest/my_bookings.html', bookings=[], user=current_user)
-
-@main_bp.route('/my-listings')
-@login_required
-def my_listings():
-    """Display user's listings (for hosts)"""
-    if current_user.user_type not in ['host', 'admin']:
-        flash('Access denied. Only hosts can view listings.', 'error')
-        return redirect(url_for('main.dashboard'))
-    
-    user_listings = Listing.get_by_host(current_user.id)
-    host_bookings = Booking.get_by_host(current_user.id)
-    
-    return render_template('host/my_listings.html', 
-                         listings=user_listings,
-                         bookings=host_bookings,
-                         user=current_user)
-
-@main_bp.route('/profile')
-@login_required
-def profile():
-    """User profile page"""
-    return render_template('profile.html', user=current_user)
 
 # Remove the redirect routes - auth blueprint handles /login and /register directly
 

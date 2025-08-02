@@ -56,17 +56,18 @@ class User(UserMixin):
         result = db.execute_query(query, (email,))
         if result:
             user_data = result[0]
+            print(f"DEBUG: Found user data for {email}: {user_data}")  # Debug line
             return User(
                 id=user_data['user_id'],
                 full_name=user_data['name'],  # Use 'name' column as per your schema
                 email=user_data['email'],
-                password_hash=user_data.get('password_hash', ''),
-                phone=user_data.get('phone', ''),
-                bio=user_data.get('bio', ''),
-                user_type=user_data.get('user_type', 'guest'),
-                profile_photo=user_data.get('profile_photo', ''),
-                joined_date=user_data.get('join_date', datetime.now()),
-                verified=user_data.get('verified', False)
+                password_hash=user_data['password_hash'] or '',
+                phone=user_data['phone'] or '',
+                bio=user_data['bio'] or '',
+                user_type=user_data['user_type'] or 'guest',
+                profile_photo=user_data['profile_photo'] or '',
+                joined_date=user_data['join_date'] or datetime.now(),
+                verified=bool(user_data['verified'])
             )
         return None
     

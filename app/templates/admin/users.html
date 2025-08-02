@@ -8,322 +8,177 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
-<style>
-.admin-container {
-    min-height: 100vh;
-    background-color: #f8f9fa;
-    padding: 20px 0;
-}
-
-.admin-header {
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
-    color: white;
-    padding: 20px 0;
-    margin-bottom: 30px;
-    border-radius: 8px;
-}
-
-.users-table {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.user-avatar-placeholder {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6c757d;
-}
-
-.badge-verified {
-    background-color: #28a745;
-}
-
-.badge-unverified {
-    background-color: #ffc107;
-    color: #212529;
-}
-
-.admin-actions {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-}
-
-.admin-actions .btn {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-}
-
-.stats-cards {
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    border-left: 4px solid var(--primary-500);
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--primary-600);
-    margin-bottom: 5px;
-}
-
-.stat-label {
-    color: #6c757d;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-</style>
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="admin-container">
+<div class="dashboard-container admin-dashboard">
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="admin-header-content">
+                <h1>
+                    <span class="admin-header-icon">
+                        <i class="fas fa-users"></i>
+                    </span>
+                    {{ page_title }}
+                </h1>
+                <p>Manage user accounts, verification, and roles</p>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- Header -->
-        <div class="admin-header">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <h1 class="mb-0">{{ page_title }}</h1>
-                        <p class="mb-0 opacity-75">Manage user accounts, verification, and roles</p>
-                    </div>
-                    <div class="col-auto">
-                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light">
-                            <i class="fas fa-arrow-left"></i> Back to Dashboard
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Stats Cards -->
-        <div class="stats-cards">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <div class="stat-card">
-                        <div class="stat-number">{{ users|selectattr('user_type', 'equalto', 'admin')|list|length }}</div>
-                        <div class="stat-label">Admins</div>
-                    </div>
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-user-shield"></i>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="stat-card">
-                        <div class="stat-number">{{ users|selectattr('user_type', 'equalto', 'host')|list|length }}</div>
-                        <div class="stat-label">Hosts</div>
-                    </div>
+                <div class="admin-stat-number">{{ users|selectattr('user_type', 'equalto', 'admin')|list|length }}</div>
+                <div class="admin-stat-label">Admins</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-home"></i>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="stat-card">
-                        <div class="stat-number">{{ users|selectattr('user_type', 'equalto', 'guest')|list|length }}</div>
-                        <div class="stat-label">Guests</div>
-                    </div>
+                <div class="admin-stat-number">{{ users|selectattr('user_type', 'equalto', 'host')|list|length }}</div>
+                <div class="admin-stat-label">Hosts</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-user"></i>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="stat-card">
-                        <div class="stat-number">{{ users|selectattr('verified', 'equalto', true)|list|length }}</div>
-                        <div class="stat-label">Verified</div>
-                    </div>
+                <div class="admin-stat-number">{{ users|selectattr('user_type', 'equalto', 'guest')|list|length }}</div>
+                <div class="admin-stat-label">Guests</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-check-circle"></i>
                 </div>
+                <div class="admin-stat-number">{{ users|selectattr('verified', 'equalto', true)|list|length }}</div>
+                <div class="admin-stat-label">Verified</div>
             </div>
         </div>
 
-        <!-- Users Table -->
-        <div class="users-table">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>User</th>
-                            <th>Type</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Joined</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if user.profile_photo %}
-                                        <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" 
-                                             alt="{{ user.full_name }}" class="user-avatar me-3">
-                                    {% else %}
-                                        <div class="user-avatar-placeholder me-3">
-                                            <i class="fas fa-user"></i>
+        <!-- Users Management Card -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <h3>
+                    <i class="fas fa-users"></i>
+                    All Users
+                </h3>
+            </div>
+            <div class="admin-card-body">
+                <!-- Search -->
+                <div class="admin-search">
+                    <i class="admin-search-icon fas fa-search"></i>
+                    <input type="text" class="admin-search-input" placeholder="Search users by name, email, or ID..." id="userSearch">
+                </div>
+
+                {% if users %}
+                <div class="admin-table-container">
+                    <table class="admin-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th data-sortable>User</th>
+                                <th data-sortable>Type</th>
+                                <th data-sortable>Email</th>
+                                <th data-sortable>Phone</th>
+                                <th data-sortable>Join Date</th>
+                                <th data-sortable>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>
+                                    <div class="admin-user-info">
+                                        {% if user.profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" 
+                                                 alt="{{ user.full_name }}" 
+                                                 class="admin-user-avatar">
+                                        {% else %}
+                                            <div class="admin-user-avatar-placeholder">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="admin-user-name">{{ user.full_name }}</div>
+                                            <small class="admin-user-id">ID: {{ user.id }}</small>
                                         </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="fw-semibold">{{ user.full_name }}</div>
-                                        <small class="text-muted">ID: {{ user.id }}</small>
                                     </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge bg-{% if user.user_type == 'admin' %}danger{% elif user.user_type == 'host' %}primary{% else %}secondary{% endif %}">
-                                    {{ user.user_type.title() }}
-                                </span>
-                            </td>
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.phone or '-' }}</td>
-                            <td>
-                                {% if user.join_date %}
-                                    {{ user.join_date.strftime('%Y-%m-%d') }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge {% if user.verified %}badge-verified{% else %}badge-unverified{% endif %}">
-                                    {% if user.verified %}Verified{% else %}Unverified{% endif %}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="admin-actions">
-                                    <!-- Toggle Verification -->
-                                    <button class="btn btn-sm {% if user.verified %}btn-outline-warning{% else %}btn-outline-success{% endif %} toggle-verification" 
-                                            data-user-id="{{ user.id }}" 
-                                            data-current-status="{{ user.verified|lower }}">
-                                        <i class="fas fa-{% if user.verified %}times{% else %}check{% endif %}"></i>
-                                        {% if user.verified %}Unverify{% else %}Verify{% endif %}
-                                    </button>
-                                    
-                                    <!-- Edit User -->
-                                    <a href="{{ url_for('admin.edit_user_confirm', user_id=user.id) }}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    
-                                    <!-- Delete User (if not current user) -->
-                                    {% if user.id != current_user.id %}
-                                    <a href="{{ url_for('admin.delete_user_confirm', user_id=user.id) }}" 
-                                       class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </a>
+                                </td>
+                                <td>
+                                    <span class="admin-badge admin-badge-{% if user.user_type == 'admin' %}danger{% elif user.user_type == 'host' %}info{% else %}success{% endif %}">
+                                        <i class="fas fa-{% if user.user_type == 'admin' %}user-shield{% elif user.user_type == 'host' %}home{% else %}user{% endif %}"></i>
+                                        {{ user.user_type.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.phone or '-' }}</td>
+                                <td>
+                                    {% if user.join_date %}
+                                        {{ user.join_date.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                        -
                                     {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td>
+                                    <span class="admin-badge {% if user.verified %}admin-badge-success{% else %}admin-badge-warning{% endif %}">
+                                        <i class="fas fa-{% if user.verified %}check-circle{% else %}clock{% endif %}"></i>
+                                        {% if user.verified %}Verified{% else %}Unverified{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="admin-actions">
+                                        <button class="admin-action-btn admin-action-btn-view verification-toggle" 
+                                                data-user-id="{{ user.id }}" 
+                                                title="{{ 'Unverify User' if user.verified else 'Verify User' }}">
+                                            <i class="fas fa-{{ 'times-circle' if user.verified else 'check-circle' }}"></i>
+                                        </button>
+                                        <a href="{{ url_for('admin.edit_user_confirm', user_id=user.id) }}" 
+                                           class="admin-action-btn admin-action-btn-edit" 
+                                           title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% if user.id != current_user.id %}
+                                        <a href="{{ url_for('admin.delete_user_confirm', user_id=user.id) }}" 
+                                           class="admin-action-btn admin-action-btn-delete" 
+                                           title="Delete User"
+                                           data-action="delete"
+                                           data-item-name="{{ user.full_name }}">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="admin-empty-state">
+                    <i class="fas fa-users"></i>
+                    <h5>No users found</h5>
+                    <p>Start by adding your first user to the platform.</p>
+                </div>
+                {% endif %}
+                
+                <div class="admin-mt-3">
+                    <a href="{{ url_for('admin.dashboard') }}" class="admin-btn admin-btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
             </div>
         </div>
-
-        {% if not users %}
-        <div class="text-center py-5">
-            <div class="text-muted">
-                <i class="fas fa-users fa-3x mb-3"></i>
-                <h4>No Users Found</h4>
-                <p>No users are currently registered in the system.</p>
-            </div>
-        </div>
-        {% endif %}
     </div>
 </div>
+{% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle verification toggle
-    const toggleButtons = document.querySelectorAll('.toggle-verification');
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const userId = this.dataset.userId;
-            const currentStatus = this.dataset.currentStatus === 'true';
-            const newStatus = !currentStatus;
-            
-            // Disable button during request
-            this.disabled = true;
-            
-            fetch(`/admin/users/${userId}/toggle-verification`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update button text and appearance
-                    const icon = this.querySelector('i');
-                    const text = this.childNodes[this.childNodes.length - 1];
-                    
-                    if (newStatus) {
-                        this.className = 'btn btn-sm btn-outline-warning toggle-verification';
-                        icon.className = 'fas fa-times';
-                        text.textContent = ' Unverify';
-                        this.dataset.currentStatus = 'true';
-                    } else {
-                        this.className = 'btn btn-sm btn-outline-success toggle-verification';
-                        icon.className = 'fas fa-check';
-                        text.textContent = ' Verify';
-                        this.dataset.currentStatus = 'false';
-                    }
-                    
-                    // Update status badge
-                    const row = this.closest('tr');
-                    const statusBadge = row.querySelector('td:nth-child(6) .badge');
-                    if (newStatus) {
-                        statusBadge.className = 'badge badge-verified';
-                        statusBadge.textContent = 'Verified';
-                    } else {
-                        statusBadge.className = 'badge badge-unverified';
-                        statusBadge.textContent = 'Unverified';
-                    }
-                    
-                    // Show success message
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
-                    alertDiv.style.top = '20px';
-                    alertDiv.style.right = '20px';
-                    alertDiv.style.zIndex = '9999';
-                    alertDiv.innerHTML = `
-                        ${data.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    document.body.appendChild(alertDiv);
-                    
-                    // Auto dismiss after 3 seconds
-                    setTimeout(() => {
-                        alertDiv.remove();
-                    }, 3000);
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while updating verification status.');
-            })
-            .finally(() => {
-                this.disabled = false;
-            });
-        });
-    });
-});
-</script>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}
