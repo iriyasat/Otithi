@@ -18,7 +18,7 @@ def create_app():
     # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'main.login'
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
     
@@ -27,9 +27,14 @@ def create_app():
         from app.models import User
         return User.get(int(user_id))
     
-    # Register the existing routes blueprint
-    from app.routes.routes import bp as main_bp
-    app.register_blueprint(main_bp)
+    # Register blueprints
+    try:
+        from app.routes import register_blueprints
+        register_blueprints(app)
+    except ImportError:
+        # Fallback to monolithic routes if blueprints don't work
+        from app.routes.routes import bp as main_bp
+        app.register_blueprint(main_bp)
     
     # Error handlers
     @app.errorhandler(404)
@@ -51,11 +56,6 @@ def create_app():
         return dict(current_user=current_user)
     
     return app
-        # Fallback to importing existing routes
-        try:
-            from app.routes import routes
-            # If you have an existing routes module, register it
-        except ImportError:
             print("No existing routes found. Creating basic routes...")
     
     # Error handlers
