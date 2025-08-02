@@ -173,22 +173,32 @@ class User(UserMixin):
     def delete(self):
         """Delete user and all associated data"""
         try:
+            print(f"DEBUG: Starting delete for user ID {self.id}")
+            
             # Delete associated reviews
+            print(f"DEBUG: Deleting reviews for user {self.id}")
             db.execute_update("DELETE FROM reviews WHERE user_id = %s", (self.id,))
             
             # Delete associated bookings
+            print(f"DEBUG: Deleting bookings for user {self.id}")
             db.execute_update("DELETE FROM bookings WHERE user_id = %s", (self.id,))
             
             # Delete listings if user is a host
+            print(f"DEBUG: Checking listings for user {self.id}")
             listings = Listing.get_by_host(self.id)
             for listing in listings:
+                print(f"DEBUG: Deleting listing {listing.id}")
                 listing.delete()
             
             # Delete user
+            print(f"DEBUG: Deleting user record for {self.id}")
             db.execute_update("DELETE FROM users WHERE user_id = %s", (self.id,))
+            print(f"DEBUG: User {self.id} deleted successfully")
             return True
         except Exception as e:
             print(f"Error deleting user: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
 

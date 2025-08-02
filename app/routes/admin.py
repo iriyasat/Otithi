@@ -136,21 +136,27 @@ def edit_user(user_id):
 @admin_required
 def delete_user(user_id):
     """Admin panel - delete user"""
+    print(f"DEBUG: delete_user called with user_id: {user_id}")
     user = User.get(user_id)
     if not user:
+        print(f"DEBUG: User {user_id} not found")
         flash('User not found.', 'error')
         return redirect(url_for('admin.dashboard'))
     
     if user.id == current_user.id:
+        print(f"DEBUG: Cannot delete own account")
         flash('You cannot delete your own account.', 'error')
         return redirect(url_for('admin.dashboard'))
     
+    print(f"DEBUG: Attempting to delete user {user.name} (ID: {user.id})")
     if user.delete():
+        print(f"DEBUG: User deleted successfully")
         flash('User deleted successfully!', 'success')
     else:
+        print(f"DEBUG: Error deleting user")
         flash('Error deleting user.', 'error')
     
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.users'))
 
 @admin_bp.route('/users/<int:user_id>/change-role', methods=['POST'])
 @login_required
