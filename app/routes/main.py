@@ -383,6 +383,18 @@ def book_listing(listing_id):
     """Booking page - redirect to bookings blueprint"""
     return redirect(url_for('bookings.book_listing', listing_id=listing_id))
 
+@main_bp.route('/favorites')
+@login_required
+def favorites():
+    """User favorites page"""
+    try:
+        from app.models import Favorite
+        favorites = Favorite.get_by_user(current_user.id)
+        return render_template('guest/favorites.html', favorites=favorites, user=current_user)
+    except Exception as e:
+        print(f"Error loading favorites: {e}")
+        return render_template('guest/favorites.html', favorites=[], user=current_user)
+
 @main_bp.route('/dev')
 def dev_page():
     """Development page with links to all website pages"""
