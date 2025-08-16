@@ -1,15 +1,31 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 import os
 
 def create_app():
     app = Flask(__name__)
 
-    # Configuration
+    # Enhanced Configuration for Security
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+    
+    # Session Security Configuration
+    app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour
+    
+    # CSRF Protection
+    app.config['WTF_CSRF_ENABLED'] = True
+    app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
+    
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+    # Initialize CSRF Protection
+    csrf = CSRFProtect()
+    csrf.init_app(app)
 
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -17,11 +33,15 @@ def create_app():
     login_manager.login_view = 'auth.login'  # Point directly to auth blueprint
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
+    login_manager.session_protection = 'strong'  # Enhanced session protection
 
     @login_manager.user_loader
     def load_user(user_id):
-        from app.models import User
-        return User.get(int(user_id))
+        try:
+            from app.models import User
+            return User.get(int(user_id))
+        except (ValueError, TypeError):
+            return None
 
     # Register all blueprints
     blueprints_registered = False

@@ -62,7 +62,7 @@
                         {% if is_temp_admin %}
                             <a href="{{ url_for('main.index') }}" class="btn-primary">Exit Test Mode</a>
                         {% else %}
-                            <a href="{{ url_for('auth.logout') }}" class="btn-primary" id="logoutBtn" onclick="handleLogout(event)">Logout</a>
+                            <a href="{{ url_for('auth.logout') }}" class="btn-primary" id="logoutBtn">Logout</a>
                         {% endif %}
                     </div>
                 {% else %}
@@ -174,31 +174,23 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
     <script>
-    // Logout protection
-    let lastLogoutTime = 0;
-    function handleLogout(event) {
-        const now = Date.now();
-        if (now - lastLogoutTime < 3000) { // 3 second cooldown
-            event.preventDefault();
-            console.log('Logout blocked - too frequent');
-            return false;
-        }
-        lastLogoutTime = now;
-        
-        // Disable the logout button temporarily
-        const btn = event.currentTarget;
-        btn.style.pointerEvents = 'none';
-        btn.innerHTML = 'Logging out...';
-        
-        // Allow the request to proceed
-        return true;
-    }
-    
-    // Prevent multiple logout attempts
+    // Simple logout handling - no interference with normal logout flow
     document.addEventListener('DOMContentLoaded', function() {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', handleLogout);
+            logoutBtn.addEventListener('click', function(event) {
+                // Simple confirmation for better UX
+                if (confirm('Are you sure you want to log out?')) {
+                    // Show loading state
+                    this.innerHTML = 'Logging out...';
+                    this.style.pointerEvents = 'none';
+                    // Allow normal navigation to proceed
+                    return true;
+                } else {
+                    event.preventDefault();
+                    return false;
+                }
+            });
         }
     });
     </script>

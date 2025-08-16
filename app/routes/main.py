@@ -365,11 +365,7 @@ def my_bookings():
         return render_template('guest/my_bookings.html', bookings=[], user=current_user)
 
 # Remove the redirect routes - auth blueprint handles /login and /register directly
-
-@main_bp.route('/logout')
-def logout():
-    """Redirect to auth blueprint logout"""
-    return redirect(url_for('auth.logout'))
+# Note: Removed duplicate logout route to prevent conflicts - auth.logout handles this
 
 @main_bp.route('/listings/<int:listing_id>')
 def listing_detail(listing_id):
