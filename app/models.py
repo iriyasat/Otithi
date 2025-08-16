@@ -8,6 +8,8 @@ class User(UserMixin):
                  profile_photo=None, joined_date=None, verified=False):
         self.id = id
         self.full_name = full_name
+        self.first_name = full_name.split()[0] if full_name else ""
+        self.last_name = " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else ""
         self.name = full_name  # Alias for compatibility
         self.email = email
         self.password_hash = password_hash
@@ -15,8 +17,51 @@ class User(UserMixin):
         self.bio = bio
         self.user_type = user_type
         self.profile_photo = profile_photo
+        self.profile_picture_path = profile_photo  # Alias for template compatibility
         self.joined_date = joined_date or datetime.now()
+        self.date_created = self.joined_date  # Alias for template compatibility
+        self.join_date = self.joined_date  # Alias for compatibility
         self.verified = verified
+        self.is_verified = verified  # Alias for template compatibility
+        self.email_notifications = True  # Default value
+        
+        # Lazy-loaded properties for relationships
+        self._listings = None
+        self._guest_bookings = None
+        self._host_bookings = None
+        self._favorites = None
+    
+    @property
+    def listings(self):
+        """Get user's listings (for hosts)"""
+        if self._listings is None and self.user_type == 'host':
+            from app.models import Listing
+            self._listings = Listing.get_by_host(self.id)
+        return self._listings or []
+    
+    @property
+    def guest_bookings(self):
+        """Get user's bookings as a guest"""
+        if self._guest_bookings is None:
+            from app.models import Booking
+            self._guest_bookings = Booking.get_by_user(self.id)
+        return self._guest_bookings or []
+    
+    @property
+    def host_bookings(self):
+        """Get bookings for user's listings (for hosts)"""
+        if self._host_bookings is None and self.user_type == 'host':
+            from app.models import Booking
+            self._host_bookings = Booking.get_by_host(self.id)
+        return self._host_bookings or []
+    
+    @property
+    def favorites(self):
+        """Get user's favorite listings"""
+        if self._favorites is None:
+            from app.models import Favorite
+            self._favorites = Favorite.get_by_user(self.id)
+        return self._favorites or []
     
     def get_id(self):
         """Required by Flask-Login for session management"""
@@ -913,6 +958,11 @@ class Booking:
             )
         return None
     
+    @staticmethod
+    def get_by_guest(user_id):
+        """Get all bookings by a guest user (alias for get_by_user)"""
+        return Booking.get_by_user(user_id)
+    
     def confirm(self):
         """Confirm a pending booking"""
         if self.status == 'pending':
@@ -933,3 +983,53 @@ class Booking:
                 self.status = new_status
                 return True
         return False
+
+
+class Favorite:
+    """Favorite listing model"""
+    def __init__(self, id, user_id, listing_id, created_date=None):
+        self.id = id
+        self.user_id = user_id
+        self.listing_id = listing_id
+        self.created_date = created_date or datetime.now()
+    
+    @staticmethod
+    def get_by_user(user_id):
+        """Get all favorites for a user"""
+        query = "SELECT * FROM favorites WHERE user_id = %s ORDER BY created_at DESC"
+        results = db.execute_query(query, (user_id,))
+        favorites = []
+        for fav_data in results:
+            favorites.append(Favorite(
+                id=fav_data['favorite_id'],
+                user_id=fav_data['user_id'],
+                listing_id=fav_data['listing_id'],
+                created_date=fav_data['created_at']
+            ))
+        return favorites
+    
+    @staticmethod
+    def add(user_id, listing_id):
+        """Add a listing to favorites"""
+        # Check if already favorited
+        query = "SELECT * FROM favorites WHERE user_id = %s AND listing_id = %s"
+        existing = db.execute_query(query, (user_id, listing_id))
+        if existing:
+            return False  # Already favorited
+        
+        query = "INSERT INTO favorites (user_id, listing_id, created_at) VALUES (%s, %s, %s)"
+        favorite_id = db.execute_insert(query, (user_id, listing_id, datetime.now()))
+        return favorite_id is not None
+    
+    @staticmethod
+    def remove(user_id, listing_id):
+        """Remove a listing from favorites"""
+        query = "DELETE FROM favorites WHERE user_id = %s AND listing_id = %s"
+        return db.execute_update(query, (user_id, listing_id))
+    
+    @staticmethod
+    def is_favorited(user_id, listing_id):
+        """Check if a listing is favorited by a user"""
+        query = "SELECT * FROM favorites WHERE user_id = %s AND listing_id = %s"
+        result = db.execute_query(query, (user_id, listing_id))
+        return len(result) > 0

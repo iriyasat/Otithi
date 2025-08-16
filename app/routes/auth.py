@@ -165,3 +165,43 @@ def logout():
 def logout_complete():
     """Logout completion page to break redirect loops"""
     return render_template('auth/logout_complete.html')
+
+@auth_bp.route('/switch-user-type/<user_type>')
+@login_required
+def switch_user_type(user_type):
+    """Switch user type between guest and host"""
+    from flask_login import login_required
+    
+    # Only allow switching between guest and host
+    if user_type not in ['guest', 'host']:
+        flash('Invalid user type.', 'error')
+        return redirect(url_for('profile.profile'))
+    
+    # Prevent admin users from switching
+    if current_user.user_type == 'admin':
+        flash('Admin users cannot switch user types.', 'error')
+        return redirect(url_for('profile.profile'))
+    
+    try:
+        from app.database import get_db_connection
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("UPDATE users SET user_type = %s WHERE id = %s", 
+                      (user_type, current_user.id))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Update current_user object
+        current_user.user_type = user_type
+        
+        flash(f'Successfully switched to {user_type} account!', 'success')
+        
+    except Exception as e:
+        current_app.logger.error(f"Error switching user type: {e}")
+        flash('Failed to switch user type. Please try again.', 'error')
+    
+    return redirect(url_for('profile.profile'))

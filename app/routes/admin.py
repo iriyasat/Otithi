@@ -278,54 +278,6 @@ def update_booking_status(booking_id):
     
     return redirect(url_for('admin.bookings'))
 
-# Admin profile management
-@admin_bp.route('/profile', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def profile():
-    """Admin profile management"""
-    if request.method == 'POST':
-        action = request.form.get('action')
-        
-        if action == 'update_profile':
-            full_name = request.form['full_name']
-            phone = request.form['phone']
-            
-            if current_user.update_profile(full_name=full_name, phone=phone):
-                flash('Profile updated successfully!', 'success')
-            else:
-                flash('Error updating profile.', 'error')
-                
-        elif action == 'change_password':
-            current_password = request.form['current_password']
-            new_password = request.form['new_password']
-            confirm_password = request.form['confirm_password']
-            
-            if not current_user.check_password(current_password):
-                flash('Current password is incorrect.', 'error')
-            elif new_password != confirm_password:
-                flash('New passwords do not match.', 'error')
-            elif len(new_password) < 6:
-                flash('Password must be at least 6 characters long.', 'error')
-            else:
-                if current_user.update_password(new_password):
-                    flash('Password changed successfully!', 'success')
-                else:
-                    flash('Error changing password.', 'error')
-        
-        return redirect(url_for('admin.profile'))
-    
-    # Get statistics for the profile page
-    users = User.get_all()
-    bookings = Booking.get_all()
-    
-    stats = {
-        'total_users': len(users) if users else 0,
-        'total_bookings': len(bookings) if bookings else 0,
-    }
-    
-    return render_template('admin/profile.html', user=current_user, stats=stats)
-
 # Statistics and reporting
 @admin_bp.route('/stats')
 @login_required
