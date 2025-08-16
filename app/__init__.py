@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail
 import os
 
 def create_app():
@@ -21,11 +22,28 @@ def create_app():
     app.config['WTF_CSRF_ENABLED'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
     
+    # Email Configuration
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'localhost')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() in ['true', 'on', '1']
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@otithi.com')
+    
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # Initialize CSRF Protection
     csrf = CSRFProtect()
     csrf.init_app(app)
+
+    # Initialize Flask-Mail
+    mail = Mail()
+    mail.init_app(app)
+
+    # Initialize Email Service
+    from app.email_verification import email_service
+    email_service.init_app(app)
 
     # Initialize Flask-Login
     login_manager = LoginManager()

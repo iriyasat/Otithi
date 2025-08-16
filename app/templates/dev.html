@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+{% block title %}Developer Page - Otithi{% endblock %}
+
+{% block css %}
+<style>
+.dev-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dev-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.dev-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.dev-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.section {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.section-title i {
+    color: #667eea;
+    font-size: 1.4rem;
+}
+
+.links-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.dev-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #374151;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.dev-link:hover {
+    background: #667eea;
+    color: white;
+    transform: translateX(5px);
+}
+
+.dev-link i {
+    min-width: 16px;
+    text-align: center;
+}
+
+.quick-access {
+    background: #f0f9ff;
+    border: 1px solid #0284c7;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.quick-access h3 {
+    color: #0284c7;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quick-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.quick-btn {
+    padding: 10px 20px;
+    background: #0284c7;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+    font-size: 14px;
+}
+
+.quick-btn:hover {
+    background: #0369a1;
+    color: white;
+}
+
+.login-section {
+    background: #fef3c7;
+    border: 1px solid #d97706;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.login-section h3 {
+    color: #d97706;
+    margin: 0 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.login-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #fbbf24;
+}
+
+.login-card h4 {
+    margin: 0 0 10px 0;
+    color: #92400e;
+}
+
+.login-info {
+    font-size: 14px;
+    color: #78716c;
+    margin-bottom: 15px;
+}
+
+.login-btn {
+    display: inline-block;
+    background: #d97706;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.login-btn:hover {
+    background: #b45309;
+    color: white;
+}
+
+.status-info {
+    background: #f0fdf4;
+    border: 1px solid #16a34a;
+    border-radius: 15px;
+    padding: 20px;
+    color: #15803d;
+}
+
+.status-info h4 {
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.param-required {
+    color: #dc2626;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.section-description {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .sections-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .login-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dev-container">
+    <!-- Header -->
+    <div class="dev-header">
+        <h1><i class="fas fa-tools"></i> Developer Dashboard</h1>
+        <p>Quick access to all pages and features without authentication</p>
+    </div>
+
+    <!-- Status Info -->
+    <div class="status-info">
+        <h4><i class="fas fa-info-circle"></i> Current Status</h4>
+        <p><strong>Server:</strong> http://127.0.0.1:5000 | <strong>Database:</strong> MySQL on port 3307 | <strong>Environment:</strong> Development</p>
+    </div>
+
+    <!-- Quick Access -->
+    <div class="quick-access">
+        <h3><i class="fas fa-rocket"></i> Quick Access</h3>
+        <div class="quick-buttons">
+            <a href="{{ url_for('main.index') }}" class="quick-btn">
+                <i class="fas fa-home"></i> Home Page
+            </a>
+            <a href="{{ url_for('main.explore') }}" class="quick-btn">
+                <i class="fas fa-search"></i> Explore
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="quick-btn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <a href="{{ url_for('admin.dashboard') }}" class="quick-btn">
+                <i class="fas fa-user-shield"></i> Admin Panel
+            </a>
+            <a href="{{ url_for('main.status') }}" class="quick-btn">
+                <i class="fas fa-heartbeat"></i> System Status
+            </a>
+        </div>
+    </div>
+
+    <!-- Login Credentials -->
+    <div class="login-section">
+        <h3><i class="fas fa-key"></i> Test Login Credentials</h3>
+        <div class="login-grid">
+            <div class="login-card">
+                <h4>Administrator</h4>
+                <div class="login-info">
+                    <strong>Email:</strong> admin@otithi.com<br>
+                    <strong>Password:</strong> admin123<br>
+                    <strong>Access:</strong> Full admin panel access
+                </div>
+                <a href="{{ url_for('auth.login') }}" class="login-btn">Login as Admin</a>
+            </div>
+            <div class="login-card">
+                <h4>Guest User</h4>
+                <div class="login-info">
+                    <strong>Email:</strong> ibrahim.hasan@example.com<br>
+                    <strong>Password:</strong> password123<br>
+                    <strong>Access:</strong> Guest features, bookings
+                </div>
+                <a href="{{ url_for('auth.login') }}" class="login-btn">Login as Guest</a>
+            </div>
+            <div class="login-card">
+                <h4>Host User</h4>
+                <div class="login-info">
+                    <strong>Email:</strong> marzia.hossain@example.com<br>
+                    <strong>Password:</strong> password123<br>
+                    <strong>Access:</strong> Host features, listings
+                </div>
+                <a href="{{ url_for('auth.login') }}" class="login-btn">Login as Host</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Sections -->
+    <div class="sections-grid">
+        <!-- Public Pages -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-globe"></i>
+                Public Pages
+            </h3>
+            <div class="section-description">Pages accessible without authentication</div>
+            <div class="links-grid">
+                <a href="{{ url_for('main.index') }}" class="dev-link">
+                    <i class="fas fa-home"></i>
+                    Home Page
+                </a>
+                <a href="{{ url_for('main.explore') }}" class="dev-link">
+                    <i class="fas fa-search"></i>
+                    Explore Listings
+                </a>
+                <a href="{{ url_for('main.search') }}" class="dev-link">
+                    <i class="fas fa-filter"></i>
+                    Search Results
+                </a>
+                <a href="{{ url_for('main.status') }}" class="dev-link">
+                    <i class="fas fa-heartbeat"></i>
+                    System Status
+                </a>
+                <a href="{{ url_for('main.debug_users') }}" class="dev-link">
+                    <i class="fas fa-bug"></i>
+                    Debug Users
+                </a>
+            </div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-user-lock"></i>
+                Authentication
+            </h3>
+            <div class="section-description">Login, registration, and verification pages</div>
+            <div class="links-grid">
+                <a href="{{ url_for('auth.login') }}" class="dev-link">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login Page
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="dev-link">
+                    <i class="fas fa-user-plus"></i>
+                    Registration Page
+                </a>
+                <a href="{{ url_for('auth.verify_email') }}" class="dev-link">
+                    <i class="fas fa-envelope-open"></i>
+                    Email Verification
+                </a>
+                <a href="{{ url_for('auth.logout_complete') }}" class="dev-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout Complete
+                </a>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                User Dashboard
+            </h3>
+            <div class="section-description">User-specific pages (requires login)</div>
+            <div class="links-grid">
+                <a href="{{ url_for('main.dashboard') }}" class="dev-link">
+                    <i class="fas fa-dashboard"></i>
+                    Main Dashboard
+                </a>
+                <a href="{{ url_for('profile.profile') }}" class="dev-link">
+                    <i class="fas fa-user"></i>
+                    User Profile
+                </a>
+                <a href="{{ url_for('main.my_bookings') }}" class="dev-link">
+                    <i class="fas fa-calendar-check"></i>
+                    My Bookings
+                </a>
+                <a href="{{ url_for('profile.my_listings') }}" class="dev-link">
+                    <i class="fas fa-list"></i>
+                    My Listings (Host)
+                </a>
+            </div>
+        </div>
+
+        <!-- Listings -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-building"></i>
+                Listings
+            </h3>
+            <div class="section-description">Property listings and details</div>
+            <div class="links-grid">
+                <a href="/listings/1" class="dev-link">
+                    <i class="fas fa-home"></i>
+                    Listing Detail (ID: 1)
+                </a>
+                <a href="/listings/2" class="dev-link">
+                    <i class="fas fa-home"></i>
+                    Listing Detail (ID: 2)
+                </a>
+                <a href="{{ url_for('listings.create_listing') }}" class="dev-link">
+                    <i class="fas fa-plus"></i>
+                    Create New Listing
+                </a>
+                <span class="param-required">Note: Listing IDs 1-2 should exist in database</span>
+            </div>
+        </div>
+
+        <!-- Bookings -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-calendar"></i>
+                Bookings
+            </h3>
+            <div class="section-description">Booking and reservation pages</div>
+            <div class="links-grid">
+                <a href="/book/1" class="dev-link">
+                    <i class="fas fa-calendar-plus"></i>
+                    Book Listing (ID: 1)
+                </a>
+                <a href="/book/2" class="dev-link">
+                    <i class="fas fa-calendar-plus"></i>
+                    Book Listing (ID: 2)
+                </a>
+                <a href="{{ url_for('bookings.my_bookings') }}" class="dev-link">
+                    <i class="fas fa-list-ul"></i>
+                    My Bookings List
+                </a>
+                <span class="param-required">Note: Requires valid listing IDs and login</span>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-user-shield"></i>
+                Admin Panel
+            </h3>
+            <div class="section-description">Administrative interface (admin login required)</div>
+            <div class="links-grid">
+                <a href="{{ url_for('admin.dashboard') }}" class="dev-link">
+                    <i class="fas fa-dashboard"></i>
+                    Admin Dashboard
+                </a>
+                <a href="{{ url_for('admin.users') }}" class="dev-link">
+                    <i class="fas fa-users"></i>
+                    Manage Users
+                </a>
+                <a href="{{ url_for('admin.listings') }}" class="dev-link">
+                    <i class="fas fa-building"></i>
+                    Manage Listings
+                </a>
+                <a href="{{ url_for('admin.bookings') }}" class="dev-link">
+                    <i class="fas fa-calendar"></i>
+                    Manage Bookings
+                </a>
+                <a href="{{ url_for('admin.stats') }}" class="dev-link">
+                    <i class="fas fa-chart-bar"></i>
+                    Statistics
+                </a>
+            </div>
+        </div>
+
+        <!-- API Endpoints -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-code"></i>
+                API & AJAX
+            </h3>
+            <div class="section-description">API endpoints and AJAX functionality</div>
+            <div class="links-grid">
+                <a href="/api/listings" class="dev-link">
+                    <i class="fas fa-database"></i>
+                    API: Listings JSON
+                </a>
+                <a href="/api/bookings" class="dev-link">
+                    <i class="fas fa-database"></i>
+                    API: Bookings JSON
+                </a>
+                <a href="/api/users" class="dev-link">
+                    <i class="fas fa-database"></i>
+                    API: Users JSON
+                </a>
+                <span class="param-required">Note: API endpoints return JSON data</span>
+            </div>
+        </div>
+
+        <!-- Testing & Debug -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-bug"></i>
+                Testing & Debug
+            </h3>
+            <div class="section-description">Testing utilities and debug information</div>
+            <div class="links-grid">
+                <a href="{{ url_for('main.test_password', password='test123') }}" class="dev-link">
+                    <i class="fas fa-key"></i>
+                    Test Password Hash
+                </a>
+                <a href="{{ url_for('main.debug_users') }}" class="dev-link">
+                    <i class="fas fa-users"></i>
+                    Debug User Data
+                </a>
+                <a href="{{ url_for('main.status') }}" class="dev-link">
+                    <i class="fas fa-heartbeat"></i>
+                    System Status
+                </a>
+                <a href="/static/css/style.css" class="dev-link">
+                    <i class="fas fa-palette"></i>
+                    View Main Stylesheet
+                </a>
+            </div>
+        </div>
+
+        <!-- Special Features -->
+        <div class="section">
+            <h3 class="section-title">
+                <i class="fas fa-star"></i>
+                Special Features
+            </h3>
+            <div class="section-description">Email verification and other special features</div>
+            <div class="links-grid">
+                <a href="{{ url_for('auth.verify_email') }}" class="dev-link">
+                    <i class="fas fa-envelope-open"></i>
+                    Email Verification
+                </a>
+                <a href="{{ url_for('profile.send_verification_button') }}" class="dev-link">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Verification (POST)
+                </a>
+                <a href="/auth/switch-user-type/guest" class="dev-link">
+                    <i class="fas fa-user-tag"></i>
+                    Switch to Guest
+                </a>
+                <a href="/auth/switch-user-type/host" class="dev-link">
+                    <i class="fas fa-user-tag"></i>
+                    Switch to Host
+                </a>
+                <span class="param-required">Note: Some features require authentication</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Info -->
+    <div style="text-align: center; padding: 30px; color: #6b7280; border-top: 1px solid #e5e7eb; margin-top: 30px;">
+        <p><i class="fas fa-info-circle"></i> This developer page is only available in development mode</p>
+        <p><strong>Tip:</strong> Use browser's network tab to monitor API calls and responses</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click tracking for development
+    document.querySelectorAll('.dev-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            console.log('Dev Navigation:', this.href);
+        });
+    });
+    
+    // Add keyboard shortcut for quick access
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'd') {
+            e.preventDefault();
+            window.location.href = '{{ url_for("main.dev_page") }}';
+        }
+    });
+    
+    console.log('🔧 Developer Dashboard Loaded');
+    console.log('💡 Press Ctrl+D from any page to return here');
+});
+</script>
+{% endblock %}

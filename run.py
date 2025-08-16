@@ -6,7 +6,7 @@ import sys
 def main():
     """Main application entry point with comprehensive error handling"""
     
-    print("🚀 Starting Otithi Application...")
+    print("🚀 Starting Otithi Application (Traditional Messaging)...")
     
     try:
         # Step 1: Create Flask app
@@ -27,13 +27,13 @@ def main():
         sys.exit(1)
     
     try:
-        # Step 2: Initialize SocketIO
-        print("🔗 Initializing real-time messaging (SocketIO)...")
-        socketio = init_socketio(app)
-        print("✅ SocketIO initialized successfully")
+        # Step 2: Initialize messaging system (traditional - no SocketIO)
+        print("� Initializing traditional messaging system...")
+        init_socketio(app)  # This now just prints a message and returns None
+        print("✅ Traditional messaging system ready")
         
     except Exception as e:
-        print(f"❌ SocketIO Error: Failed to initialize real-time messaging")
+        print(f"❌ Messaging Error: Failed to initialize messaging system")
         print(f"   Details: {e}")
         print("   Solution: Check your messages route configuration")
         sys.exit(1)
@@ -62,12 +62,13 @@ def main():
         print(f"📍 Application will be available at: http://{host}:{port}")
         print(f"🔧 Admin panel: http://{host}:{port}/admin")
         print(f"🔑 Admin login: admin@otithi.com")
+        print(f"💬 Messaging: Traditional system (faster, more stable)")
         print("\n" + "="*50)
         print("✨ OTITHI IS READY! ✨")
         print("="*50 + "\n")
         
-        # Start the application
-        socketio.run(app, host=host, port=port, debug=debug_mode, allow_unsafe_werkzeug=True)
+        # Start the application with regular Flask (no SocketIO)
+        app.run(host=host, port=port, debug=debug_mode)
         
     except OSError as e:
         if "Address already in use" in str(e):

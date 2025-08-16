@@ -4,6 +4,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from app.models import User, Booking, Listing, Review, Favorite
 from app.database import get_db_connection
+from app.email_verification import email_service, EmailVerification
 import os
 import uuid
 
@@ -312,3 +313,42 @@ def my_listings():
                          listings=user_listings,
                          bookings=host_bookings,
                          user=current_user)
+
+@profile_bp.route('/send-verification', methods=['POST'])
+@login_required
+def send_verification_button():
+    """Send email verification from profile page"""
+    try:
+        # Check if user is already verified
+        if current_user.is_verified:
+            return jsonify({'success': False, 'message': 'Email is already verified'})
+        
+        # Check rate limiting (prevent spam)
+        last_verification = EmailVerification.get_last_verification_time(current_user.id)
+        if last_verification:
+            from datetime import datetime, timedelta
+            if datetime.now() - last_verification < timedelta(minutes=1):
+                return jsonify({'success': False, 'message': 'Please wait before requesting another verification email'})
+        
+        # Create verification code
+        verification_data = EmailVerification.create_verification_code(current_user.id, current_user.email)
+        
+        if not verification_data:
+            return jsonify({'success': False, 'message': 'Failed to create verification code'})
+        
+        # Send email
+        user_name = f"{current_user.first_name} {current_user.last_name}".strip()
+        email_sent = email_service.send_verification_email(
+            current_user.email, 
+            user_name, 
+            verification_data['code']
+        )
+        
+        if email_sent:
+            return jsonify({'success': True, 'message': 'Verification email sent successfully!'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to send verification email'})
+    
+    except Exception as e:
+        print(f"Error sending verification email: {e}")
+        return jsonify({'success': False, 'message': 'An error occurred while sending verification email'})

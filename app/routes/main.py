@@ -310,14 +310,19 @@ def dashboard():
             listings = Listing.get_by_host(current_user.id)
             host_bookings = Booking.get_by_host(current_user.id)
             return render_template('host/host.html', 
+                                 user=current_user,
                                  listings=listings, 
                                  bookings=bookings,
                                  host_bookings=host_bookings)
         else:
-            return render_template('guest/guest.html', bookings=bookings)
+            return render_template('guest/guest.html', 
+                                 user=current_user,
+                                 bookings=bookings)
     except Exception as e:
         print(f"Error loading dashboard: {e}")
-        return render_template('guest/guest.html', bookings=[])
+        return render_template('guest/guest.html', 
+                             user=current_user,
+                             bookings=[])
 
 @main_bp.route('/my-bookings')
 @login_required
@@ -377,3 +382,8 @@ def listing_detail(listing_id):
 def book_listing(listing_id):
     """Booking page - redirect to bookings blueprint"""
     return redirect(url_for('bookings.book_listing', listing_id=listing_id))
+
+@main_bp.route('/dev')
+def dev_page():
+    """Development page with links to all website pages"""
+    return render_template('dev_simple.html')

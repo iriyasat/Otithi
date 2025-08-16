@@ -46,6 +46,23 @@ CREATE TABLE `user_details` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `email_verifications`
+--
+
+CREATE TABLE `email_verifications` (
+  `verification_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `verification_code` varchar(6) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `expires_at` datetime NOT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `is_used` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `locations`
 --
 
@@ -243,6 +260,16 @@ ALTER TABLE `messages`
   ADD KEY `idx_read_status` (`receiver_id`, `is_read`),
   ADD KEY `idx_timestamp` (`created_at`);
 
+--
+-- Indexes for table `email_verifications`
+--
+ALTER TABLE `email_verifications`
+  ADD PRIMARY KEY (`verification_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `email` (`email`),
+  ADD KEY `verification_code` (`verification_code`),
+  ADD KEY `expires_at` (`expires_at`);
+
 -- --------------------------------------------------------
 
 --
@@ -258,6 +285,7 @@ ALTER TABLE `payments` MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `reviews` MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `favorites` MODIFY `favorite_id` int(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `messages` MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `email_verifications` MODIFY `verification_id` int(11) NOT NULL AUTO_INCREMENT;
 
 -- --------------------------------------------------------
 
@@ -298,6 +326,9 @@ ALTER TABLE `messages`
   ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `messages_ibfk_3` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`listing_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `messages_ibfk_4` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`booking_id`) ON DELETE SET NULL;
+
+ALTER TABLE `email_verifications`
+  ADD CONSTRAINT `email_verifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 COMMIT;
 
