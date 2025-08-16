@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Dev Dashboard - {{ user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Development Mode Banner -->
+    <div class="alert alert-warning" role="alert">
+        <i class="fas fa-code"></i>
+        <strong>Development Mode</strong> - This is a testing dashboard for VS Code Simple Browser
+    </div>
+
+    <!-- User Info -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-user"></i> User: {{ user.full_name }}</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>User Type:</strong> {{ user.user_type.title() }}</p>
+                    <p><strong>User ID:</strong> {{ user.id }}</p>
+                    <p><strong>Profile Complete:</strong> {{ "Yes" if user.profile_complete else "No" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Navigation -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-navigation"></i> Quick Navigation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('profile.profile') }}" class="btn btn-outline-primary btn-block mb-2">
+                                <i class="fas fa-user-edit"></i> View Profile
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('listings.my_listings') }}" class="btn btn-outline-success btn-block mb-2">
+                                <i class="fas fa-home"></i> My Listings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('bookings.my_bookings') }}" class="btn btn-outline-info btn-block mb-2">
+                                <i class="fas fa-calendar"></i> My Bookings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('main.explore') }}" class="btn btn-outline-warning btn-block mb-2">
+                                <i class="fas fa-search"></i> Explore
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('main.dev') }}" class="btn btn-outline-secondary btn-block">
+                                <i class="fas fa-arrow-left"></i> Back to Dev Page
+                            </a>
+                        </div>
+                        {% if user.user_type == 'admin' %}
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.admin_panel') }}" class="btn btn-outline-danger btn-block">
+                                <i class="fas fa-user-shield"></i> Admin Panel
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-home"></i> My Listings ({{ listings|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if listings %}
+                        <div class="list-group">
+                            {% for listing in listings[:5] %}
+                            <div class="list-group-item">
+                                <h6 class="mb-1">{{ listing.title }}</h6>
+                                <small>{{ listing.location }} - ${{ listing.price_per_night }}/night</small>
+                            </div>
+                            {% endfor %}
+                            {% if listings|length > 5 %}
+                            <div class="list-group-item text-center">
+                                <small class="text-muted">... and {{ listings|length - 5 }} more</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No listings found</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-calendar"></i> My Bookings ({{ bookings|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if bookings %}
+                        <div class="list-group">
+                            {% for booking in bookings[:5] %}
+                            <div class="list-group-item">
+                                <h6 class="mb-1">Booking #{{ booking.id }}</h6>
+                                <small>{{ booking.check_in_date }} to {{ booking.check_out_date }}</small>
+                                <span class="badge badge-{{ 'success' if booking.status == 'confirmed' else 'warning' }} float-right">
+                                    {{ booking.status.title() }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                            {% if bookings|length > 5 %}
+                            <div class="list-group-item text-center">
+                                <small class="text-muted">... and {{ bookings|length - 5 }} more</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No bookings found</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Development Tools -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-tools"></i> Development Tools</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('main.dev_dashboard', user_id=1) }}" class="btn btn-outline-danger btn-block mb-2">
+                                <i class="fas fa-user-shield"></i> Switch to Admin
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('main.dev_dashboard', user_id=2) }}" class="btn btn-outline-primary btn-block mb-2">
+                                <i class="fas fa-home"></i> Switch to Host
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('main.dev_dashboard', user_id=3) }}" class="btn btn-outline-success btn-block mb-2">
+                                <i class="fas fa-user"></i> Switch to Guest
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('main.status') }}" class="btn btn-outline-info btn-block mb-2">
+                                <i class="fas fa-chart-line"></i> System Status
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

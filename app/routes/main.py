@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, login_user
 from app.models import User, Listing, Booking, Review, ListingImage
 
 main_bp = Blueprint('main', __name__)
@@ -396,6 +396,99 @@ def favorites():
         return render_template('guest/favorites.html', favorites=[], user=current_user)
 
 @main_bp.route('/dev')
+@main_bp.route('/dev/')
 def dev_page():
     """Development page with links to all website pages"""
     return render_template('dev_simple.html')
+
+@main_bp.route('/dev/force-login/<user_type>')
+def force_login(user_type):
+    """Force login for development and testing purposes in VS Code Simple Browser"""
+    from flask import session, current_app
+    from flask_login import login_user, current_user
+    from app.models import User
+    
+    # Mapping for user types to emails
+    user_emails = {
+        'admin': 'admin@otithi.com',
+        'host': 'host@otithi.com', 
+        'guest': 'guest@otithi.com'
+    }
+    
+    email = user_emails.get(user_type)
+    if not email:
+        flash(f'❌ Invalid user type: {user_type}', 'error')
+        return redirect(url_for('main.dev'))
+    
+    print(f"🔍 Force login attempt for: {email}")
+    
+    # Get user from database
+    user = User.get_by_email(email)
+    if user:
+        print(f"🔍 User found: True")
+        print(f"🔍 User details: ID={user.id}, Name={user.full_name}, Email={user.email}")
+        
+        # Force login
+        login_result = login_user(user, remember=True, force=True)
+        print(f"🔍 Login result: {login_result}")
+        
+        # Debug session info
+        print(f"🔍 Session info after login:")
+        print(f"   - Current user: {current_user.is_authenticated if current_user else 'None'}")
+        print(f"   - User ID in session: {session.get('_user_id', 'None')}")
+        print(f"   - Session keys: {list(session.keys())}")
+        
+        flash(f'✅ Force logged in as {user.full_name} ({email})', 'success')
+        # Redirect to dev dashboard instead of regular dashboard for testing
+        return redirect(url_for('main.dev_dashboard', user_id=user.id))
+    else:
+        print(f"🔍 User found: False")
+        flash(f'❌ User not found: {email}', 'error')
+        return redirect(url_for('main.dev'))
+
+@main_bp.route('/dev/dashboard/<int:user_id>')
+def dev_dashboard(user_id):
+    """Development dashboard that bypasses authentication for VS Code Simple Browser testing"""
+    from app.models import User, Listing, Booking
+    
+    try:
+        # Get the user directly from database
+        user = User.get(user_id)
+        if not user:
+            flash('❌ User not found', 'error')
+            return redirect(url_for('main.dev'))
+        
+        print(f"🔍 Dev dashboard for user: {user.full_name} ({user.email})")
+        
+        # Get user's bookings and listings like the regular dashboard
+        user_bookings = []
+        user_listings = []
+        
+        try:
+            user_bookings = Booking.get_by_user_id(user.id) or []
+            print(f"🔍 Found {len(user_bookings)} bookings for user")
+        except Exception as e:
+            print(f"⚠ Error getting bookings: {e}")
+        
+        try:
+            user_listings = Listing.get_by_host_id(user.id) or []
+            print(f"🔍 Found {len(user_listings)} listings for user")
+        except Exception as e:
+            print(f"⚠ Error getting listings: {e}")
+        
+        # Create a simple context similar to the real dashboard
+        context = {
+            'current_user': user,  # Pass user object directly
+            'user': user,
+            'bookings': user_bookings,
+            'listings': user_listings,
+            'dev_mode': True,  # Flag to indicate this is dev mode
+        }
+        
+        # Render a simplified dashboard template for development
+        return render_template('dev_dashboard.html', **context)
+        
+    except Exception as e:
+        print(f"❌ Error in dev dashboard: {e}")
+        flash(f'❌ Error loading dashboard: {str(e)}', 'error')
+        return redirect(url_for('main.dev'))

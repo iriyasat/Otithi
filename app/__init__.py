@@ -51,14 +51,23 @@ def create_app():
     login_manager.login_view = 'auth.login'  # Point directly to auth blueprint
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
-    login_manager.session_protection = 'strong'  # Enhanced session protection
+    login_manager.session_protection = 'basic'  # Less strict for dev tools compatibility
 
     @login_manager.user_loader
     def load_user(user_id):
         try:
+            print(f"🔍 User loader called with ID: {user_id}")
             from app.models import User
-            return User.get(int(user_id))
-        except (ValueError, TypeError):
+            user = User.get(int(user_id))
+            print(f"🔍 User loader result: {user is not None}")
+            if user:
+                print(f"🔍 Loaded user: {user.full_name} ({user.email})")
+            return user
+        except (ValueError, TypeError) as e:
+            print(f"🔍 User loader error: {e}")
+            return None
+        except Exception as e:
+            print(f"🔍 User loader exception: {e}")
             return None
 
     # Register all blueprints
