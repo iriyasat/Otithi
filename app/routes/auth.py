@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from flask_wtf.csrf import validate_csrf
 from app.models import User
 from app.forms import LoginForm, RegistrationForm
@@ -94,7 +94,7 @@ def register():
             
             # Create new user
             user = User.create(
-                full_name=form.full_name.data,
+                name=form.full_name.data,
                 email=form.email.data.strip().lower(),
                 password=form.password.data,
                 phone=form.phone.data,

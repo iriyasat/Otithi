@@ -4,13 +4,13 @@ from flask_login import UserMixin
 from app.database import db
 
 class User(UserMixin):
-    def __init__(self, id, full_name, email, password_hash, phone=None, bio=None, user_type='guest', 
+    def __init__(self, id, name, email, password_hash, phone=None, bio=None, user_type='guest', 
                  profile_photo=None, joined_date=None, verified=False):
         self.id = id
-        self.full_name = full_name
-        self.first_name = full_name.split()[0] if full_name else ""
-        self.last_name = " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else ""
-        self.name = full_name  # Alias for compatibility
+        self.name = name
+        self.full_name = name  # Alias for compatibility
+        self.first_name = name.split()[0] if name else ""
+        self.last_name = " ".join(name.split()[1:]) if name and len(name.split()) > 1 else ""
         self.email = email
         self.password_hash = password_hash
         self.phone = phone
@@ -75,132 +75,194 @@ class User(UserMixin):
     
     @staticmethod
     def get(user_id):
-        """Get user by ID"""
-        query = "SELECT * FROM users WHERE user_id = %s"
+        """Get user by ID - Updated for new schema with user_details table"""
+        query = """
+            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
+                   ud.user_type, ud.join_date, ud.verified, ud.is_active,
+                   ud.created_at, ud.updated_at
+            FROM users u
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
+            WHERE u.user_id = %s
+        """
         result = db.execute_query(query, (user_id,))
         if result:
             user_data = result[0]
             return User(
                 id=user_data['user_id'],
-                full_name=user_data['name'],
+                name=user_data['name'],
                 email=user_data['email'],
-                password_hash=user_data.get('password_hash', ''),  # May not exist in schema
-                phone=user_data['phone'],
+                password_hash=user_data.get('password_hash', ''),
+                phone=user_data.get('phone', ''),
                 bio=user_data.get('bio', ''),
-                user_type=user_data['user_type'],
-                profile_photo=user_data['profile_photo'],
-                joined_date=user_data['join_date'],
+                user_type=user_data.get('user_type', 'guest'),
+                profile_photo=user_data.get('profile_photo', ''),
+                joined_date=user_data.get('join_date'),
                 verified=user_data.get('verified', False)
             )
         return None
     
     @staticmethod
     def get_by_email(email):
-        """Get user by email"""
-        query = "SELECT * FROM users WHERE email = %s"
+        """Get user by email - Updated for new schema"""
+        query = """
+            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
+                   ud.user_type, ud.join_date, ud.verified, ud.is_active,
+                   ud.created_at, ud.updated_at
+            FROM users u
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
+            WHERE u.email = %s
+        """
         result = db.execute_query(query, (email,))
         if result:
             user_data = result[0]
-            print(f"DEBUG: Found user data for {email}: {user_data}")  # Debug line
             return User(
                 id=user_data['user_id'],
-                full_name=user_data['name'],  # Use 'name' column as per your schema
+                name=user_data['name'],
                 email=user_data['email'],
-                password_hash=user_data['password_hash'] or '',
-                phone=user_data['phone'] or '',
-                bio=user_data['bio'] or '',
-                user_type=user_data['user_type'] or 'guest',
-                profile_photo=user_data['profile_photo'] or '',
-                joined_date=user_data['join_date'] or datetime.now(),
-                verified=bool(user_data['verified'])
+                password_hash=user_data.get('password_hash', ''),
+                phone=user_data.get('phone', ''),
+                bio=user_data.get('bio', ''),
+                user_type=user_data.get('user_type', 'guest'),
+                profile_photo=user_data.get('profile_photo', ''),
+                joined_date=user_data.get('join_date'),
+                verified=user_data.get('verified', False)
             )
         return None
     
     @staticmethod
-    def create(full_name, email, password, phone=None, bio=None, user_type='guest'):
-        """Create a new user"""
+    def create(name, email, password, phone=None, bio=None, user_type='guest'):
+        """Create a new user - Updated for new schema with user_details table"""
         password_hash = generate_password_hash(password)
         
-        query = """
-            INSERT INTO users (name, email, password_hash, phone, bio, user_type, join_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
-        user_id = db.execute_insert(query, (
-            full_name, email, password_hash, phone, bio, user_type, datetime.now()
-        ))
+        try:
+            # First create user in users table
+            user_query = """
+                INSERT INTO users (name, email, password_hash)
+                VALUES (%s, %s, %s)
+            """
+            user_id = db.execute_insert(user_query, (name, email, password_hash))
+            
+            if user_id:
+                # Then create user details
+                details_query = """
+                    INSERT INTO user_details (user_id, phone, bio, user_type, join_date, verified, is_active)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                db.execute_insert(details_query, (
+                    user_id, phone, bio, user_type, datetime.now(), False, True
+                ))
+                
+                return User.get(user_id)
+        except Exception as e:
+            print(f"Error creating user: {e}")
         
-        if user_id:
-            return User.get(user_id)
         return None
     
     def save(self):
-        """Save user changes to database"""
-        query = """
-            UPDATE users 
-            SET name = %s, phone = %s, profile_photo = %s
-            WHERE user_id = %s
-        """
-        return db.execute_update(query, (
-            self.full_name, self.phone, self.profile_photo, self.id
-        ))
+        """Save user changes to database - Updated for new schema"""
+        try:
+            # Update users table
+            user_query = """
+                UPDATE users 
+                SET name = %s, email = %s
+                WHERE user_id = %s
+            """
+            db.execute_update(user_query, (self.name, self.email, self.id))
+            
+            # Update user_details table
+            details_query = """
+                UPDATE user_details 
+                SET phone = %s, bio = %s, profile_photo = %s, updated_at = %s
+                WHERE user_id = %s
+            """
+            return db.execute_update(details_query, (
+                self.phone, self.bio, self.profile_photo, datetime.now(), self.id
+            ))
+        except Exception as e:
+            print(f"Error saving user: {e}")
+            return False
     
     @staticmethod
     def get_all():
-        """Get all users"""
-        query = "SELECT * FROM users ORDER BY join_date DESC"
+        """Get all users - Updated for new schema"""
+        query = """
+            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
+                   ud.user_type, ud.join_date, ud.verified, ud.is_active,
+                   ud.created_at, ud.updated_at
+            FROM users u
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
+            ORDER BY ud.join_date DESC
+        """
         results = db.execute_query(query)
         users = []
         for user_data in results:
             user = User(
                 id=user_data['user_id'],
-                full_name=user_data['name'],
+                name=user_data['name'],
                 email=user_data['email'],
                 password_hash=user_data.get('password_hash', ''),
-                phone=user_data['phone'],
+                phone=user_data.get('phone', ''),
                 bio=user_data.get('bio', ''),
-                user_type=user_data['user_type'],
-                profile_photo=user_data['profile_photo'],
-                joined_date=user_data['join_date'],
+                user_type=user_data.get('user_type', 'guest'),
+                profile_photo=user_data.get('profile_photo', ''),
+                joined_date=user_data.get('join_date'),
                 verified=user_data.get('verified', False)
             )
             users.append(user)
         return users
     
     def update_user_type(self, new_user_type):
-        """Update user type (for admin use)"""
-        query = "UPDATE users SET user_type = %s WHERE user_id = %s"
-        return db.execute_update(query, (new_user_type, self.id))
+        """Update user type (for admin use) - Updated for new schema"""
+        query = "UPDATE user_details SET user_type = %s, updated_at = %s WHERE user_id = %s"
+        if db.execute_update(query, (new_user_type, datetime.now(), self.id)):
+            self.user_type = new_user_type
+            return True
+        return False
     
     def update_profile(self, full_name=None, phone=None, profile_photo=None, bio=None):
-        """Update user profile"""
-        update_fields = []
-        update_values = []
+        """Update user profile - Updated for new schema"""
+        user_updates = []
+        user_values = []
+        details_updates = []
+        details_values = []
         
         if full_name:
-            update_fields.append("name = %s")
-            update_values.append(full_name)
+            user_updates.append("name = %s")
+            user_values.append(full_name)
             self.full_name = full_name
+            self.name = full_name
             
-        if phone:
-            update_fields.append("phone = %s")
-            update_values.append(phone)
+        if phone is not None:
+            details_updates.append("phone = %s")
+            details_values.append(phone)
             self.phone = phone
             
-        if profile_photo:
-            update_fields.append("profile_photo = %s")
-            update_values.append(profile_photo)
+        if profile_photo is not None:
+            details_updates.append("profile_photo = %s")
+            details_values.append(profile_photo)
             self.profile_photo = profile_photo
             
         if bio is not None:
-            update_fields.append("bio = %s")
-            update_values.append(bio)
+            details_updates.append("bio = %s")
+            details_values.append(bio)
             self.bio = bio
         
-        if update_fields:
-            query = f"UPDATE users SET {', '.join(update_fields)} WHERE user_id = %s"
-            update_values.append(self.id)
-            return db.execute_update(query, tuple(update_values))
-        return True
+        success = True
+        
+        # Update users table if needed
+        if user_updates:
+            query = f"UPDATE users SET {', '.join(user_updates)} WHERE user_id = %s"
+            user_values.append(self.id)
+            success = db.execute_update(query, tuple(user_values))
+        
+        # Update user_details table if needed
+        if details_updates and success:
+            details_updates.append("updated_at = %s")
+            details_values.extend([datetime.now(), self.id])
+            query = f"UPDATE user_details SET {', '.join(details_updates)} WHERE user_id = %s"
+            success = db.execute_update(query, tuple(details_values))
+        
+        return success
     
     def update_password(self, new_password):
         """Update user password"""
@@ -209,9 +271,9 @@ class User(UserMixin):
         return db.execute_update(query, (password_hash, self.id))
     
     def update_verification_status(self, verified_status):
-        """Update user verification status"""
-        query = "UPDATE users SET verified = %s WHERE user_id = %s"
-        if db.execute_update(query, (verified_status, self.id)):
+        """Update user verification status - Updated for new schema"""
+        query = "UPDATE user_details SET verified = %s, updated_at = %s WHERE user_id = %s"
+        if db.execute_update(query, (verified_status, datetime.now(), self.id)):
             self.verified = verified_status
             return True
         return False
@@ -397,27 +459,30 @@ class ListingImage:
 
 class Listing:
     def __init__(self, id, title, description, location, price, host_id, property_type='entire_place',
-                 guests=1, bedrooms=1, bathrooms=1, amenities=None, address='', city='', country='Bangladesh',
+                 guests=1, amenities=None, address='', city='', country='Bangladesh',
                  created_date=None, rating=0.0, reviews_count=0, available=True, images=None, 
-                 latitude=None, longitude=None):
+                 latitude=None, longitude=None, is_active=True):
         self.id = id
+        self.listing_id = id  # Alias for consistency
         self.title = title
         self.description = description
         self.location = f"{city}, {country}" if city and country else location
         self.price = price
         self.host_id = host_id
         self.property_type = property_type
+        self.room_type = property_type  # Alias for schema
         self.guests = guests
-        self.bedrooms = bedrooms
-        self.bathrooms = bathrooms
+        self.max_guests = guests  # Alias for schema
         self.amenities = amenities or []
         self.address = address
         self.city = city
         self.country = country
         self.created_date = created_date or datetime.now()
+        self.created_at = created_date or datetime.now()  # Alias for schema
         self.rating = rating
         self.reviews_count = reviews_count
         self.available = available
+        self.is_active = is_active
         self.images = images or []
         self.latitude = latitude
         self.longitude = longitude
@@ -430,7 +495,7 @@ class Listing:
                    loc.country as location_country, loc.latitude, loc.longitude 
             FROM listings l 
             LEFT JOIN locations loc ON l.location_id = loc.location_id 
-            WHERE l.listing_id = %s
+            WHERE l.listing_id = %s AND l.is_active = 1
         """
         result = db.execute_query(query, (listing_id,))
         if result:
@@ -448,8 +513,6 @@ class Listing:
                 host_id=listing_data['host_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
-                bedrooms=listing_data['bedrooms'] or 1,
-                bathrooms=listing_data['bathrooms'] or 1,
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
                 address=listing_data['location_address'] or listing_data['address'],
                 city=listing_data['location_city'] or listing_data['city'],
@@ -460,18 +523,20 @@ class Listing:
                 available=True,  # Default
                 images=[img.image_filename for img in images],
                 latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
-                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None
+                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None,
+                is_active=bool(listing_data.get('is_active', 1))
             )
         return None
     
     @staticmethod
     def get_all():
-        """Get all listings with location and images"""
+        """Get all active listings with location and images"""
         query = """
             SELECT l.*, loc.address as location_address, loc.city as location_city, 
                    loc.country as location_country, loc.latitude, loc.longitude 
             FROM listings l 
             LEFT JOIN locations loc ON l.location_id = loc.location_id 
+            WHERE l.is_active = 1
             ORDER BY l.created_at DESC
         """
         results = db.execute_query(query)
@@ -498,8 +563,6 @@ class Listing:
                 host_id=listing_data['host_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
-                bedrooms=listing_data['bedrooms'] or 1,
-                bathrooms=listing_data['bathrooms'] or 1,
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
                 address=listing_data['location_address'] or listing_data['address'],
                 city=listing_data['location_city'] or listing_data['city'],
@@ -510,7 +573,8 @@ class Listing:
                 available=True,
                 images=[img.image_filename for img in images],
                 latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
-                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None
+                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None,
+                is_active=bool(listing_data.get('is_active', 1))
             )
             listings.append(listing)
         return listings
@@ -555,7 +619,7 @@ class Listing:
     
     @staticmethod
     def create(title, description, location, price, host_id, property_type='entire_place',
-               guests=1, bedrooms=1, bathrooms=1, amenities=None, location_id=None):
+               guests=1, amenities=None, location_id=None):
         """Create a new listing with proper location_id reference"""
         amenities_str = ','.join(amenities) if amenities else ''
         
@@ -564,15 +628,15 @@ class Listing:
             print("Error: location_id is required for creating listings")
             return None
         
-        # Create the listing with the new schema (no location fields)
+        # Create the listing with the simplified schema
         listing_query = """
             INSERT INTO listings (host_id, title, description, room_type, price_per_night, 
-                                max_guests, bedrooms, bathrooms, amenities, location_id, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                max_guests, amenities, location_id, created_at, is_active)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         listing_id = db.execute_insert(listing_query, (
             host_id, title, description, property_type, price, guests, 
-            bedrooms, bathrooms, amenities_str, location_id, datetime.now()
+            amenities_str, location_id, datetime.now(), True
         ))
         
         if listing_id:
@@ -710,13 +774,18 @@ class Listing:
         return db.execute_update(query, (self.id,))
 
 class Review:
-    def __init__(self, id, listing_id, user_id, rating, comment, created_date=None):
+    def __init__(self, id, listing_id, user_id, rating, comment, created_date=None, booking_id=None):
         self.id = id
+        self.review_id = id  # Alias for consistency
         self.listing_id = listing_id
         self.user_id = user_id
+        self.reviewer_id = user_id  # Alias for schema
         self.rating = rating
         self.comment = comment
+        self.comments = comment  # Alias for schema
         self.created_date = created_date or datetime.now()
+        self.review_date = created_date or datetime.now()  # Alias for schema
+        self.booking_id = booking_id
     
     @staticmethod
     def get_all():
@@ -780,13 +849,13 @@ class Review:
         return reviews
 
     @staticmethod
-    def create(listing_id, user_id, rating, comment):
+    def create(listing_id, user_id, rating, comment, booking_id=None):
         """Create a new review"""
         query = """
-            INSERT INTO reviews (reviewer_id, listing_id, rating, comments, review_date)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO reviews (reviewer_id, listing_id, booking_id, rating, comments, review_date)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
-        review_id = db.execute_insert(query, (user_id, listing_id, rating, comment, datetime.now()))
+        review_id = db.execute_insert(query, (user_id, listing_id, booking_id, rating, comment, datetime.now()))
         
         if review_id:
             return Review.get(review_id)
@@ -805,19 +874,21 @@ class Review:
                 user_id=review_data['reviewer_id'],
                 rating=float(review_data['rating']),
                 comment=review_data['comments'],
-                created_date=review_data['review_date']
+                created_date=review_data['review_date'],
+                booking_id=review_data.get('booking_id')
             )
         return None
 
 class Booking:
     def __init__(self, id, listing_id, user_id, check_in, check_out, total_price, 
-                 status='pending', created_date=None, confirmed_by=None, confirmed_at=None):
+                 guests=1, status='pending', created_date=None, confirmed_by=None, confirmed_at=None):
         self.id = id
         self.booking_id = id  # Alias for consistency
         self.listing_id = listing_id
         self.user_id = user_id
         self.check_in = check_in
         self.check_out = check_out
+        self.guests = guests
         self.total_price = total_price
         self.status = status
         self.created_date = created_date or datetime.now()
@@ -838,6 +909,7 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at'],
@@ -859,6 +931,7 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at'],
@@ -885,6 +958,7 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at'],
@@ -906,6 +980,7 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at']
@@ -913,7 +988,7 @@ class Booking:
         return bookings
     
     @staticmethod
-    def create(listing_id, user_id, check_in, check_out):
+    def create(listing_id, user_id, check_in, check_out, guests=1):
         """Create a new booking"""
         listing = Listing.get(listing_id)
         if not listing:
@@ -923,16 +998,16 @@ class Booking:
         if not listing.is_available(check_in, check_out):
             return None
         
-        # Calculate price (using default guests=1 for calculation)
-        price_breakdown = listing.calculate_total_price(check_in, check_out, 1)
+        # Calculate price with proper guest count
+        price_breakdown = listing.calculate_total_price(check_in, check_out, guests)
         total_price = price_breakdown['total']
         
         query = """
-            INSERT INTO bookings (user_id, listing_id, check_in, check_out, total_price, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO bookings (user_id, listing_id, check_in, check_out, guests, total_price, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         booking_id = db.execute_insert(query, (
-            user_id, listing_id, check_in, check_out, total_price, datetime.now()
+            user_id, listing_id, check_in, check_out, guests, total_price, datetime.now()
         ))
         
         if booking_id:
@@ -952,6 +1027,7 @@ class Booking:
                 user_id=booking_data['user_id'],
                 check_in=booking_data['check_in'],
                 check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
                 total_price=float(booking_data['total_price']),
                 status=booking_data['status'],
                 created_date=booking_data['created_at']
@@ -963,23 +1039,38 @@ class Booking:
         """Get all bookings by a guest user (alias for get_by_user)"""
         return Booking.get_by_user(user_id)
     
-    def confirm(self):
+    def confirm(self, confirmed_by_user_id=None):
         """Confirm a pending booking"""
         if self.status == 'pending':
-            query = "UPDATE bookings SET status = 'confirmed' WHERE booking_id = %s"
-            return db.execute_update(query, (self.id,))
+            query = "UPDATE bookings SET status = 'confirmed', confirmed_by = %s, confirmed_at = %s WHERE booking_id = %s"
+            return db.execute_update(query, (confirmed_by_user_id, datetime.now(), self.id))
         return False
     
     def cancel(self):
         """Cancel a booking"""
-        query = "UPDATE bookings SET status = 'cancelled' WHERE booking_id = %s"
-        return db.execute_update(query, (self.id,))
+        query = "UPDATE bookings SET status = 'cancelled', updated_at = %s WHERE booking_id = %s"
+        return db.execute_update(query, (datetime.now(), self.id))
     
-    def update_status(self, new_status):
+    def complete(self):
+        """Mark booking as completed"""
+        query = "UPDATE bookings SET status = 'completed', updated_at = %s WHERE booking_id = %s"
+        return db.execute_update(query, (datetime.now(), self.id))
+    
+    def update_status(self, new_status, confirmed_by_user_id=None):
         """Update booking status"""
-        if new_status in ['pending', 'confirmed', 'cancelled']:
-            query = "UPDATE bookings SET status = %s WHERE booking_id = %s"
-            if db.execute_update(query, (new_status, self.id)):
+        if new_status in ['pending', 'confirmed', 'cancelled', 'completed']:
+            update_fields = ["status = %s", "updated_at = %s"]
+            update_values = [new_status, datetime.now()]
+            
+            if new_status == 'confirmed' and confirmed_by_user_id:
+                update_fields.append("confirmed_by = %s")
+                update_fields.append("confirmed_at = %s")
+                update_values.extend([confirmed_by_user_id, datetime.now()])
+            
+            query = f"UPDATE bookings SET {', '.join(update_fields)} WHERE booking_id = %s"
+            update_values.append(self.id)
+            
+            if db.execute_update(query, tuple(update_values)):
                 self.status = new_status
                 return True
         return False
@@ -1033,3 +1124,196 @@ class Favorite:
         query = "SELECT * FROM favorites WHERE user_id = %s AND listing_id = %s"
         result = db.execute_query(query, (user_id, listing_id))
         return len(result) > 0
+
+
+class Message:
+    """Message model for real-time messaging - Updated for new schema"""
+    
+    def __init__(self, id, sender_id, receiver_id, content, message_type='text', 
+                 listing_id=None, booking_id=None, attachment_filename=None,
+                 is_read=False, read_at=None, created_at=None):
+        self.id = id
+        self.message_id = id  # Alias for compatibility
+        self.sender_id = sender_id
+        self.receiver_id = receiver_id
+        self.content = content
+        self.message_content = content  # Alias for schema
+        self.message_type = message_type
+        self.listing_id = listing_id
+        self.booking_id = booking_id
+        self.attachment_filename = attachment_filename
+        self.is_read = is_read
+        self.read_at = read_at
+        self.created_at = created_at or datetime.now()
+        
+        # For compatibility with frontend
+        self.sender_name = None
+        self.sender_photo = None
+        
+        # Legacy compatibility
+        self.conversation_id = f"{min(sender_id, receiver_id)}_{max(sender_id, receiver_id)}"
+    
+    @staticmethod
+    def create(sender_id, receiver_id, content, message_type='text', 
+               listing_id=None, booking_id=None, attachment_filename=None):
+        """Create a new message"""
+        query = """
+            INSERT INTO messages (sender_id, receiver_id, message_content, message_type,
+                                listing_id, booking_id, attachment_filename, is_read, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        message_id = db.execute_insert(query, (
+            sender_id, receiver_id, content, message_type, 
+            listing_id, booking_id, attachment_filename, False, datetime.now()
+        ))
+        
+        if message_id:
+            return Message.get(message_id)
+        return None
+    
+    @staticmethod
+    def get(message_id):
+        """Get message by ID"""
+        query = """
+            SELECT m.*, u.name as sender_name, ud.profile_photo as sender_photo
+            FROM messages m
+            JOIN users u ON m.sender_id = u.user_id
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
+            WHERE m.message_id = %s
+        """
+        result = db.execute_query(query, (message_id,))
+        if result:
+            data = result[0]
+            message = Message(
+                id=data['message_id'],
+                sender_id=data['sender_id'],
+                receiver_id=data['receiver_id'],
+                content=data['message_content'],
+                message_type=data['message_type'],
+                listing_id=data['listing_id'],
+                booking_id=data['booking_id'],
+                attachment_filename=data['attachment_filename'],
+                is_read=data['is_read'],
+                read_at=data['read_at'],
+                created_at=data['created_at']
+            )
+            message.sender_name = data['sender_name']
+            message.sender_photo = data['sender_photo']
+            return message
+        return None
+    
+    # Legacy compatibility method
+    @staticmethod
+    def get_by_id(message_id):
+        """Legacy compatibility method"""
+        return Message.get(message_id)
+    
+    @staticmethod
+    def get_conversation_messages(user1_id, user2_id, limit=50):
+        """Get messages between two users"""
+        query = """
+            SELECT m.*, u.name as sender_name, ud.profile_photo as sender_photo
+            FROM messages m
+            JOIN users u ON m.sender_id = u.user_id
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
+            WHERE (m.sender_id = %s AND m.receiver_id = %s)
+               OR (m.sender_id = %s AND m.receiver_id = %s)
+            ORDER BY m.created_at ASC
+            LIMIT %s
+        """
+        results = db.execute_query(query, (user1_id, user2_id, user2_id, user1_id, limit))
+        
+        messages = []
+        for data in results:
+            message = Message(
+                id=data['message_id'],
+                sender_id=data['sender_id'],
+                receiver_id=data['receiver_id'],
+                content=data['message_content'],
+                message_type=data['message_type'],
+                listing_id=data['listing_id'],
+                booking_id=data['booking_id'],
+                attachment_filename=data['attachment_filename'],
+                is_read=data['is_read'],
+                read_at=data['read_at'],
+                created_at=data['created_at']
+            )
+            message.sender_name = data['sender_name']
+            message.sender_photo = data['sender_photo']
+            messages.append(message)
+        
+        return messages
+    
+    @staticmethod
+    def mark_as_read(message_id):
+        """Mark a message as read"""
+        query = "UPDATE messages SET is_read = %s, read_at = %s WHERE message_id = %s"
+        return db.execute_update(query, (True, datetime.now(), message_id))
+    
+    @staticmethod
+    def mark_conversation_as_read(user1_id, user2_id, reader_id):
+        """Mark all messages in a conversation as read for the reader"""
+        query = """
+            UPDATE messages 
+            SET is_read = %s, read_at = %s 
+            WHERE ((sender_id = %s AND receiver_id = %s) OR (sender_id = %s AND receiver_id = %s))
+            AND receiver_id = %s
+            AND is_read = %s
+        """
+        return db.execute_update(query, (
+            True, datetime.now(), user1_id, user2_id, user2_id, user1_id, reader_id, False
+        ))
+    
+    @staticmethod
+    def get_user_conversations(user_id):
+        """Get all conversations for a user"""
+        query = """
+            SELECT DISTINCT
+                CASE 
+                    WHEN m.sender_id = %s THEN m.receiver_id 
+                    ELSE m.sender_id 
+                END as other_user_id,
+                MAX(m.created_at) as last_message_time,
+                (SELECT message_content FROM messages m2 
+                 WHERE (m2.sender_id = %s OR m2.receiver_id = %s)
+                 AND (m2.sender_id = other_user_id OR m2.receiver_id = other_user_id)
+                 ORDER BY m2.created_at DESC LIMIT 1) as last_message_content,
+                (SELECT sender_id FROM messages m3 
+                 WHERE (m3.sender_id = %s OR m3.receiver_id = %s)
+                 AND (m3.sender_id = other_user_id OR m3.receiver_id = other_user_id)
+                 ORDER BY m3.created_at DESC LIMIT 1) as last_sender_id,
+                COUNT(CASE WHEN m.receiver_id = %s AND m.is_read = 0 THEN 1 END) as unread_count
+            FROM messages m
+            WHERE m.sender_id = %s OR m.receiver_id = %s
+            GROUP BY other_user_id
+            ORDER BY last_message_time DESC
+        """
+        return db.execute_query(query, (
+            user_id, user_id, user_id, user_id, user_id, user_id, user_id, user_id
+        ))
+    
+    @staticmethod
+    def get_unread_count(user_id):
+        """Get total unread message count for a user"""
+        query = "SELECT COUNT(*) as count FROM messages WHERE receiver_id = %s AND is_read = 0"
+        result = db.execute_query(query, (user_id,))
+        return result[0]['count'] if result else 0
+    
+    def to_dict(self):
+        """Convert message to dictionary for JSON serialization"""
+        return {
+            'id': self.id,
+            'message_id': self.message_id,
+            'sender_id': self.sender_id,
+            'receiver_id': self.receiver_id,
+            'content': self.content,
+            'message_content': self.message_content,
+            'message_type': self.message_type,
+            'listing_id': self.listing_id,
+            'booking_id': self.booking_id,
+            'attachment_filename': self.attachment_filename,
+            'is_read': self.is_read,
+            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'conversation_id': self.conversation_id
+        }

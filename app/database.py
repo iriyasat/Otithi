@@ -117,3 +117,7 @@ class Database:
 
 # Global database instance
 db = Database()
+
+def get_db_connection():
+    """Get database connection for compatibility with messages.py"""
+    return db.connection

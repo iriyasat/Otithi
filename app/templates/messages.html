@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% set title = "Messages" %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/messages.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="messages-container">
+    <!-- Messages Header -->
+    <div class="messages-header">
+        <div class="container">
+            <div class="header-content">
+                <h1>Messages</h1>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="markAllRead">
+                        <i class="icon-check"></i>
+                        Mark all as read
+                    </button>
+                    <button class="btn-secondary" id="searchToggle">
+                        <i class="icon-search"></i>
+                        Search
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Search Bar (Hidden by default) -->
+            <div class="search-container" id="searchContainer" style="display: none;">
+                <input type="text" id="searchMessages" placeholder="Search conversations..." class="search-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Layout -->
+    <div class="messages-layout">
+        <div class="container">
+            <div class="messages-grid">
+                
+                <!-- Conversations Sidebar -->
+                <div class="conversations-sidebar">
+                    <div class="sidebar-header">
+                        <h3>Conversations</h3>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-filter="all">All</button>
+                            <button class="filter-tab" data-filter="unread">Unread</button>
+                            <button class="filter-tab" data-filter="archived">Archived</button>
+                        </div>
+                    </div>
+                    
+                    <div class="conversations-list" id="conversationsList">
+                        <!-- Conversation items will be loaded here -->
+                        {% for conversation in conversations %}
+                        <div class="conversation-item {% if conversation.unread_count > 0 %}unread{% endif %}" 
+                             data-conversation-id="{{ conversation.conversation_id }}"
+                             data-participant-id="{{ conversation.other_participant.user_id }}">
+                            
+                            <div class="conversation-avatar">
+                                {% if conversation.other_participant.profile_photo %}
+                                    <img src="{{ url_for('static', filename='uploads/profiles/' + conversation.other_participant.profile_photo) }}" 
+                                         alt="{{ conversation.other_participant.name }}">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ conversation.other_participant.name[0].upper() }}
+                                    </div>
+                                {% endif %}
+                                {% if conversation.other_participant.is_online %}
+                                    <span class="online-indicator"></span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="conversation-content">
+                                <div class="conversation-header">
+                                    <h4 class="participant-name">{{ conversation.other_participant.name }}</h4>
+                                    <span class="conversation-time">{{ conversation.last_message_time }}</span>
+                                </div>
+                                
+                                <div class="conversation-preview">
+                                    <p class="last-message">
+                                        {% if conversation.last_message.sender_id == current_user.id %}
+                                            <span class="message-sender">You:</span>
+                                        {% endif %}
+                                        {{ conversation.last_message.content | truncate(50) }}
+                                    </p>
+                                    {% if conversation.unread_count > 0 %}
+                                        <span class="unread-badge">{{ conversation.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if conversation.listing %}
+                                <div class="conversation-context">
+                                    <i class="icon-home"></i>
+                                    <span>{{ conversation.listing.title | truncate(30) }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Empty state -->
+                        {% if not conversations %}
+                        <div class="empty-conversations">
+                            <div class="empty-icon">
+                                <i class="icon-message-circle"></i>
+                            </div>
+                            <h3>No conversations yet</h3>
+                            <p>Start messaging with hosts or guests to see your conversations here.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="chat-area" id="chatArea">
+                    <!-- Default empty state -->
+                    <div class="chat-empty-state" id="chatEmptyState">
+                        <div class="empty-chat-icon">
+                            <i class="icon-message-square"></i>
+                        </div>
+                        <h3>Select a conversation</h3>
+                        <p>Choose a conversation from the left to start messaging</p>
+                    </div>
+
+                    <!-- Active chat (Hidden by default) -->
+                    <div class="active-chat" id="activeChat" style="display: none;">
+                        <!-- Chat Header -->
+                        <div class="chat-header">
+                            <div class="chat-participant-info">
+                                <div class="participant-avatar">
+                                    <img id="chatAvatar" src="" alt="">
+                                    <span class="online-indicator" id="chatOnlineStatus" style="display: none;"></span>
+                                </div>
+                                <div class="participant-details">
+                                    <h3 id="chatParticipantName"></h3>
+                                    <span class="participant-status" id="chatParticipantStatus">
+                                        <span class="status-dot" id="statusDot"></span>
+                                        <span id="statusText">Offline</span>
+                                    </span>
+                                    <span class="typing-status" id="typingStatus" style="display: none;">typing...</span>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-actions">
+                                <button class="btn-icon" id="chatInfo" title="Info">
+                                    <i class="icon-info"></i>
+                                </button>
+                                <button class="btn-icon" id="chatArchive" title="Archive">
+                                    <i class="icon-archive"></i>
+                                </button>
+                                <button class="btn-icon" id="chatBlock" title="Block User">
+                                    <i class="icon-user-x"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Messages Container -->
+                        <div class="messages-container-scroll" id="messagesContainer">
+                            <div class="messages-list" id="messagesList">
+                                <!-- Messages will be loaded here -->
+                            </div>
+                            
+                            <!-- Typing Indicator -->
+                            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                                <div class="typing-avatar">
+                                    <img id="typingAvatar" src="" alt="">
+                                </div>
+                                <div class="typing-bubble">
+                                    <div class="typing-dots">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Message Input -->
+                        <div class="message-input-container">
+                            <form class="message-form" id="messageForm">
+                                <div class="input-group">
+                                    <button type="button" class="btn-attachment" id="attachmentBtn">
+                                        <i class="icon-paperclip"></i>
+                                    </button>
+                                    <input type="hidden" id="conversationId" name="conversation_id">
+                                    <input type="hidden" id="receiverId" name="receiver_id">
+                                    <textarea id="messageInput" 
+                                              name="message_content" 
+                                              placeholder="Type your message..." 
+                                              rows="1"
+                                              maxlength="2000"
+                                              data-typing-timer="0"></textarea>
+                                    <button type="submit" class="btn-send" id="sendBtn">
+                                        <i class="icon-send"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- File Upload (Hidden) -->
+                                <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx" style="display: none;">
+                                
+                                <!-- Character Counter -->
+                                <div class="message-meta">
+                                    <span class="char-counter" id="charCounter">0/2000</span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Panel (Hidden by default) -->
+                <div class="info-panel" id="infoPanel" style="display: none;">
+                    <div class="info-header">
+                        <h3>Conversation Info</h3>
+                        <button class="btn-close" id="closeInfoPanel">
+                            <i class="icon-x"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="info-content">
+                        <!-- Participant Info -->
+                        <div class="info-section">
+                            <div class="participant-profile">
+                                <img id="infoAvatar" src="" alt="">
+                                <div class="profile-details">
+                                    <h4 id="infoName"></h4>
+                                    <span id="infoUserType"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Related Listing -->
+                        <div class="info-section" id="listingSection" style="display: none;">
+                            <h4>Related Listing</h4>
+                            <div class="listing-card">
+                                <img id="listingImage" src="" alt="">
+                                <div class="listing-details">
+                                    <h5 id="listingTitle"></h5>
+                                    <p id="listingLocation"></p>
+                                    <span id="listingPrice"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Conversation Actions -->
+                        <div class="info-section">
+                            <h4>Actions</h4>
+                            <div class="action-buttons">
+                                <button class="btn-secondary" id="archiveConversation">
+                                    <i class="icon-archive"></i>
+                                    Archive Conversation
+                                </button>
+                                <button class="btn-danger" id="blockUser">
+                                    <i class="icon-user-x"></i>
+                                    Block User
+                                </button>
+                                <button class="btn-danger" id="reportUser">
+                                    <i class="icon-flag"></i>
+                                    Report User
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading States -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading messages...</p>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Block User Confirmation Modal -->
+<div class="modal" id="blockUserModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Block User</h3>
+            <button class="btn-close" data-modal-close>
+                <i class="icon-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to block this user? They won't be able to send you messages anymore.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" data-modal-close>Cancel</button>
+            <button class="btn-danger" id="confirmBlockUser">Block User</button>
+        </div>
+    </div>
+</div>
+
+<!-- Report User Modal -->
+<div class="modal" id="reportUserModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Report User</h3>
+            <button class="btn-close" data-modal-close>
+                <i class="icon-x"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="reportForm">
+                <div class="form-group">
+                    <label for="reportReason">Reason for reporting:</label>
+                    <select id="reportReason" name="reason" required>
+                        <option value="">Select a reason</option>
+                        <option value="spam">Spam</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="inappropriate">Inappropriate content</option>
+                        <option value="scam">Scam or fraud</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportDetails">Additional details:</label>
+                    <textarea id="reportDetails" name="details" placeholder="Please provide more details..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" data-modal-close>Cancel</button>
+            <button class="btn-danger" id="submitReport">Submit Report</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success/Error Toast -->
+<div class="toast" id="toast" style="display: none;">
+    <div class="toast-content">
+        <span class="toast-message" id="toastMessage"></span>
+        <button class="toast-close" id="toastClose">
+            <i class="icon-x"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Audio notifications -->
+<!-- Temporarily disabled until sound files are added
+<audio id="messageSound" preload="auto">
+    <source src="{{ url_for('static', filename='sounds/message.mp3') }}" type="audio/mpeg">
+    <source src="{{ url_for('static', filename='sounds/message.wav') }}" type="audio/wav">
+</audio>
+-->
+
+<!-- Connection Status -->
+<div class="connection-status" id="connectionStatus" style="display: none;">
+    <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">Connecting...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- Socket.IO for real-time messaging -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    
+    <!-- Current user data for JavaScript -->
+    <script>
+        window.currentUserId = {{ current_user.id if current_user.is_authenticated else 'null' }};
+    </script>
+    
+    <!-- Live messaging system -->
+    <script src="{{ url_for('static', filename='js/messages-live.js') }}"></script>
+{% endblock %}
