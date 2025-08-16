@@ -1,7 +1,6 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from flask_mail import Mail
 import os
 
 def create_app():
@@ -22,28 +21,11 @@ def create_app():
     app.config['WTF_CSRF_ENABLED'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
     
-    # Email Configuration
-    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'localhost')
-    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
-    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() in ['true', 'on', '1']
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@otithi.com')
-    
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     # Initialize CSRF Protection
     csrf = CSRFProtect()
     csrf.init_app(app)
-
-    # Initialize Flask-Mail
-    mail = Mail()
-    mail.init_app(app)
-
-    # Initialize Email Service
-    from app.email_verification import email_service
-    email_service.init_app(app)
 
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -51,23 +33,14 @@ def create_app():
     login_manager.login_view = 'auth.login'  # Point directly to auth blueprint
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
-    login_manager.session_protection = 'basic'  # Less strict for dev tools compatibility
+    login_manager.session_protection = 'strong'  # Enhanced session protection
 
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            print(f"🔍 User loader called with ID: {user_id}")
             from app.models import User
-            user = User.get(int(user_id))
-            print(f"🔍 User loader result: {user is not None}")
-            if user:
-                print(f"🔍 Loaded user: {user.full_name} ({user.email})")
-            return user
-        except (ValueError, TypeError) as e:
-            print(f"🔍 User loader error: {e}")
-            return None
-        except Exception as e:
-            print(f"🔍 User loader exception: {e}")
+            return User.get(int(user_id))
+        except (ValueError, TypeError):
             return None
 
     # Register all blueprints

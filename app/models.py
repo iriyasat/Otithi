@@ -4,13 +4,13 @@ from flask_login import UserMixin
 from app.database import db
 
 class User(UserMixin):
-    def __init__(self, id, name, email, password_hash, phone=None, bio=None, user_type='guest', 
+    def __init__(self, id, full_name, email, password_hash, phone=None, bio=None, user_type='guest', 
                  profile_photo=None, joined_date=None, verified=False):
         self.id = id
-        self.name = name
-        self.full_name = name  # Alias for compatibility
-        self.first_name = name.split()[0] if name else ""
-        self.last_name = " ".join(name.split()[1:]) if name and len(name.split()) > 1 else ""
+        self.full_name = full_name
+        self.first_name = full_name.split()[0] if full_name else ""
+        self.last_name = " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else ""
+        self.name = full_name  # Alias for compatibility
         self.email = email
         self.password_hash = password_hash
         self.phone = phone
@@ -77,7 +77,7 @@ class User(UserMixin):
     def get(user_id):
         """Get user by ID - Updated for new schema with user_details table"""
         query = """
-            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
+            SELECT u.*, ud.user_image, ud.profile_photo, ud.phone, ud.bio, 
                    ud.user_type, ud.join_date, ud.verified, ud.is_active,
                    ud.created_at, ud.updated_at
             FROM users u
@@ -89,7 +89,7 @@ class User(UserMixin):
             user_data = result[0]
             return User(
                 id=user_data['user_id'],
-                name=user_data['name'],
+                full_name=user_data['name'],
                 email=user_data['email'],
                 password_hash=user_data.get('password_hash', ''),
                 phone=user_data.get('phone', ''),
@@ -105,7 +105,7 @@ class User(UserMixin):
     def get_by_email(email):
         """Get user by email - Updated for new schema"""
         query = """
-            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
+            SELECT u.*, ud.user_image, ud.profile_photo, ud.phone, ud.bio, 
                    ud.user_type, ud.join_date, ud.verified, ud.is_active,
                    ud.created_at, ud.updated_at
             FROM users u
@@ -117,7 +117,7 @@ class User(UserMixin):
             user_data = result[0]
             return User(
                 id=user_data['user_id'],
-                name=user_data['name'],
+                full_name=user_data['name'],
                 email=user_data['email'],
                 password_hash=user_data.get('password_hash', ''),
                 phone=user_data.get('phone', ''),
@@ -130,7 +130,7 @@ class User(UserMixin):
         return None
     
     @staticmethod
-    def create(name, email, password, phone=None, bio=None, user_type='guest'):
+    def create(full_name, email, password, phone=None, bio=None, user_type='guest'):
         """Create a new user - Updated for new schema with user_details table"""
         password_hash = generate_password_hash(password)
         
@@ -140,7 +140,7 @@ class User(UserMixin):
                 INSERT INTO users (name, email, password_hash)
                 VALUES (%s, %s, %s)
             """
-            user_id = db.execute_insert(user_query, (name, email, password_hash))
+            user_id = db.execute_insert(user_query, (full_name, email, password_hash))
             
             if user_id:
                 # Then create user details
@@ -167,7 +167,7 @@ class User(UserMixin):
                 SET name = %s, email = %s
                 WHERE user_id = %s
             """
-            db.execute_update(user_query, (self.name, self.email, self.id))
+            db.execute_update(user_query, (self.full_name, self.email, self.id))
             
             # Update user_details table
             details_query = """
@@ -186,7 +186,7 @@ class User(UserMixin):
     def get_all():
         """Get all users - Updated for new schema"""
         query = """
-            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
+            SELECT u.*, ud.user_image, ud.profile_photo, ud.phone, ud.bio, 
                    ud.user_type, ud.join_date, ud.verified, ud.is_active,
                    ud.created_at, ud.updated_at
             FROM users u
@@ -198,7 +198,7 @@ class User(UserMixin):
         for user_data in results:
             user = User(
                 id=user_data['user_id'],
-                name=user_data['name'],
+                full_name=user_data['name'],
                 email=user_data['email'],
                 password_hash=user_data.get('password_hash', ''),
                 phone=user_data.get('phone', ''),

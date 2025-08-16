@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Otithi - Experience Bangladesh Like a Local{% endblock %}</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,18 +37,19 @@
                         <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
                         <a href="{{ url_for('admin.users') }}" class="nav-link">Manage Users</a>
                         <a href="{{ url_for('admin.bookings') }}" class="nav-link">Manage Bookings</a>
-                        <a href="{{ url_for('messages.messages') }}" class="nav-link">Messages</a>
                     {% elif current_user.user_type == 'guest' %}
                         <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                         <a href="{{ url_for('main.my_bookings') }}" class="nav-link">My Bookings</a>
-                        <a href="{{ url_for('messages.messages') }}" class="nav-link">Messages</a>
                     {% elif current_user.user_type == 'host' %}
                         <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                         <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
                         <a href="{{ url_for('profile.my_listings') }}" class="nav-link">My Listings</a>
-                        <a href="{{ url_for('messages.messages') }}" class="nav-link">Messages</a>
                     {% endif %}
-                    <a href="{{ url_for('profile.profile') }}" class="nav-link">Profile</a>
+                    {% if current_user.user_type == 'admin' %}
+                        <a href="{{ url_for('admin.profile') }}" class="nav-link">Profile</a>
+                    {% else %}
+                        <a href="{{ url_for('profile.profile') }}" class="nav-link">Profile</a>
+                    {% endif %}
                 {% else %}
                     <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
                 {% endif %}

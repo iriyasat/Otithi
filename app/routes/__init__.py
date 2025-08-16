@@ -13,7 +13,6 @@ def register_blueprints(app):
         ('listings', 'listings_bp', 'Listings'),
         ('bookings', 'bookings_bp', 'Bookings'),
         ('profile', 'profile_bp', 'Profile'),
-        ('messages', 'messages_bp', 'Messages'),
         ('admin', 'admin_bp', 'Admin'),
     ]
     

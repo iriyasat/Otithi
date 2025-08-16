@@ -73,24 +73,9 @@ class Database:
         except Error as e:
             print(f"Error initializing schema: {e}")
     
-    def ensure_connection(self):
-        """Ensure database connection is active, reconnect if needed"""
-        try:
-            if not self.connection or not self.connection.is_connected():
-                print("Database connection lost, reconnecting...")
-                self.connect()
-        except Error as e:
-            print(f"Error checking connection: {e}")
-            self.connect()
-
     def execute_query(self, query, params=None):
         """Execute a SELECT query"""
         try:
-            self.ensure_connection()
-            if not self.connection:
-                print("Error executing query: MySQL Connection not available")
-                return []
-                
             cursor = self.connection.cursor(dictionary=True)  # Always use dictionary cursor
             cursor.execute(query, params or ())
             result = cursor.fetchall()
@@ -98,27 +83,11 @@ class Database:
             return result
         except Error as e:
             print(f"Error executing query: {e}")
-            # Try to reconnect and retry once
-            try:
-                self.connect()
-                if self.connection:
-                    cursor = self.connection.cursor(dictionary=True)
-                    cursor.execute(query, params or ())
-                    result = cursor.fetchall()
-                    cursor.close()
-                    return result
-            except:
-                pass
             return []
     
     def execute_insert(self, query, params=None):
         """Execute an INSERT query and return the last inserted ID"""
         try:
-            self.ensure_connection()
-            if not self.connection:
-                print("Error executing insert: MySQL Connection not available")
-                return None
-                
             cursor = self.connection.cursor(dictionary=True)  # Use dictionary cursor
             cursor.execute(query, params or ())
             last_id = cursor.lastrowid
@@ -126,27 +95,11 @@ class Database:
             return last_id
         except Error as e:
             print(f"Error executing insert: {e}")
-            # Try to reconnect and retry once
-            try:
-                self.connect()
-                if self.connection:
-                    cursor = self.connection.cursor(dictionary=True)
-                    cursor.execute(query, params or ())
-                    last_id = cursor.lastrowid
-                    cursor.close()
-                    return last_id
-            except:
-                pass
             return None
     
     def execute_update(self, query, params=None):
         """Execute an UPDATE/DELETE query"""
         try:
-            self.ensure_connection()
-            if not self.connection:
-                print("Error executing update: MySQL Connection not available")
-                return 0
-                
             cursor = self.connection.cursor(dictionary=True)  # Use dictionary cursor
             cursor.execute(query, params or ())
             affected_rows = cursor.rowcount
@@ -154,17 +107,6 @@ class Database:
             return affected_rows
         except Error as e:
             print(f"Error executing update: {e}")
-            # Try to reconnect and retry once
-            try:
-                self.connect()
-                if self.connection:
-                    cursor = self.connection.cursor(dictionary=True)
-                    cursor.execute(query, params or ())
-                    affected_rows = cursor.rowcount
-                    cursor.close()
-                    return affected_rows
-            except:
-                pass
             return 0
     
     def close(self):
@@ -175,7 +117,3 @@ class Database:
 
 # Global database instance
 db = Database()
-
-def get_db_connection():
-    """Get database connection for compatibility with messages.py"""
-    return db.connection
