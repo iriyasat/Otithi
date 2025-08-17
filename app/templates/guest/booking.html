@@ -16,6 +16,7 @@
                 </h2>
                 
                 <form method="POST">
+                    {{ csrf_token() }}
                     <!-- Booking Details -->
                     <div class="form-group">
                         <label for="user_id" class="form-label">User ID</label>

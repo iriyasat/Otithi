@@ -77,7 +77,7 @@ class User(UserMixin):
     def get(user_id):
         """Get user by ID - Updated for new schema with user_details table"""
         query = """
-            SELECT u.*, ud.user_image, ud.profile_photo, ud.phone, ud.bio, 
+            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
                    ud.user_type, ud.join_date, ud.verified, ud.is_active,
                    ud.created_at, ud.updated_at
             FROM users u
@@ -105,7 +105,7 @@ class User(UserMixin):
     def get_by_email(email):
         """Get user by email - Updated for new schema"""
         query = """
-            SELECT u.*, ud.user_image, ud.profile_photo, ud.phone, ud.bio, 
+            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
                    ud.user_type, ud.join_date, ud.verified, ud.is_active,
                    ud.created_at, ud.updated_at
             FROM users u
@@ -186,7 +186,7 @@ class User(UserMixin):
     def get_all():
         """Get all users - Updated for new schema"""
         query = """
-            SELECT u.*, ud.user_image, ud.profile_photo, ud.phone, ud.bio, 
+            SELECT u.*, ud.profile_photo, ud.phone, ud.bio, 
                    ud.user_type, ud.join_date, ud.verified, ud.is_active,
                    ud.created_at, ud.updated_at
             FROM users u

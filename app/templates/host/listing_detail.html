@@ -282,6 +282,7 @@
         <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);">
             <h4 style="font-size: 20px; font-weight: 600; margin-bottom: 24px;">Leave a Review</h4>
             <form action="{{ url_for('main.add_review', listing_id=listing['id']) }}" method="POST" style="max-width: 600px;">
+                {{ csrf_token() }}
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-weight: 500; margin-bottom: 8px;">Rating</label>
                     <div style="display: flex; gap: 4px; margin-bottom: 16px;">
