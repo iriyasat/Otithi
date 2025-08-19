@@ -4,61 +4,103 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<!-- Admin Dashboard Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-calendar-check"></i>
+                Manage Bookings
+            </h1>
+            <p class="lead">Booking management interface - Monitor, confirm, and manage all platform bookings.</p>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <div class="header-content">
-                <div class="header-info">
-                    <h1 class="dashboard-title">
-                        <i class="fas fa-calendar-check me-3"></i>
-                        Manage Bookings
-                    </h1>
-                    <p class="dashboard-subtitle">Monitor and manage all platform bookings</p>
+        <!-- Dashboard Statistics -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Pending</h5>
+                            <h2>{{ bookings|selectattr('status', 'equalto', 'pending')|list|length }}</h2>
+                            <i class="fas fa-clock fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="header-actions">
-                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                    </a>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Confirmed</h5>
+                            <h2>{{ bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</h2>
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Completed</h5>
+                            <h2>{{ bookings|selectattr('status', 'equalto', 'completed')|list|length }}</h2>
+                            <i class="fas fa-calendar-check fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-danger text-white">
+                        <div class="card-body">
+                            <h5>Cancelled</h5>
+                            <h2>{{ bookings|selectattr('status', 'equalto', 'cancelled')|list|length }}</h2>
+                            <i class="fas fa-times-circle fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bookings Table -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Bookings</h5>
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" style="width: auto;">
-                        <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                {% if bookings %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Booking ID</th>
-                                <th>Guest</th>
-                                <th>Listing</th>
-                                <th>Host</th>
-                                <th>Check-in</th>
-                                <th>Check-out</th>
-                                <th>Status</th>
-                                <th>Total</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+        <!-- Bookings Management -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="action-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            All Bookings
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" style="width: auto;">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if bookings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Booking ID</th>
+                                        <th>Guest</th>
+                                        <th>Listing</th>
+                                        <th>Host</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                             {% for booking in bookings %}
                             <tr>
                                 <td>
@@ -66,9 +108,20 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="user-avatar-sm me-2">
-                                            {{ booking.guest_name[0].upper() if booking.guest_name else 'G' }}
-                                        </div>
+                                        {% if booking.guest_profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + booking.guest_profile_photo) }}" 
+                                                 alt="{{ booking.guest_name }}" 
+                                                 class="admin-user-avatar-sm"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="admin-user-avatar-placeholder-sm" 
+                                                 style="display: none;">
+                                                {{ booking.guest_name[0].upper() if booking.guest_name else 'G' }}
+                                            </div>
+                                        {% else %}
+                                            <div class="admin-user-avatar-placeholder-sm">
+                                                {{ booking.guest_name[0].upper() if booking.guest_name else 'G' }}
+                                            </div>
+                                        {% endif %}
                                         <div>
                                             <div class="fw-semibold">{{ booking.guest_name or 'Unknown Guest' }}</div>
                                             <small class="text-muted">{{ booking.guest_email or '' }}</small>
@@ -133,13 +186,15 @@
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No bookings found</h5>
-                    <p class="text-muted">No bookings have been made yet.</p>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No bookings found</h5>
+                            <p class="text-muted">No bookings have been made yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>

@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Otithi{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="dashboard-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="dashboard-title">
+                            <i class="fas fa-cog me-2"></i>
+                            Account Settings
+                        </h2>
+                        <p class="dashboard-subtitle">Manage your account preferences and privacy settings</p>
+                    </div>
+                    <a href="{{ url_for('profile.profile') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Notification Settings -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="profile-card-title">
+                        <i class="fas fa-bell"></i>
+                        Notification Preferences
+                    </h5>
+                </div>
+                <div class="profile-card-body">
+                    <form method="POST" action="{{ url_for('profile.update_notification_settings') }}" id="notificationForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        
+                        <div class="settings-section">
+                            <h6 class="settings-section-title">Email Notifications</h6>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Booking Updates</strong>
+                                    <p class="text-muted mb-0">Receive emails about booking confirmations, cancellations, and updates</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="email_bookings" name="email_bookings" checked>
+                                        <label class="form-check-label" for="email_bookings"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Messages</strong>
+                                    <p class="text-muted mb-0">Get notified when you receive messages from other users</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="email_messages" name="email_messages" checked>
+                                        <label class="form-check-label" for="email_messages"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if user.user_type == 'host' %}
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Listing Activities</strong>
+                                    <p class="text-muted mb-0">Updates about views, inquiries, and reviews for your properties</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="email_listings" name="email_listings" checked>
+                                        <label class="form-check-label" for="email_listings"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Marketing & Promotions</strong>
+                                    <p class="text-muted mb-0">Receive promotional emails about new features and special offers</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="email_marketing" name="email_marketing">
+                                        <label class="form-check-label" for="email_marketing"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h6 class="settings-section-title">Push Notifications</h6>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Browser Notifications</strong>
+                                    <p class="text-muted mb-0">Show notifications in your browser for important updates</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="push_notifications" name="push_notifications">
+                                        <label class="form-check-label" for="push_notifications"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn-profile-primary">
+                                <i class="fas fa-save"></i>
+                                Save Notification Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Privacy Settings -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="profile-card-title">
+                        <i class="fas fa-shield-alt"></i>
+                        Privacy & Security
+                    </h5>
+                </div>
+                <div class="profile-card-body">
+                    <form method="POST" action="{{ url_for('profile.update_privacy_settings') }}" id="privacyForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        
+                        <div class="settings-section">
+                            <h6 class="settings-section-title">Profile Visibility</h6>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Public Profile</strong>
+                                    <p class="text-muted mb-0">Allow other users to view your profile and basic information</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="public_profile" name="public_profile" checked>
+                                        <label class="form-check-label" for="public_profile"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Show Contact Information</strong>
+                                    <p class="text-muted mb-0">Display your phone number to verified users only</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="show_contact" name="show_contact">
+                                        <label class="form-check-label" for="show_contact"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if user.user_type == 'host' %}
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Show Listing Statistics</strong>
+                                    <p class="text-muted mb-0">Display the number of properties you host on your profile</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="show_listings_count" name="show_listings_count" checked>
+                                        <label class="form-check-label" for="show_listings_count"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="settings-section">
+                            <h6 class="settings-section-title">Data & Analytics</h6>
+                            
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <strong>Usage Analytics</strong>
+                                    <p class="text-muted mb-0">Help us improve Otithi by sharing anonymous usage data</p>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="analytics" name="analytics" checked>
+                                        <label class="form-check-label" for="analytics"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn-profile-primary">
+                                <i class="fas fa-save"></i>
+                                Save Privacy Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Account Management -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="profile-card-title">
+                        <i class="fas fa-user-cog"></i>
+                        Account Management
+                    </h5>
+                </div>
+                <div class="profile-card-body">
+                    <div class="settings-section">
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>Change Password</strong>
+                                <p class="text-muted mb-0">Update your account password for better security</p>
+                            </div>
+                            <div class="setting-control">
+                                <a href="{{ url_for('profile.change_password') }}" class="btn-profile-secondary">
+                                    <i class="fas fa-lock"></i>
+                                    Change Password
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>Download My Data</strong>
+                                <p class="text-muted mb-0">Get a copy of all your data stored on Otithi</p>
+                            </div>
+                            <div class="setting-control">
+                                <button type="button" class="btn-profile-outline" onclick="requestDataDownload()">
+                                    <i class="fas fa-download"></i>
+                                    Request Data
+                                </button>
+                            </div>
+                        </div>
+
+                        {% if user.user_type in ['guest', 'host'] %}
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <strong>Account Type</strong>
+                                <p class="text-muted mb-0">
+                                    {% if user.user_type == 'guest' %}
+                                        Upgrade to a Host account to list your properties
+                                    {% else %}
+                                        You're currently a Host. Contact support to change account type
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="setting-control">
+                                {% if user.user_type == 'guest' %}
+                                <button type="button" class="btn-profile-primary" onclick="requestHostUpgrade()">
+                                    <i class="fas fa-home"></i>
+                                    Become a Host
+                                </button>
+                                {% else %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-home"></i>
+                                    Host Account
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="setting-item border-danger">
+                            <div class="setting-info">
+                                <strong class="text-danger">Delete Account</strong>
+                                <p class="text-muted mb-0">Permanently delete your account and all associated data</p>
+                            </div>
+                            <div class="setting-control">
+                                <button type="button" 
+                                        class="btn btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteAccountModal">
+                                    <i class="fas fa-trash"></i>
+                                    Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Management -->
+            <div class="profile-card">
+                <div class="profile-card-header">
+                    <h5 class="profile-card-title">
+                        <i class="fas fa-desktop"></i>
+                        Active Sessions
+                    </h5>
+                </div>
+                <div class="profile-card-body">
+                    <p class="text-muted mb-4">Manage devices that are currently logged into your account</p>
+                    
+                    <div class="session-item current-session">
+                        <div class="session-icon">
+                            <i class="fas fa-desktop text-success"></i>
+                        </div>
+                        <div class="session-info">
+                            <strong>Current Session</strong>
+                            <p class="mb-0 text-muted">
+                                <span class="browser-info">Chrome on macOS</span> • 
+                                <span class="location-info">New York, US</span>
+                            </p>
+                            <small class="text-success">Active now</small>
+                        </div>
+                        <div class="session-actions">
+                            <span class="badge bg-success">Current</span>
+                        </div>
+                    </div>
+
+                    <!-- Example of other sessions -->
+                    <div class="session-item">
+                        <div class="session-icon">
+                            <i class="fas fa-mobile-alt text-primary"></i>
+                        </div>
+                        <div class="session-info">
+                            <strong>iPhone Safari</strong>
+                            <p class="mb-0 text-muted">
+                                <span class="browser-info">Safari on iOS</span> • 
+                                <span class="location-info">New York, US</span>
+                            </p>
+                            <small class="text-muted">Last active 2 hours ago</small>
+                        </div>
+                        <div class="session-actions">
+                            <button type="button" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Revoke
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn-profile-outline" onclick="logoutAllSessions()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Log Out of All Sessions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Confirm Account Deletion
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>This action cannot be undone!</strong></p>
+                <p>Type <strong>DELETE</strong> to confirm:</p>
+                <input type="text" class="form-control" id="deleteConfirmation" placeholder="Type DELETE">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <i class="fas fa-trash"></i>
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Settings form handlers
+document.getElementById('notificationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Show success message
+    showAlert('Notification settings updated successfully!', 'success');
+});
+
+document.getElementById('privacyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Show success message
+    showAlert('Privacy settings updated successfully!', 'success');
+});
+
+// Feature request handlers
+function requestDataDownload() {
+    showAlert('Data download request submitted. You will receive an email with your data within 24 hours.', 'info');
+}
+
+function requestHostUpgrade() {
+    if (confirm('Are you sure you want to upgrade to a Host account? This will allow you to list properties on Otithi.')) {
+        showAlert('Host upgrade request submitted. We will review your request and contact you soon.', 'info');
+    }
+}
+
+function logoutAllSessions() {
+    if (confirm('Are you sure you want to log out of all sessions? You will need to log in again on all devices.')) {
+        // Implement logout all sessions
+        window.location.href = "{{ url_for('auth.logout') }}";
+    }
+}
+
+// Delete account confirmation
+document.getElementById('deleteConfirmation').addEventListener('input', function() {
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    confirmBtn.disabled = this.value !== 'DELETE';
+});
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    alert('Account deletion would be implemented here.');
+});
+
+// Utility function to show alerts
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild.nextSibling);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Request notification permission
+document.getElementById('push_notifications').addEventListener('change', function() {
+    if (this.checked && 'Notification' in window) {
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission !== 'granted') {
+                    this.checked = false;
+                    showAlert('Notification permission denied. Please enable notifications in your browser settings.', 'warning');
+                }
+            });
+        } else if (Notification.permission === 'denied') {
+            this.checked = false;
+            showAlert('Notifications are blocked. Please enable them in your browser settings.', 'warning');
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -4,58 +4,100 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<!-- Admin Dashboard Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-home"></i>
+                Manage Listings
+            </h1>
+            <p class="lead">Property/listing management - Monitor, approve, and manage all platform listings.</p>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- Header -->
-        <div class="dashboard-header">
-            <div class="header-content">
-                <div class="header-info">
-                    <h1 class="dashboard-title">
-                        <i class="fas fa-home me-3"></i>
-                        Manage Listings
-                    </h1>
-                    <p class="dashboard-subtitle">Monitor and manage all platform listings</p>
+        <!-- Dashboard Statistics -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Active</h5>
+                            <h2>{{ listings|selectattr('is_active', 'equalto', true)|list|length }}</h2>
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="header-actions">
-                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-                    </a>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Pending</h5>
+                            <h2>{{ listings|selectattr('is_active', 'equalto', false)|list|length }}</h2>
+                            <i class="fas fa-clock fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Total Listings</h5>
+                            <h2>{{ listings|length }}</h2>
+                            <i class="fas fa-home fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Avg Price</h5>
+                            <h2>৳{{ "{:,.0f}".format((listings|map(attribute='price_per_night')|select|sum / listings|map(attribute='price_per_night')|select|list|length) if listings|map(attribute='price_per_night')|select|list|length > 0 else 0) }}</h2>
+                            <i class="fas fa-money-bill-wave fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Listings Table -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Listings</h5>
-                <div class="d-flex gap-2">
-                    <select class="form-select form-select-sm" title="Filter by status">
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="pending">Pending Review</option>
-                        <option value="suspended">Suspended</option>
-                    </select>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                {% if listings %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Listing</th>
-                                <th>Host</th>
-                                <th>Location</th>
-                                <th>Price</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+        <!-- Listings Management -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="action-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-home me-2"></i>
+                            All Listings
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <select class="form-select form-select-sm" style="width: auto;" title="Filter by status">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="pending">Pending Review</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if listings %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Listing</th>
+                                        <th>Host</th>
+                                        <th>Location</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                             {% for listing in listings %}
                             <tr>
                                 <td>
@@ -72,9 +114,20 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="user-avatar-sm me-2">
-                                            {{ listing.host_name[0].upper() if listing.host_name else 'H' }}
-                                        </div>
+                                        {% if listing.host_profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + listing.host_profile_photo) }}" 
+                                                 alt="{{ listing.host_name }}" 
+                                                 class="admin-user-avatar-sm"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="admin-user-avatar-placeholder-sm" 
+                                                 style="display: none;">
+                                                {{ listing.host_name[0].upper() if listing.host_name else 'H' }}
+                                            </div>
+                                        {% else %}
+                                            <div class="admin-user-avatar-placeholder-sm">
+                                                {{ listing.host_name[0].upper() if listing.host_name else 'H' }}
+                                            </div>
+                                        {% endif %}
                                         <div>
                                             <div class="fw-semibold">{{ listing.host_name or 'Unknown Host' }}</div>
                                             <small class="text-muted">{{ listing.host_email or '' }}</small>
@@ -130,13 +183,15 @@
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-home fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No listings found</h5>
-                    <p class="text-muted">No listings have been created yet.</p>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No listings found</h5>
+                            <p class="text-muted">No listings have been created yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>

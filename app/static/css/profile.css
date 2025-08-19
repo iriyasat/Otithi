@@ -892,3 +892,289 @@
 .stat-card:nth-child(2) { animation-delay: 0.1s; }
 .stat-card:nth-child(3) { animation-delay: 0.2s; }
 .stat-card:nth-child(4) { animation-delay: 0.3s; }
+
+/* Additional Profile Template Styles */
+
+/* Info Item Component */
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-item i {
+    width: 20px;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+/* Property Card for Profile */
+.property-card {
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-base);
+    overflow: hidden;
+    transition: all var(--transition-base);
+    height: 100%;
+}
+
+.property-card:hover {
+    border-color: var(--primary-300);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.property-image {
+    height: 120px;
+    overflow: hidden;
+    background: var(--neutral-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.property-placeholder {
+    color: var(--text-muted);
+    font-size: 2rem;
+    opacity: 0.5;
+}
+
+.property-info {
+    padding: var(--space-3);
+}
+
+.property-info h6 {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+}
+
+.property-price {
+    font-weight: var(--font-weight-semibold);
+    color: var(--primary-600);
+    margin: 0;
+}
+
+/* Status Components */
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.status-item:last-child {
+    margin-bottom: 0;
+}
+
+.status-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.status-verified {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #059669;
+}
+
+.status-pending {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706;
+}
+
+/* Completion Tips */
+.completion-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
+.completion-tips li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.completion-tips li:last-child {
+    border-bottom: none;
+}
+
+/* Settings Page Styles */
+.settings-section {
+    margin-bottom: var(--space-6);
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+.settings-section-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid var(--primary-200);
+}
+
+.setting-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-3);
+    transition: all var(--transition-base);
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-item:hover {
+    border-color: var(--primary-200);
+    background: var(--primary-50);
+}
+
+.setting-item.border-danger {
+    border-color: var(--accent-coral);
+}
+
+.setting-item.border-danger:hover {
+    background: rgba(255, 90, 95, 0.05);
+}
+
+.setting-info {
+    flex: 1;
+}
+
+.setting-info strong {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+}
+
+.setting-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.setting-control {
+    flex-shrink: 0;
+}
+
+/* Session Management */
+.session-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-3);
+    transition: all var(--transition-base);
+}
+
+.session-item:last-child {
+    margin-bottom: 0;
+}
+
+.session-item.current-session {
+    border-color: var(--primary-300);
+    background: var(--primary-50);
+}
+
+.session-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--neutral-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.session-info {
+    flex: 1;
+}
+
+.session-info strong {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+}
+
+.session-info p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
+.session-actions {
+    flex-shrink: 0;
+}
+
+.browser-info, .location-info {
+    color: var(--text-secondary);
+}
+
+/* Form Floating Enhancements */
+.form-floating .form-control {
+    height: calc(3.5rem + 2px);
+    line-height: 1.25;
+}
+
+.form-floating .form-control:focus ~ label,
+.form-floating .form-control:not(:placeholder-shown) ~ label {
+    opacity: 0.65;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.form-floating label {
+    padding: 1rem 0.75rem;
+}
+
+/* Dashboard Header for Profile Pages */
+.dashboard-header {
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    color: var(--neutral-0);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-md);
+}
+
+.dashboard-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+    color: var(--neutral-0);
+}
+
+.dashboard-subtitle {
+    margin: var(--space-2) 0 0 0;
+    opacity: 0.9;
+    font-size: var(--font-size-base);
+}
+
+/* Password Strength Styles (included in change_password.html as <style> tag) */
+/* These styles are already defined in the template file */

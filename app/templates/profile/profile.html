@@ -1,0 +1,629 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Otithi{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mx-auto text-center">
+                    <!-- Profile Avatar -->
+                    <div class="profile-avatar-container">
+                        {% if user.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" 
+                                 alt="{{ user.name }}" 
+                                 class="profile-avatar-image">
+                        {% else %}
+                            <div class="profile-avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Profile Info -->
+                    <div class="profile-header-info">
+                        <h1 class="profile-name">{{ user.name }}</h1>
+                        <p class="profile-role">
+                            <i class="fas fa-{{ 'user-shield' if user.user_type == 'admin' else 'home' if user.user_type == 'host' else 'user' }}"></i>
+                            {{ user.user_type.title() }}
+                        </p>
+                        <p class="profile-member-since">
+                            Member since {{ user.join_date.strftime('%B %Y') if user.join_date else 'Unknown' }}
+                        </p>
+                        
+                        {% if user.verified %}
+                        <div class="profile-verification-badge">
+                            <i class="fas fa-check-circle"></i>
+                            Verified User
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="container my-5">
+        <div class="row">
+            <!-- Profile Statistics -->
+            <div class="col-12 mb-5">
+                <div class="profile-stats">
+                    <div class="row">
+                        {% if user.user_type == 'host' %}
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card" data-stat="properties" title="Click to refresh">
+                                <div class="stat-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="stat-value">{{ user.listings|length }}</div>
+                                <div class="stat-label">Properties</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card" data-stat="host_bookings" title="Click to refresh">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="stat-value">{{ user.host_bookings|length }}</div>
+                                <div class="stat-label">Host Bookings</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card" data-stat="bookings" title="Click to refresh">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="stat-value">{{ user.guest_bookings|length }}</div>
+                                <div class="stat-label">Bookings</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card" data-stat="favorites" title="Click to refresh">
+                                <div class="stat-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="stat-value">{{ user.favorites|length }}</div>
+                                <div class="stat-label">Favorites</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card" data-stat="reviews" title="Click to refresh">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Reviews</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3 mb-4">
+                            <div class="stat-card" data-stat="verification" title="Click to refresh" data-verification>
+                                <div class="stat-icon status-{{ 'verified' if user.verified else 'pending' }}">
+                                    <i class="fas fa-{{ 'check-circle' if user.verified else 'clock' }}"></i>
+                                </div>
+                                <div class="stat-value">{{ 'Yes' if user.verified else 'No' }}</div>
+                                <div class="stat-label">Verified</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="col-lg-8">
+                <!-- About Section -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-user"></i>
+                            About
+                        </h5>
+                    </div>
+                    <div class="profile-card-body">
+                        {% if user.bio %}
+                            <p class="mb-0">{{ user.bio }}</p>
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <p class="empty-state-text">No bio added yet. Add a bio to tell others about yourself!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-address-card"></i>
+                            Contact Information
+                        </h5>
+                    </div>
+                    <div class="profile-card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <i class="fas fa-envelope text-primary"></i>
+                                    <div>
+                                        <strong>Email</strong>
+                                        <p class="mb-0">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <i class="fas fa-phone text-primary"></i>
+                                    <div>
+                                        <strong>Phone</strong>
+                                        <p class="mb-0">{{ user.phone or 'Not provided' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if user.user_type == 'host' and user.listings %}
+                <!-- Host Properties -->
+                <div class="profile-card">
+                    <div class="profile-card-header">
+                        <h5 class="profile-card-title">
+                            <i class="fas fa-home"></i>
+                            My Properties
+                        </h5>
+                    </div>
+                    <div class="profile-card-body">
+                        <div class="row">
+                            {% for listing in user.listings[:3] %}
+                            <div class="col-md-4 mb-3">
+                                <div class="property-card">
+                                    <div class="property-image">
+                                        {% if listing.images %}
+                                            <img src="{{ url_for('static', filename='uploads/listings/' + listing.images[0]) }}" 
+                                                 alt="{{ listing.title }}" class="img-fluid">
+                                        {% else %}
+                                            <div class="property-placeholder">
+                                                <i class="fas fa-home"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="property-info">
+                                        <h6>{{ listing.title }}</h6>
+                                        <p class="text-muted small">{{ listing.location }}</p>
+                                        <p class="property-price">${{ listing.price_per_night }}/night</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if user.listings|length > 3 %}
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('profile.my_listings') }}" class="btn-profile-primary">
+                                <i class="fas fa-arrow-right"></i>
+                                View All Properties ({{ user.listings|length }})
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="admin-quick-actions">
+                            <a href="{{ url_for('profile.edit_profile') }}" class="admin-quick-action" title="Edit your profile information">
+                                <i class="fas fa-edit"></i>
+                                Edit Profile
+                            </a>
+                            <a href="{{ url_for('profile.settings') }}" class="admin-quick-action" title="Manage account settings">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </a>
+                            <a href="{{ url_for('profile.change_password') }}" class="admin-quick-action" title="Change your password">
+                                <i class="fas fa-lock"></i>
+                                Change Password
+                            </a>
+                            {% if user.user_type == 'host' %}
+                            <a href="{{ url_for('profile.my_listings') }}" class="admin-quick-action" title="Manage your properties">
+                                <i class="fas fa-home"></i>
+                                My Properties
+                            </a>
+                            {% endif %}
+                            <button class="admin-quick-action" onclick="refreshProfile()" title="Refresh profile data">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Status -->
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-shield-alt me-2"></i>
+                            Account Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center p-3 border rounded">
+                                    <div class="status-icon {{ 'status-verified' if user.verified else 'status-pending' }} me-3">
+                                        <i class="fas fa-{{ 'check-circle' if user.verified else 'clock' }}"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <strong>Account Verification</strong>
+                                        <p class="mb-0 {{ 'text-success' if user.verified else 'text-warning' }}">
+                                            {{ 'Verified Account' if user.verified else 'Pending Verification' }}
+                                        </p>
+                                    </div>
+                                    {% if not user.verified %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Verified</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center p-3 border rounded">
+                                    <div class="status-icon status-verified me-3">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <strong>Email Address</strong>
+                                        <p class="mb-0 text-success">{{ user.email }}</p>
+                                    </div>
+                                    <span class="badge bg-success">Confirmed</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <div class="d-flex align-items-center p-3 border rounded">
+                                    <div class="status-icon {{ 'status-verified' if user.phone else 'status-pending' }} me-3">
+                                        <i class="fas fa-phone"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <strong>Phone Number</strong>
+                                        <p class="mb-0">
+                                            {{ user.phone if user.phone else 'Not provided' }}
+                                        </p>
+                                    </div>
+                                    {% if user.phone %}
+                                    <span class="badge bg-success">Added</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Not Added</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Completion -->
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Profile Completion
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% set completion_score = (
+                            (25 if user.name else 0) +
+                            (25 if user.email else 0) +
+                            (20 if user.phone else 0) +
+                            (15 if user.bio else 0) +
+                            (15 if user.profile_photo else 0)
+                        ) %}
+                        
+                        <div class="text-center mb-3">
+                            <div class="progress mb-2" style="height: 12px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-{% if completion_score >= 80 %}success{% elif completion_score >= 60 %}info{% elif completion_score >= 40 %}warning{% else %}danger{% endif %}" 
+                                     style="width: {{ completion_score }}%" 
+                                     data-completion-progress="{{ completion_score }}"></div>
+                            </div>
+                            <h4 class="text-{% if completion_score >= 80 %}success{% elif completion_score >= 60 %}info{% elif completion_score >= 40 %}warning{% else %}danger{% endif %}" 
+                                data-completion-score="{{ completion_score }}">
+                                {{ completion_score }}% Complete
+                            </h4>
+                        </div>
+                        
+                        {% if completion_score < 100 %}
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-lightbulb"></i>
+                                Complete Your Profile
+                            </h6>
+                            <p class="mb-2">Boost your profile completion:</p>
+                            <ul class="mb-0">
+                                {% if not user.phone %}<li><strong>Add phone number</strong> (+20%)</li>{% endif %}
+                                {% if not user.bio %}<li><strong>Add bio</strong> (+15%)</li>{% endif %}
+                                {% if not user.profile_photo %}<li><strong>Upload profile photo</strong> (+15%)</li>{% endif %}
+                            </ul>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-check-circle"></i>
+                                Profile Complete!
+                            </h6>
+                            <p class="mb-0">Your profile is 100% complete. Great job!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Profile page real-time functionality
+class ProfileManager {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        console.log('Profile page loaded for user: {{ user.name }}');
+        this.setupRealTimeUpdates();
+        this.setupQuickActions();
+        this.setupStatisticsRefresh();
+    }
+
+    // Setup real-time updates
+    setupRealTimeUpdates() {
+        // Auto-refresh profile data every 30 seconds
+        setInterval(() => {
+            this.refreshProfileData();
+        }, 30000);
+
+        // Listen for profile updates from other tabs/windows
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'profile_updated') {
+                this.refreshProfileData();
+            }
+        });
+    }
+
+    // Setup quick action functionality
+    setupQuickActions() {
+        // Add loading states to quick action buttons
+        document.querySelectorAll('.admin-quick-action').forEach(button => {
+            if (button.tagName === 'A') {
+                button.addEventListener('click', (e) => {
+                    this.showLoadingState(button);
+                });
+            }
+        });
+    }
+
+    // Setup statistics refresh functionality
+    setupStatisticsRefresh() {
+        // Make statistics cards clickable for quick refresh
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                this.refreshStatistic(card);
+            });
+        });
+    }
+
+    // Refresh profile data
+    async refreshProfileData() {
+        try {
+            const response = await fetch(`/api/profile/data`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.updateProfileDisplay(data);
+                this.showNotification('Profile data refreshed', 'success');
+            }
+        } catch (error) {
+            console.error('Error refreshing profile data:', error);
+        }
+    }
+
+    // Update profile display with new data
+    updateProfileDisplay(data) {
+        // Update statistics
+        if (data.statistics) {
+            Object.keys(data.statistics).forEach(key => {
+                const statElement = document.querySelector(`[data-stat="${key}"] .stat-value`);
+                if (statElement) {
+                    statElement.textContent = data.statistics[key];
+                    this.animateValue(statElement, data.statistics[key]);
+                }
+            });
+        }
+
+        // Update verification status
+        if (data.verification_status !== undefined) {
+            this.updateVerificationStatus(data.verification_status);
+        }
+
+        // Update completion score
+        if (data.completion_score !== undefined) {
+            this.updateCompletionScore(data.completion_score);
+        }
+    }
+
+    // Update verification status in real-time
+    updateVerificationStatus(isVerified) {
+        const verificationElements = document.querySelectorAll('[data-verification]');
+        verificationElements.forEach(element => {
+            if (isVerified) {
+                element.classList.remove('status-pending');
+                element.classList.add('status-verified');
+                element.querySelector('i').className = 'fas fa-check-circle';
+            } else {
+                element.classList.remove('status-verified');
+                element.classList.add('status-pending');
+                element.querySelector('i').className = 'fas fa-clock';
+            }
+        });
+    }
+
+    // Update completion score with animation
+    updateCompletionScore(score) {
+        const progressBar = document.querySelector('.progress-bar');
+        const scoreText = document.querySelector('[data-completion-score]');
+        
+        if (progressBar) {
+            progressBar.style.width = score + '%';
+            // Update color based on score
+            progressBar.className = `progress-bar progress-bar-striped progress-bar-animated bg-${
+                score >= 80 ? 'success' : score >= 60 ? 'info' : score >= 40 ? 'warning' : 'danger'
+            }`;
+        }
+        
+        if (scoreText) {
+            this.animateValue(scoreText, score);
+        }
+    }
+
+    // Animate value changes
+    animateValue(element, newValue) {
+        const currentValue = parseInt(element.textContent) || 0;
+        const increment = newValue > currentValue ? 1 : -1;
+        const stepTime = Math.abs(Math.floor(200 / (newValue - currentValue)));
+
+        let current = currentValue;
+        const timer = setInterval(() => {
+            current += increment;
+            element.textContent = current + (element.textContent.includes('%') ? '%' : '');
+            
+            if (current === newValue) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+
+    // Refresh individual statistic
+    async refreshStatistic(card) {
+        const icon = card.querySelector('i');
+        const originalClass = icon.className;
+        
+        // Show loading
+        icon.className = 'fas fa-spinner fa-spin';
+        
+        try {
+            // Simulate API call (replace with actual endpoint)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Restore icon
+            icon.className = originalClass;
+            
+            // Add success effect
+            card.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                card.style.transform = '';
+            }, 200);
+            
+        } catch (error) {
+            icon.className = originalClass;
+            this.showNotification('Failed to refresh statistic', 'error');
+        }
+    }
+
+    // Show loading state for buttons
+    showLoadingState(button) {
+        const icon = button.querySelector('i');
+        const originalClass = icon.className;
+        
+        icon.className = 'fas fa-spinner fa-spin';
+        button.style.opacity = '0.7';
+        
+        // Restore after navigation (in case of back button)
+        setTimeout(() => {
+            icon.className = originalClass;
+            button.style.opacity = '';
+        }, 3000);
+    }
+
+    // Get CSRF token
+    getCSRFToken() {
+        const token = document.querySelector('meta[name="csrf-token"]');
+        return token ? token.getAttribute('content') : '';
+    }
+
+    // Show notification
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto dismiss after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+}
+
+// Global function for refresh button
+function refreshProfile() {
+    if (window.profileManager) {
+        window.profileManager.refreshProfileData();
+    }
+}
+
+// Initialize profile manager
+document.addEventListener('DOMContentLoaded', function() {
+    window.profileManager = new ProfileManager();
+    
+    // Add tooltips to interactive elements
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Update localStorage when profile changes (for cross-tab sync)
+window.addEventListener('beforeunload', function() {
+    localStorage.setItem('profile_last_view', Date.now());
+});
+</script>
+{% endblock %}
