@@ -311,8 +311,9 @@ class User(UserMixin):
 
 
 class Location:
-    def __init__(self, location_id, address, city, country, latitude=None, longitude=None, postal_code=None, created_at=None):
+    def __init__(self, location_id, address, city, country, latitude=None, longitude=None, postal_code=None, created_at=None, listing_id=None):
         self.id = location_id
+        self.location_id = location_id  # Alias for consistency
         self.address = address
         self.city = city
         self.country = country
@@ -320,15 +321,16 @@ class Location:
         self.longitude = longitude
         self.postal_code = postal_code
         self.created_at = created_at
+        self.listing_id = listing_id
 
     @staticmethod
     def create(address, city, country, latitude=None, longitude=None, postal_code=None):
         """Create a new location"""
         query = """
-            INSERT INTO locations (address, city, country, latitude, longitude, postal_code, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO locations (address, city, country, latitude, longitude, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
-        location_id = db.execute_insert(query, (address, city, country, latitude, longitude, postal_code, datetime.now()))
+        location_id = db.execute_insert(query, (address, city, country, latitude, longitude, datetime.now()))
         
         if location_id:
             return Location.get(location_id)
@@ -348,8 +350,9 @@ class Location:
                 country=loc['country'],
                 latitude=float(loc['latitude']) if loc['latitude'] else None,
                 longitude=float(loc['longitude']) if loc['longitude'] else None,
-                postal_code=loc['postal_code'],
-                created_at=loc['created_at']
+                postal_code=None,  # Not in schema
+                created_at=loc['created_at'],
+                listing_id=loc.get('listing_id')  # New field
             )
         return None
     
@@ -372,8 +375,9 @@ class Location:
                 country=data['country'],
                 latitude=data['latitude'],
                 longitude=data['longitude'],
-                postal_code=data['postal_code'],
-                created_at=data['created_at']
+                postal_code=None,  # Not in schema
+                created_at=data['created_at'],
+                listing_id=data.get('listing_id')  # New field
             )
         else:
             # Create new location
@@ -383,6 +387,7 @@ class Location:
 class ListingImage:
     def __init__(self, image_id, listing_id, image_filename, image_order=1, is_primary=False, uploaded_at=None):
         self.id = image_id
+        self.image_id = image_id  # Alias for consistency
         self.listing_id = listing_id
         self.image_filename = image_filename
         self.image_order = image_order
@@ -458,25 +463,21 @@ class ListingImage:
 
 
 class Listing:
-    def __init__(self, id, title, description, location, price, host_id, property_type='entire_place',
-                 guests=1, amenities=None, address='', city='', country='Bangladesh',
-                 created_date=None, rating=0.0, reviews_count=0, available=True, images=None, 
-                 latitude=None, longitude=None, is_active=True):
+    def __init__(self, id, title, description, price, host_id, location_id, property_type='entire_place',
+                 guests=1, amenities=None, created_date=None, rating=0.0, reviews_count=0, 
+                 available=True, images=None, is_active=True):
         self.id = id
         self.listing_id = id  # Alias for consistency
         self.title = title
         self.description = description
-        self.location = f"{city}, {country}" if city and country else location
         self.price = price
         self.host_id = host_id
+        self.location_id = location_id
         self.property_type = property_type
         self.room_type = property_type  # Alias for schema
         self.guests = guests
         self.max_guests = guests  # Alias for schema
         self.amenities = amenities or []
-        self.address = address
-        self.city = city
-        self.country = country
         self.created_date = created_date or datetime.now()
         self.created_at = created_date or datetime.now()  # Alias for schema
         self.rating = rating
@@ -484,15 +485,20 @@ class Listing:
         self.available = available
         self.is_active = is_active
         self.images = images or []
-        self.latitude = latitude
-        self.longitude = longitude
+        
+        # Location will be loaded separately via location_id
+        self.location = None
+        self.address = None
+        self.city = None
+        self.country = None
+        self.latitude = None
+        self.longitude = None
     
     @staticmethod
     def get(listing_id):
-        """Get listing by ID with location and images"""
+        """Get listing by ID with location details"""
         query = """
-            SELECT l.*, loc.address as location_address, loc.city as location_city, 
-                   loc.country as location_country, loc.latitude, loc.longitude 
+            SELECT l.*, loc.address, loc.city, loc.country, loc.latitude, loc.longitude 
             FROM listings l 
             LEFT JOIN locations loc ON l.location_id = loc.location_id 
             WHERE l.listing_id = %s AND l.is_active = 1
@@ -504,28 +510,34 @@ class Listing:
             # Get listing images
             images = ListingImage.get_by_listing(listing_id)
             
-            return Listing(
+            # Create listing object
+            listing = Listing(
                 id=listing_data['listing_id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['location_city']}, {listing_data['location_country']}" if listing_data['location_city'] else f"{listing_data['city']}, {listing_data['country']}",
                 price=float(listing_data['price_per_night']),
                 host_id=listing_data['host_id'],
+                location_id=listing_data['location_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
-                address=listing_data['location_address'] or listing_data['address'],
-                city=listing_data['location_city'] or listing_data['city'],
-                country=listing_data['location_country'] or listing_data['country'],
                 created_date=listing_data['created_at'],
-                rating=0.0,  # Will be calculated from reviews
-                reviews_count=0,  # Will be calculated from reviews
-                available=True,  # Default
-                images=[img.image_filename for img in images],
-                latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
-                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None,
-                is_active=bool(listing_data.get('is_active', 1))
+                is_active=listing_data['is_active']
             )
+            
+            # Set location details from joined data
+            if listing_data['address']:
+                listing.address = listing_data['address']
+                listing.city = listing_data['city']
+                listing.country = listing_data['country']
+                listing.location = f"{listing_data['city']}, {listing_data['country']}"
+                listing.latitude = float(listing_data['latitude']) if listing_data['latitude'] else None
+                listing.longitude = float(listing_data['longitude']) if listing_data['longitude'] else None
+            
+            # Set images
+            listing.images = [img.image_filename for img in images]
+            
+            return listing
         return None
     
     @staticmethod
@@ -618,13 +630,27 @@ class Listing:
         return listings
     
     @staticmethod
-    def create(title, description, location, price, host_id, property_type='entire_place',
-               guests=1, amenities=None, location_id=None):
+    def create(title, description, price, host_id, location_id, property_type='entire_place',
+               guests=1, amenities=None):
         """Create a new listing with proper location_id reference"""
+        # Add debug logging
+        with open('/tmp/otithi_debug.log', 'a') as f:
+            f.write(f"\n--- Listing.create() called ---\n")
+            f.write(f"Parameters received:\n")
+            f.write(f"  title: {title}\n")
+            f.write(f"  description: {description[:50] if description else 'None'}...\n")
+            f.write(f"  price: {price}\n")
+            f.write(f"  host_id: {host_id}\n")
+            f.write(f"  location_id: {location_id}\n")
+            f.write(f"  property_type: {property_type}\n")
+            f.write(f"  guests: {guests}\n")
+            
         amenities_str = ','.join(amenities) if amenities else ''
         
         # Validate that location_id is provided
         if not location_id:
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write("ERROR: location_id is required for creating listings\\n")
             print("Error: location_id is required for creating listings")
             return None
         
@@ -634,14 +660,63 @@ class Listing:
                                 max_guests, amenities, location_id, created_at, is_active)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        listing_id = db.execute_insert(listing_query, (
-            host_id, title, description, property_type, price, guests, 
-            amenities_str, location_id, datetime.now(), True
-        ))
         
-        if listing_id:
-            return Listing.get(listing_id)
-        return None
+        try:
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"Executing SQL query with parameters:\\n")
+                f.write(f"  host_id: {host_id}\\n")
+                f.write(f"  title: {title}\\n")
+                f.write(f"  description: {description}\\n")
+                f.write(f"  room_type: {property_type}\\n")
+                f.write(f"  price_per_night: {price}\\n")
+                f.write(f"  max_guests: {guests}\\n")
+                f.write(f"  amenities: {amenities_str}\\n")
+                f.write(f"  location_id: {location_id}\\n")
+                f.write(f"  created_at: {datetime.now()}\\n")
+                f.write(f"  is_active: True\\n")
+                
+            listing_id = db.execute_insert(listing_query, (
+                host_id, title, description, property_type, price, guests, 
+                amenities_str, location_id, datetime.now(), True
+            ))
+            
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"SQL execution result: listing_id = {listing_id}\\n")
+            
+            if listing_id:
+                # Update the location with the listing_id to create bidirectional relationship
+                try:
+                    update_location_query = "UPDATE locations SET listing_id = %s WHERE location_id = %s"
+                    rows_updated = db.execute_update(update_location_query, (listing_id, location_id))
+                    
+                    with open('/tmp/otithi_debug.log', 'a') as f:
+                        f.write(f"Updated location {location_id} with listing_id {listing_id}. Rows affected: {rows_updated}\\n")
+                    
+                    if rows_updated > 0:
+                        with open('/tmp/otithi_debug.log', 'a') as f:
+                            f.write(f"SUCCESS: Listing created with ID {listing_id} and location updated\\n")
+                        return Listing.get(listing_id)
+                    else:
+                        with open('/tmp/otithi_debug.log', 'a') as f:
+                            f.write(f"WARNING: Listing created but location update failed\\n")
+                        return Listing.get(listing_id)  # Still return the listing even if location update fails
+                        
+                except Exception as update_error:
+                    with open('/tmp/otithi_debug.log', 'a') as f:
+                        f.write(f"ERROR updating location with listing_id: {str(update_error)}\\n")
+                    # Still return the listing even if location update fails
+                    return Listing.get(listing_id)
+            else:
+                with open('/tmp/otithi_debug.log', 'a') as f:
+                    f.write("ERROR: No listing_id returned from database\\n")
+                return None
+                
+        except Exception as e:
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"EXCEPTION in Listing.create(): {str(e)}\\n")
+                f.write(f"Exception type: {type(e).__name__}\\n")
+            print(f"Exception in Listing.create(): {e}")
+            return None
     
     def is_available(self, check_in, check_out):
         """Check if listing is available for given dates"""

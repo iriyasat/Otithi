@@ -45,10 +45,20 @@ function initializeMapComponents() {
  * Initialize Google Maps
  */
 function initMap() {
+    console.log('initMap function called');
+    
+    // Check if Google Maps API is available
+    if (typeof google === 'undefined' || !google.maps) {
+        console.error('Google Maps API not loaded');
+        return;
+    }
+    
     // Get configuration
     const config = window.OtithiConfig?.GOOGLE_MAPS || {
         DEFAULT_LOCATION: { lat: 23.8103, lng: 90.4125 }
     };
+    
+    console.log('Maps config:', config);
     
     // Default location (Dhaka, Bangladesh)
     const defaultLocation = config.DEFAULT_LOCATION;

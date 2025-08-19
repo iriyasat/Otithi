@@ -73,8 +73,6 @@ def listing_detail(listing_id):
             'room_type': listing.property_type,
             'guests': listing.guests,
             'max_guests': listing.guests,
-            'bedrooms': listing.bedrooms,
-            'bathrooms': listing.bathrooms,
             'description': listing.description,
             'amenities': ','.join(listing.amenities) if listing.amenities else '',
             'latitude': listing.latitude,
@@ -150,12 +148,36 @@ def add_review(listing_id):
 @login_required
 def create_listing():
     """Create a new listing"""
+    # Add immediate debug logging
+    import os
+    with open('/tmp/otithi_debug.log', 'a') as f:
+        f.write(f"\\n\\n=== CREATE_LISTING ROUTE CALLED ===\\n")
+        f.write(f"Method: {request.method}\\n")
+        f.write(f"User authenticated: {current_user.is_authenticated}\\n")
+        f.write(f"User ID: {getattr(current_user, 'user_id', 'None')}\\n")
+        f.write(f"User type: {getattr(current_user, 'user_type', 'None')}\\n")
+    
     try:
+        # Debug: Print request information
+        print(f"CREATE LISTING DEBUG:")
+        print(f"  Method: {request.method}")
+        print(f"  User: {current_user.name if current_user.is_authenticated else 'Not authenticated'}")
+        print(f"  User type: {getattr(current_user, 'user_type', 'No user_type')} if authenticated")
+        
+        with open('/tmp/otithi_debug.log', 'a') as f:
+            f.write(f"Route function executing...\\n")
+        
         if current_user.user_type != 'host':
+            print(f"  ERROR: User is not a host (type: {getattr(current_user, 'user_type', 'None')})")
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"ERROR: User is not a host (type: {getattr(current_user, 'user_type', 'None')})\\n")
             flash('Only hosts can create listings.', 'error')
             return redirect(url_for('main.dashboard'))
         
         if request.method == 'POST':
+            print(f"  POST request received")
+            print(f"  Form data keys: {list(request.form.keys())}")
+            
             # Get form data
             title = request.form.get('title', '').strip()
             description = request.form.get('description', '').strip()
@@ -168,8 +190,13 @@ def create_listing():
             amenities = request.form.get('amenities', '').strip()
             latitude = request.form.get('latitude')
             longitude = request.form.get('longitude')
-            bedrooms = request.form.get('bedrooms')
-            bathrooms = request.form.get('bathrooms')
+            
+            print(f"  Title: '{title}'")
+            print(f"  Description: '{description[:50]}...' ({len(description)} chars)")
+            print(f"  Room type: '{room_type}'")
+            print(f"  Address: '{address}'")
+            print(f"  Price: '{price_per_night}'")
+            print(f"  Max guests: '{max_guests}'")
             
             # Validation
             errors = []
@@ -200,19 +227,6 @@ def create_listing():
             except (ValueError, TypeError):
                 errors.append('Please enter a valid maximum guest count.')
             
-            # Handle bedrooms and bathrooms
-            if room_type == 'entire_place':
-                try:
-                    bedrooms = int(bedrooms)
-                    bathrooms = float(bathrooms)
-                    if bedrooms <= 0 or bathrooms <= 0:
-                        errors.append('Bedrooms and bathrooms must be at least 1.')
-                except (ValueError, TypeError):
-                    errors.append('Please enter valid bedroom and bathroom counts.')
-            else:
-                bedrooms = 1
-                bathrooms = 1
-            
             # Handle coordinates
             try:
                 latitude = float(latitude)
@@ -224,8 +238,10 @@ def create_listing():
             uploaded_files = []
             if 'listing_images' in request.files:
                 files = request.files.getlist('listing_images')
+                print(f"  Found {len(files)} uploaded files")
                 for i, file in enumerate(files):
                     if file and file.filename:
+                        print(f"    File {i+1}: {file.filename}")
                         allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
                         file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
                         
@@ -246,12 +262,35 @@ def create_listing():
             if not uploaded_files:
                 errors.append('At least one listing image is required.')
             
+            print(f"  Validation complete. Errors: {len(errors)}")
             if errors:
+                print(f"  ERRORS FOUND:")
                 for error in errors:
+                    print(f"    - {error}")
                     flash(error, 'error')
                 return render_template('host/create_listing.html')
             
+            print(f"  No validation errors. Proceeding with listing creation...")
+            
             # Create location
+            print(f"  Creating location: {address}, {city}, {country}")
+            
+            # Also write to a log file for debugging
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"\\n=== LISTING CREATION DEBUG {datetime.now()} ===\\n")
+                f.write(f"Form data received:\\n")
+                f.write(f"  Title: {title}\\n")
+                f.write(f"  Description: {description[:50]}...\\n")
+                f.write(f"  Room type: {room_type}\\n")
+                f.write(f"  Address: {address}\\n")
+                f.write(f"  City: {city}\\n")
+                f.write(f"  Country: {country}\\n")
+                f.write(f"  Price: {price_per_night}\\n")
+                f.write(f"  Max guests: {max_guests}\\n")
+                f.write(f"  Coordinates: {latitude}, {longitude}\\n")
+                f.write(f"  Host ID: {current_user.user_id}\\n")
+                f.write(f"  Files uploaded: {len(uploaded_files)}\\n")
+            
             location_obj = Location.find_or_create(
                 address=address,
                 city=city,
@@ -261,22 +300,36 @@ def create_listing():
             )
             
             if not location_obj:
+                print(f"  ERROR: Failed to create location")
+                with open('/tmp/otithi_debug.log', 'a') as f:
+                    f.write("ERROR: Failed to create location\\n")
                 flash('Failed to create location. Please try again.', 'error')
                 return render_template('host/create_listing.html')
             
+            print(f"  Location created successfully: ID {location_obj.id}")
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"Location created successfully: ID {location_obj.id}\\n")
+            
             # Create listing
+            print(f"  Creating listing with host_id: {current_user.id}")
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"Attempting to create listing with:\\n")
+                f.write(f"  host_id: {current_user.user_id}\\n")
+                f.write(f"  location_id: {location_obj.id}\\n")
+                f.write(f"  title: {title}\\n")
+                f.write(f"  room_type: {room_type}\\n")
+                f.write(f"  price: {price_per_night}\\n")
+                f.write(f"  guests: {max_guests}\\n")
+                
             listing = Listing.create(
                 title=title,
                 description=description,
-                location=f"{city}, {country}",
                 price=price_per_night,
                 host_id=current_user.id,
+                location_id=location_obj.location_id,
                 property_type=room_type,
                 guests=max_guests,
-                bedrooms=bedrooms,
-                bathrooms=bathrooms,
-                amenities=amenities.split(',') if amenities else [],
-                location_id=location_obj.location_id
+                amenities=amenities.split(',') if amenities else []
             )
             
             if listing:
