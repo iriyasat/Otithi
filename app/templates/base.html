@@ -31,27 +31,24 @@
             
             <!-- Navigation Menu -->
             <div class="navbar-nav">
-                <a href="{{ url_for('main.index') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('main.index') }}" class="nav-link{% if request.endpoint == 'main.index' %} active{% endif %}">Home</a>
                 {% if current_user.is_authenticated or is_temp_admin %}
                     {% if current_user.user_type == 'admin' %}
-                        <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
-                        <a href="{{ url_for('admin.users') }}" class="nav-link">Manage Users</a>
-                        <a href="{{ url_for('admin.bookings') }}" class="nav-link">Manage Bookings</a>
+                        <a href="{{ url_for('admin.dashboard') }}" class="nav-link{% if request.endpoint == 'admin.dashboard' %} active{% endif %}">Dashboard</a>
+                        <a href="{{ url_for('admin.users') }}" class="nav-link{% if request.endpoint == 'admin.users' %} active{% endif %}">Manage Users</a>
+                        <a href="{{ url_for('admin.listings') }}" class="nav-link{% if request.endpoint == 'admin.listings' %} active{% endif %}">Manage Listings</a>
+                        <a href="{{ url_for('admin.bookings') }}" class="nav-link{% if request.endpoint == 'admin.bookings' %} active{% endif %}">Manage Bookings</a>
                     {% elif current_user.user_type == 'guest' %}
-                        <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
-                        <a href="{{ url_for('main.my_bookings') }}" class="nav-link">My Bookings</a>
+                        <a href="{{ url_for('main.explore') }}" class="nav-link{% if request.endpoint == 'main.explore' %} active{% endif %}">Explore</a>
+                        <a href="{{ url_for('main.my_bookings') }}" class="nav-link{% if request.endpoint == 'main.my_bookings' %} active{% endif %}">My Bookings</a>
                     {% elif current_user.user_type == 'host' %}
-                        <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
-                        <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
-                        <a href="{{ url_for('profile.my_listings') }}" class="nav-link">My Listings</a>
+                        <a href="{{ url_for('main.explore') }}" class="nav-link{% if request.endpoint == 'main.explore' %} active{% endif %}">Explore</a>
+                        <a href="{{ url_for('main.dashboard') }}" class="nav-link{% if request.endpoint == 'main.dashboard' %} active{% endif %}">Dashboard</a>
+                        <a href="{{ url_for('profile.my_listings') }}" class="nav-link{% if request.endpoint == 'profile.my_listings' %} active{% endif %}">My Listings</a>
                     {% endif %}
-                    {% if current_user.user_type == 'admin' %}
-                        <a href="{{ url_for('admin.profile') }}" class="nav-link">Profile</a>
-                    {% else %}
-                        <a href="{{ url_for('profile.profile') }}" class="nav-link">Profile</a>
-                    {% endif %}
+                    <a href="{{ url_for('profile.profile') }}" class="nav-link{% if request.endpoint == 'profile.profile' %} active{% endif %}">Profile</a>
                 {% else %}
-                    <a href="{{ url_for('main.explore') }}" class="nav-link">Explore</a>
+                    <a href="{{ url_for('main.explore') }}" class="nav-link{% if request.endpoint == 'main.explore' %} active{% endif %}">Explore</a>
                 {% endif %}
             </div>
             

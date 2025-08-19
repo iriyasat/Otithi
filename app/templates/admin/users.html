@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 
-{% set page_title = "Manage Users" %}
-
-{% block title %}Admin - {{ page_title }} | Otithi{% endblock %}
-
-{% block body_class %}admin-dashboard{% endblock %}
+{% block title %}Manage Users - Admin Dashboard - Otithi{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
@@ -12,69 +8,76 @@
 {% endblock %}
 
 {% block content %}
+<!-- Admin Dashboard Container -->
 <div class="dashboard-container admin-dashboard">
-    <!-- Admin Header -->
-    <div class="admin-header">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
         <div class="container">
-            <div class="admin-header-content">
-                <h1>
-                    <span class="admin-header-icon">
-                        <i class="fas fa-users"></i>
-                    </span>
-                    {{ page_title }}
-                </h1>
-                <p>Manage user accounts, verification, and roles</p>
-            </div>
+            <h1>
+                <i class="fas fa-users"></i>
+                Manage Users
+            </h1>
+            <p class="lead">Full user management interface - Monitor, verify, and manage all platform users.</p>
         </div>
     </div>
 
     <div class="container">
-        <!-- Stats Cards -->
-        <div class="admin-stats-grid">
-            <div class="admin-stat-card">
-                <div class="admin-stat-icon">
-                    <i class="fas fa-user-shield"></i>
+        <!-- Dashboard Statistics -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Admins</h5>
+                            <h2>{{ users|selectattr('user_type', 'equalto', 'admin')|list|length }}</h2>
+                            <i class="fas fa-user-shield fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="admin-stat-number">{{ users|selectattr('user_type', 'equalto', 'admin')|list|length }}</div>
-                <div class="admin-stat-label">Admins</div>
-            </div>
-            <div class="admin-stat-card">
-                <div class="admin-stat-icon">
-                    <i class="fas fa-home"></i>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Hosts</h5>
+                            <h2>{{ users|selectattr('user_type', 'equalto', 'host')|list|length }}</h2>
+                            <i class="fas fa-home fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="admin-stat-number">{{ users|selectattr('user_type', 'equalto', 'host')|list|length }}</div>
-                <div class="admin-stat-label">Hosts</div>
-            </div>
-            <div class="admin-stat-card">
-                <div class="admin-stat-icon">
-                    <i class="fas fa-user"></i>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Guests</h5>
+                            <h2>{{ users|selectattr('user_type', 'equalto', 'guest')|list|length }}</h2>
+                            <i class="fas fa-user fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="admin-stat-number">{{ users|selectattr('user_type', 'equalto', 'guest')|list|length }}</div>
-                <div class="admin-stat-label">Guests</div>
-            </div>
-            <div class="admin-stat-card">
-                <div class="admin-stat-icon">
-                    <i class="fas fa-check-circle"></i>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Verified</h5>
+                            <h2>{{ users|selectattr('verified', 'equalto', true)|list|length }}</h2>
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
                 </div>
-                <div class="admin-stat-number">{{ users|selectattr('verified', 'equalto', true)|list|length }}</div>
-                <div class="admin-stat-label">Verified</div>
             </div>
         </div>
 
-        <!-- Users Management Card -->
-        <div class="admin-card">
-            <div class="admin-card-header">
-                <h3>
-                    <i class="fas fa-users"></i>
-                    All Users
-                </h3>
-            </div>
-            <div class="admin-card-body">
-                <!-- Search -->
-                <div class="admin-search">
-                    <i class="admin-search-icon fas fa-search"></i>
-                    <input type="text" class="admin-search-input" placeholder="Search users by name, email, or ID..." id="userSearch">
-                </div>
+        <!-- Users Management -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="action-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-users me-2"></i>
+                            All Users
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="admin-search-filters mb-3">
+                            <input type="text" class="admin-search-input" placeholder="Search users by name, email, or ID..." id="userSearch">
+                        </div>
 
                 {% if users %}
                 <div class="admin-table-container">

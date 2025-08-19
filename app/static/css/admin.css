@@ -525,6 +525,29 @@
     margin-right: 12px;
 }
 
+/* Small avatar versions for tables */
+.admin-user-avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+}
+
+.admin-user-avatar-placeholder-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    margin-right: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .admin-user-name {
     font-weight: 600;
 }
