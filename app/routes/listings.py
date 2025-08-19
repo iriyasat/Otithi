@@ -154,7 +154,7 @@ def create_listing():
         f.write(f"\\n\\n=== CREATE_LISTING ROUTE CALLED ===\\n")
         f.write(f"Method: {request.method}\\n")
         f.write(f"User authenticated: {current_user.is_authenticated}\\n")
-        f.write(f"User ID: {getattr(current_user, 'user_id', 'None')}\\n")
+        f.write(f"User ID: {getattr(current_user, 'id', 'None')}\\n")
         f.write(f"User type: {getattr(current_user, 'user_type', 'None')}\\n")
     
     try:
@@ -288,7 +288,7 @@ def create_listing():
                 f.write(f"  Price: {price_per_night}\\n")
                 f.write(f"  Max guests: {max_guests}\\n")
                 f.write(f"  Coordinates: {latitude}, {longitude}\\n")
-                f.write(f"  Host ID: {current_user.user_id}\\n")
+                f.write(f"  Host ID: {current_user.id}\\n")
                 f.write(f"  Files uploaded: {len(uploaded_files)}\\n")
             
             location_obj = Location.find_or_create(
@@ -306,16 +306,25 @@ def create_listing():
                 flash('Failed to create location. Please try again.', 'error')
                 return render_template('host/create_listing.html')
             
-            print(f"  Location created successfully: ID {location_obj.id}")
+            print(f"  Location created successfully: ID {location_obj.location_id}")
             with open('/tmp/otithi_debug.log', 'a') as f:
-                f.write(f"Location created successfully: ID {location_obj.id}\\n")
+                f.write(f"Location created successfully: ID {location_obj.location_id}\\n")
             
             # Create listing
             print(f"  Creating listing with host_id: {current_user.id}")
+            
+            # Check if current_user.id is valid
+            if not current_user.id:
+                print(f"  ERROR: current_user.id is None or invalid")
+                with open('/tmp/otithi_debug.log', 'a') as f:
+                    f.write(f"ERROR: current_user.id is None or invalid\\n")
+                flash('Authentication error. Please log in again.', 'error')
+                return render_template('host/create_listing.html')
+            
             with open('/tmp/otithi_debug.log', 'a') as f:
                 f.write(f"Attempting to create listing with:\\n")
-                f.write(f"  host_id: {current_user.user_id}\\n")
-                f.write(f"  location_id: {location_obj.id}\\n")
+                f.write(f"  host_id: {current_user.id}\\n")
+                f.write(f"  location_id: {location_obj.location_id}\\n")
                 f.write(f"  title: {title}\\n")
                 f.write(f"  room_type: {room_type}\\n")
                 f.write(f"  price: {price_per_night}\\n")
@@ -331,6 +340,14 @@ def create_listing():
                 guests=max_guests,
                 amenities=amenities.split(',') if amenities else []
             )
+            
+            print(f"  Listing creation result: {listing}")
+            with open('/tmp/otithi_debug.log', 'a') as f:
+                f.write(f"Listing creation result: {listing}\\n")
+                if listing:
+                    f.write(f"SUCCESS: Listing created with ID {listing.id}\\n")
+                else:
+                    f.write(f"ERROR: Listing creation failed\\n")
             
             if listing:
                 # Save images

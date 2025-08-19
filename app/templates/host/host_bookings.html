@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}Host Bookings - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Host Bookings Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                {% if user and user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                {% else %}
+                    <i class="fas fa-calendar-check"></i>
+                {% endif %}
+                Host Bookings
+            </h1>
+            <p class="lead">Manage your property bookings and reservations.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Quick Actions -->
+        <div class="dashboard-actions">
+            <h3>Quick Actions</h3>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="action-card">
+                        <div class="card-body text-center">
+                            <div class="admin-quick-actions">
+                                <a href="{{ url_for('main.dashboard') }}" class="admin-quick-action admin-quick-action-secondary">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="action-card">
+                        <div class="card-body text-center">
+                            <div class="admin-quick-actions">
+                                <a href="{{ url_for('profile.my_listings') }}" class="admin-quick-action admin-quick-action-info">
+                                    <i class="fas fa-list"></i> My Listings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="action-card">
+                        <div class="card-body text-center">
+                            <div class="admin-quick-actions">
+                                <a href="{{ url_for('listings.create_listing') }}" class="admin-quick-action admin-quick-action-primary">
+                                    <i class="fas fa-plus"></i> Create Listing
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="action-card">
+                        <div class="card-body text-center">
+                            <div class="admin-quick-actions">
+                                <a href="{{ url_for('profile.profile') }}" class="admin-quick-action admin-quick-action-outline">
+                                    <i class="fas fa-user"></i> My Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Statistics -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Total Bookings</h5>
+                            <h2>{{ bookings|length if bookings else 0 }}</h2>
+                            <i class="fas fa-calendar-check fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Confirmed</h5>
+                            <h2>{{ bookings|selectattr('status', 'equalto', 'confirmed')|list|length if bookings else 0 }}</h2>
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Pending</h5>
+                            <h2>{{ bookings|selectattr('status', 'equalto', 'pending')|list|length if bookings else 0 }}</h2>
+                            <i class="fas fa-clock fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Total Revenue</h5>
+                            <h2>${{ "%.2f"|format(bookings|sum(attribute='total_price') if bookings else 0) }}</h2>
+                            <i class="fas fa-dollar-sign fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings List -->
+        <div class="dashboard-section">
+            <h3>Your Bookings</h3>
+            <div class="action-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Booking Requests & Reservations</h5>
+                </div>
+                <div class="card-body">
+                    {% if bookings and bookings|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Guest</th>
+                                        <th>Property</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Guests</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in bookings %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ booking.guest_name }}</strong>
+                                            <br><small class="text-muted">{{ booking.guest_email }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>{{ booking.listing_title[:30] + '...' if booking.listing_title|length > 30 else booking.listing_title }}</strong>
+                                            <br><small class="text-muted">{{ booking.listing_location }}</small>
+                                        </td>
+                                        <td>{{ booking.check_in.strftime('%m/%d/%Y') if booking.check_in else 'N/A' }}</td>
+                                        <td>{{ booking.check_out.strftime('%m/%d/%Y') if booking.check_out else 'N/A' }}</td>
+                                        <td>{{ booking.guests }} {{ 'guest' if booking.guests == 1 else 'guests' }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                                                {{ booking.status|title }}
+                                            </span>
+                                        </td>
+                                        <td><strong>${{ "%.2f"|format(booking.total_price) }}</strong></td>
+                                        <td>
+                                            <div class="admin-quick-actions">
+                                                {% if booking.status == 'pending' %}
+                                                    <button type="button" class="admin-quick-action admin-quick-action-success btn-sm" onclick="confirmBooking({{ booking.id }})">
+                                                        <i class="fas fa-check"></i> Confirm
+                                                    </button>
+                                                    <button type="button" class="admin-quick-action admin-quick-action-danger btn-sm" onclick="rejectBooking({{ booking.id }})">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                {% else %}
+                                                    <button type="button" class="admin-quick-action admin-quick-action-info btn-sm" onclick="viewBookingDetails({{ booking.id }})">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% if booking.special_requests %}
+                                    <tr class="table-secondary">
+                                        <td colspan="8">
+                                            <small><strong>Special Requests:</strong> {{ booking.special_requests }}</small>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h5>No bookings yet</h5>
+                            <p class="text-muted">When guests book your properties, they'll appear here.</p>
+                            <a href="{{ url_for('profile.my_listings') }}" class="admin-quick-action admin-quick-action-primary">
+                                <i class="fas fa-list"></i> Manage Your Listings
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Host Bookings JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animations
+    const statsCards = document.querySelectorAll('.stat-card');
+    statsCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('fadeInUp');
+    });
+});
+
+function confirmBooking(bookingId) {
+    if (confirm('Are you sure you want to confirm this booking?')) {
+        // Add AJAX call to confirm booking
+        fetch(`/bookings/${bookingId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error confirming booking: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error confirming booking');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function rejectBooking(bookingId) {
+    if (confirm('Are you sure you want to reject this booking?')) {
+        // Add AJAX call to reject booking
+        fetch(`/bookings/${bookingId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error rejecting booking: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error rejecting booking');
+            console.error('Error:', error);
+        });
+    }
+}
+
+function viewBookingDetails(bookingId) {
+    // Add modal or redirect to booking details
+    window.location.href = `/bookings/${bookingId}/details`;
+}
+</script>
+{% endblock %}

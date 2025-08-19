@@ -372,11 +372,6 @@ def my_bookings():
 # Remove the redirect routes - auth blueprint handles /login and /register directly
 # Note: Removed duplicate logout route to prevent conflicts - auth.logout handles this
 
-@main_bp.route('/listings/<int:listing_id>')
-def listing_detail(listing_id):
-    """Listing detail page - redirect to listings blueprint"""
-    return redirect(url_for('listings.listing_detail', listing_id=listing_id))
-
 @main_bp.route('/book/<int:listing_id>')
 @login_required
 def book_listing(listing_id):

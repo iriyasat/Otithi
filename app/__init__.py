@@ -39,6 +39,8 @@ def create_app():
     def load_user(user_id):
         try:
             from app.models import User
+            if user_id is None or user_id == 'None':
+                return None
             return User.get(int(user_id))
         except (ValueError, TypeError):
             return None

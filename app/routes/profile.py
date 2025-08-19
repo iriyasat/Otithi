@@ -157,6 +157,11 @@ def my_listings():
         
         try:
             user_listings = Listing.get_by_host(current_user.id)
+            print(f"DEBUG: My Listings - User ID: {current_user.id}")
+            print(f"DEBUG: My Listings - Retrieved {len(user_listings) if user_listings else 0} listings")
+            if user_listings:
+                for listing in user_listings:
+                    print(f"  - Listing: {listing.title} (ID: {listing.id})")
             
             # Calculate statistics
             total_views = 0
@@ -167,6 +172,7 @@ def my_listings():
                 if hasattr(listing, 'status') and listing.status == 'pending':
                     pending_listings += 1
             
+            print(f"DEBUG: Rendering template with {len(user_listings) if user_listings else 0} listings")
             return render_template('host/my_listings.html', 
                                    user=current_user,
                                    listings=user_listings or [],

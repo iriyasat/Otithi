@@ -570,24 +570,27 @@ class Listing:
                 id=listing_data['listing_id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['location_city']}, {listing_data['location_country']}" if listing_data['location_city'] else f"{listing_data['city']}, {listing_data['country']}",
                 price=float(listing_data['price_per_night']),
                 host_id=listing_data['host_id'],
+                location_id=listing_data['location_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
-                address=listing_data['location_address'] or listing_data['address'],
-                city=listing_data['location_city'] or listing_data['city'],
-                country=listing_data['location_country'] or listing_data['country'],
                 created_date=listing_data['created_at'],
                 rating=avg_rating,
                 reviews_count=review_count,
                 available=True,
                 images=[img.image_filename for img in images],
-                latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
-                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None,
                 is_active=bool(listing_data.get('is_active', 1))
             )
+            
+            # Add location details as separate attributes
+            listing.address = listing_data['location_address'] or listing_data.get('address', '')
+            listing.city = listing_data['location_city'] or listing_data.get('city', '')
+            listing.country = listing_data['location_country'] or listing_data.get('country', '')
+            listing.location = f"{listing.city}, {listing.country}" if listing.city and listing.country else ""
+            listing.latitude = float(listing_data['latitude']) if listing_data['latitude'] else None
+            listing.longitude = float(listing_data['longitude']) if listing_data['longitude'] else None
             listings.append(listing)
         return listings
     
@@ -608,24 +611,25 @@ class Listing:
                 id=listing_data['listing_id'],
                 title=listing_data['title'],
                 description=listing_data['description'],
-                location=f"{listing_data['city']}, {listing_data['country']}",
                 price=float(listing_data['price_per_night']),
                 host_id=listing_data['host_id'],
+                location_id=listing_data['location_id'],
                 property_type=listing_data['room_type'],
                 guests=listing_data['max_guests'],
-                bedrooms=1,
-                bathrooms=1,
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
-                address=listing_data['address'],
-                city=listing_data['city'],
-                country=listing_data['country'],
                 created_date=listing_data['created_at'],
                 rating=0.0,
                 reviews_count=0,
-                available=True,
-                latitude=float(listing_data['latitude']) if listing_data['latitude'] else None,
-                longitude=float(listing_data['longitude']) if listing_data['longitude'] else None
+                available=True
             )
+            
+            # Add location details as separate attributes
+            listing.address = listing_data.get('address', '')
+            listing.city = listing_data.get('city', '')
+            listing.country = listing_data.get('country', '')
+            listing.location = f"{listing.city}, {listing.country}" if listing.city and listing.country else ""
+            listing.latitude = float(listing_data['latitude']) if listing_data['latitude'] else None
+            listing.longitude = float(listing_data['longitude']) if listing_data['longitude'] else None
             listings.append(listing)
         return listings
     
