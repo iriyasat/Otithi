@@ -310,14 +310,19 @@ def dashboard():
             listings = Listing.get_by_host(current_user.id)
             host_bookings = Booking.get_by_host(current_user.id)
             return render_template('host/host.html', 
+                                 user=current_user,
                                  listings=listings, 
                                  bookings=bookings,
                                  host_bookings=host_bookings)
         else:
-            return render_template('guest/guest.html', bookings=bookings)
+            return render_template('guest/guest.html', 
+                                 user=current_user,
+                                 bookings=bookings)
     except Exception as e:
         print(f"Error loading dashboard: {e}")
-        return render_template('guest/guest.html', bookings=[])
+        return render_template('guest/guest.html', 
+                             user=current_user,
+                             bookings=[])
 
 @main_bp.route('/my-bookings')
 @login_required

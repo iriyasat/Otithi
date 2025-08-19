@@ -171,3 +171,50 @@ def my_bookings():
     except Exception as e:
         flash('Error loading bookings.', 'error')
         return render_template('guest/my_bookings.html', bookings=[], user=current_user)
+
+@bookings_bp.route('/host-bookings')
+@login_required
+def host_bookings():
+    """View bookings for host's listings"""
+    try:
+        if current_user.user_type != 'host':
+            flash('Access denied. Host privileges required.', 'error')
+            return redirect(url_for('main.dashboard'))
+            
+        # Get all bookings for this host's listings
+        host_bookings = Booking.get_by_host(current_user.id)
+        
+        enriched_bookings = []
+        for booking in host_bookings:
+            guest = User.get(booking.guest_id) if booking.guest_id else None
+            listing = Listing.get(booking.listing_id) if booking.listing_id else None
+            
+            booking_data = {
+                'id': booking.id,
+                'guest_name': guest.full_name if guest else 'Unknown Guest',
+                'guest_email': guest.email if guest else '',
+                'listing_title': listing.title if listing else 'Unknown Listing',
+                'listing_location': listing.location if listing else '',
+                'check_in': booking.check_in,
+                'check_out': booking.check_out,
+                'guests': booking.guests,
+                'total_price': booking.total_price,
+                'status': booking.status,
+                'created_at': booking.created_at,
+                'special_requests': booking.special_requests,
+                'listing': {
+                    'id': listing.id if listing else None,
+                    'title': listing.title if listing else 'Unknown Listing',
+                    'image': 'demo_listing_1.jpg'
+                } if listing else None
+            }
+            enriched_bookings.append(booking_data)
+        
+        # Sort by creation date
+        enriched_bookings.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return render_template('host/host_bookings.html', bookings=enriched_bookings, user=current_user)
+    
+    except Exception as e:
+        flash('Error loading host bookings.', 'error')
+        return render_template('host/host_bookings.html', bookings=[], user=current_user)

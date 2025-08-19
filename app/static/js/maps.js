@@ -3,12 +3,12 @@
  * Google Maps integration and location functionality
  */
 
-// Global variables for map functionality
-let map;
-let marker;
-let autocomplete;
-let geocoder;
-let currentInfoWindow;
+// Global variables for map functionality (only declare if not already declared)
+if (typeof map === 'undefined') { var map; }
+if (typeof marker === 'undefined') { var marker; }
+if (typeof autocomplete === 'undefined') { var autocomplete; }
+if (typeof geocoder === 'undefined') { var geocoder; }
+if (typeof currentInfoWindow === 'undefined') { var currentInfoWindow; }
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeMaps();
@@ -243,8 +243,14 @@ function updateMapLocation(location, address = null) {
     
     // Add drag listener to update address
     marker.addListener("dragend", function() {
+        const position = marker.getPosition();
+        
+        // Update coordinates first
+        updateLocationInputs(position);
+        
+        // Then reverse geocode for address
         geocoder.geocode(
-            { location: marker.getPosition() },
+            { location: position },
             function(results, status) {
                 if (status === "OK" && results[0]) {
                     const addressInput = document.getElementById("address");
@@ -326,12 +332,18 @@ function updateLocationInputs(location) {
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
     
+    const lat = location.lat();
+    const lng = location.lng();
+    
     if (latInput) {
-        latInput.value = location.lat();
+        latInput.value = lat;
     }
     if (lngInput) {
-        lngInput.value = location.lng();
+        lngInput.value = lng;
     }
+    
+    // Update coordinate display elements
+    updateCoordinateDisplay(lat, lng);
 }
 
 /**
@@ -600,4 +612,139 @@ function drawRoute(origin, destination) {
             showNotification('Unable to calculate route', 'error');
         }
     });
+}
+
+/**
+ * Get current location using browser geolocation
+ */
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const currentLocation = { lat: lat, lng: lng };
+                
+                // Update map center and marker
+                if (map) {
+                    map.setCenter(currentLocation);
+                    map.setZoom(15);
+                    
+                    // Update or create marker
+                    if (marker) {
+                        marker.setPosition(currentLocation);
+                    } else {
+                        marker = new google.maps.Marker({
+                            position: currentLocation,
+                            map: map,
+                            title: 'Current Location'
+                        });
+                    }
+                }
+                
+                // Reverse geocode to get address
+                if (geocoder) {
+                    geocoder.geocode({ location: currentLocation }, function(results, status) {
+                        if (status === 'OK' && results[0]) {
+                            const address = results[0].formatted_address;
+                            
+                            // Update address field if it exists
+                            const addressField = document.getElementById('address');
+                            if (addressField) {
+                                addressField.value = address;
+                            }
+                            
+                            // Parse address components
+                            const components = results[0].address_components;
+                            let city = '';
+                            let state = '';
+                            let country = '';
+                            
+                            components.forEach(component => {
+                                if (component.types.includes('locality')) {
+                                    city = component.long_name;
+                                } else if (component.types.includes('administrative_area_level_1')) {
+                                    state = component.long_name;
+                                } else if (component.types.includes('country')) {
+                                    country = component.long_name;
+                                }
+                            });
+                            
+                            // Update form fields
+                            const cityField = document.getElementById('city');
+                            const stateField = document.getElementById('state');
+                            const countryField = document.getElementById('country');
+                            const latField = document.getElementById('latitude');
+                            const lngField = document.getElementById('longitude');
+                            
+                            if (cityField) cityField.value = city;
+                            if (stateField) stateField.value = state;
+                            if (countryField) countryField.value = country;
+                            if (latField) latField.value = lat;
+                            if (lngField) lngField.value = lng;
+                            
+                            // Update coordinate display elements
+                            updateCoordinateDisplay(lat, lng);
+                            
+                            showNotification('Current location detected successfully!', 'success');
+                        }
+                    });
+                }
+            },
+            function(error) {
+                let errorMessage = 'Unable to get your location. ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage += 'Please allow location access.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage += 'Location information unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage += 'Location request timed out.';
+                        break;
+                    default:
+                        errorMessage += 'An unknown error occurred.';
+                        break;
+                }
+                showNotification(errorMessage, 'error');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000
+            }
+        );
+    } else {
+        showNotification('Geolocation is not supported by this browser.', 'error');
+    }
+}
+
+/**
+ * Show notification message
+ */
+function showNotification(message, type = 'info') {
+    // Try to use existing notification system or create a simple alert
+    if (typeof showAlert === 'function') {
+        showAlert(message, type);
+    } else {
+        alert(message);
+    }
+}
+
+/**
+ * Update coordinate display elements
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ */
+function updateCoordinateDisplay(lat, lng) {
+    const latDisplay = document.getElementById('latitude-display');
+    const lngDisplay = document.getElementById('longitude-display');
+    
+    if (latDisplay) {
+        latDisplay.textContent = lat.toFixed(6);
+    }
+    if (lngDisplay) {
+        lngDisplay.textContent = lng.toFixed(6);
+    }
 } 

@@ -1,142 +1,95 @@
 {% extends "base.html" %}
-{% block title %}My L                            <div class="col-md-3">
-                                <a href="{{ url_for('main.dashboard') }}" class="action-btn btn-outline-secondary">
-                                    <i class="fas fa-tachometer-alt dashboard-icon"></i> Dashboard
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ url_for('profile.profile') }}" class="action-btn btn-outline-info">
-                                    <i class="fas fa-user dashboard-icon"></i> Profile- Otithi{% endblock %}
+
+{% block title %}My Listings - Otithi{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<!-- My Listings Container -->
+<div class="dashboard-container admin-dashboard">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
         <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h1>
-                        {% if user.profile_photo %}
-                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='img/user-gear.png') }}" alt="Profile" class="dashboard-profile-image">
-                        {% endif %}
-                        My Listings
-                    </h1>
-                    <p class="lead">Welcome back, {{ user.full_name }}! Manage your property listings</p>
-                </div>
-            </div>
+            <h1>
+                {% if user and user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                {% else %}
+                    <i class="fas fa-list"></i>
+                {% endif %}
+                My Listings
+            </h1>
+            <p class="lead">Manage your property listings from here.</p>
         </div>
     </div>
 
-    <!-- Main Content -->
     <div class="container">
-        <!-- Quick Actions -->
-        <div class="row mb-4 dashboard-animate">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-plus dashboard-icon"></i> Quick Actions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <a href="{{ url_for('listings.create_listing') }}" class="action-btn btn-outline-primary">
-                                    <i class="fas fa-plus dashboard-icon"></i> Add New Listing
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ url_for('main.dashboard') }}" class="action-btn btn-outline-secondary">
-                                    <i class="fas fa-tachometer-alt dashboard-icon"></i> Dashboard
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ url_for('main.profile') }}" class="action-btn btn-outline-info">
-                                    <i class="fas fa-user dashboard-icon"></i> My Profile
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="{{ url_for('main.explore') }}" class="action-btn btn-outline-success">
-                                    <i class="fas fa-search dashboard-icon"></i> Browse Listings
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Listings Overview -->
-        <div class="row dashboard-stats dashboard-animate">
-            <div class="col-md-3">
-                <div class="card stat-card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h5>Total Listings</h5>
-                                <h2>{{ listings|length }}</h2>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="fas fa-home fa-2x"></i>
-                            </div>
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Total Listings</h5>
+                            <h2>{{ listings|length if listings else 0 }}</h2>
+                            <i class="fas fa-home fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Active Listings</h5>
+                            <h2>{{ listings|selectattr('available')|list|length if listings else 0 }}</h2>
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Pending Reviews</h5>
+                            <h2>{{ pending_listings if pending_listings else 0 }}</h2>
+                            <i class="fas fa-clock fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Total Views</h5>
+                            <h2>{{ total_views if total_views else 0 }}</h2>
+                            <i class="fas fa-eye fa-3x"></i>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card stat-card bg-success text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h5>Active Listings</h5>
-                                <h2>{{ listings|selectattr('available')|list|length }}</h2>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="fas fa-check-circle fa-2x"></i>
-                            </div>
+            
+            <!-- Second Row of Statistics -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Total Bookings</h5>
+                            <h2>{{ listings|sum(attribute='booking_count') or 0 }}</h2>
+                            <i class="fas fa-calendar-check fa-3x"></i>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card bg-info text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h5>Total Bookings</h5>
-                                <h2>{{ listings|sum(attribute='booking_count') or 0 }}</h2>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="fas fa-calendar-check fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card bg-warning text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h5>Avg Rating</h5>
-                                <h2>
-                                    {% if listings %}
-                                        {{ "%.1f"|format(listings|sum(attribute='rating')/listings|length) }}
-                                    {% else %}
-                                        0.0
-                                    {% endif %}
-                                </h2>
-                            </div>
-                            <div class="align-self-center">
-                                <i class="fas fa-star fa-2x"></i>
-                            </div>
+                <div class="col-md-6 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Avg Rating</h5>
+                            <h2>
+                                {% if listings %}
+                                    {{ "%.1f"|format(listings|sum(attribute='rating')/listings|length) }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </h2>
+                            <i class="fas fa-star fa-3x"></i>
                         </div>
                     </div>
                 </div>

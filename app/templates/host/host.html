@@ -4,196 +4,294 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container host-dashboard">
+<!-- Host Dashboard Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
     <div class="dashboard-header">
         <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h1>
-                        {% if user and user.profile_photo %}
-                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
-                        {% else %}
-                            <i class="fas fa-home"></i>
-                        {% endif %}
-                        Host Dashboard
-                    </h1>
-                    <p class="lead">Welcome back, {{ user.full_name }}!</p>
-                </div>
-            </div>
+            <h1>
+                {% if user and user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                {% else %}
+                    <i class="fas fa-home"></i>
+                {% endif %}
+                Host Dashboard
+            </h1>
+            <p class="lead">Welcome back, {{ user.full_name }}! Manage your properties and bookings from here.</p>
         </div>
     </div>
-    
+
     <div class="container">
-    
-    <!-- Host Stats Cards -->
-    <div class="row dashboard-stats dashboard-animate">
-        <div class="col-md-3">
-            <div class="card stat-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
+        <!-- Dashboard Statistics -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
                             <h5>My Listings</h5>
-                            <h2>{{ user_listings|length if user_listings else 0 }}</h2>
+                            <h2>{{ listings|length if listings else 0 }}</h2>
+                            <i class="fas fa-home fa-3x"></i>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-home fa-2x"></i>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Bookings Received</h5>
+                            <h2>{{ bookings|length if bookings else 0 }}</h2>
+                            <i class="fas fa-calendar-check fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Revenue</h5>
+                            <h2>৳{{ "%.2f"|format(revenue if revenue else 0) }}</h2>
+                            <i class="fas fa-dollar-sign fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-warning text-white">
+                        <div class="card-body">
+                            <h5>Pending Reviews</h5>
+                            <h2>{{ pending_reviews if pending_reviews else 0 }}</h2>
+                            <i class="fas fa-star fa-3x"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-3">
-            <div class="card stat-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5>Active Bookings</h5>
-                            <h2>{{ active_bookings|length if active_bookings else 0 }}</h2>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-actions">
+            <h3>Quick Actions</h3>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="action-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-plus"></i> Create New Listing</h5>
                         </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-calendar-check fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card stat-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5>Total Bookings</h5>
-                            <h2>{{ total_bookings if total_bookings else 0 }}</h2>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-chart-line fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card stat-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5>Earnings</h5>
-                            <h2>৳{{ "%.0f"|format(total_earnings or 0) }}</h2>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-money-bill-wave fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Host Actions -->
-    <div class="row dashboard-animate">
-        <div class="col-12">
-            <div class="card action-card">
-                <div class="card-header">
-                    <h5>Host Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <a href="{{ url_for('listings.create_listing') }}" class="action-btn btn-outline-primary">
-                                <i class="fas fa-plus dashboard-icon"></i> Add New Listing
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="action-btn btn-outline-success" onclick="alert('Coming soon: Manage your listings')">
-                                <i class="fas fa-list dashboard-icon"></i> Manage Listings
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="action-btn btn-outline-info" onclick="alert('Coming soon: View your bookings')">
-                                <i class="fas fa-calendar dashboard-icon"></i> View Bookings
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="#" class="action-btn btn-outline-warning" onclick="alert('Coming soon: View analytics')">
-                                <i class="fas fa-chart-bar dashboard-icon"></i> Analytics
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Activity -->
-    <div class="row dashboard-animate">
-        <div class="col-md-6">
-            <div class="card activity-card">
-                <div class="card-header">
-                    <h5>Recent Bookings</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if recent_bookings %}
-                        <div class="activity-list">
-                            {% for booking in recent_bookings[:5] %}
-                            <div class="activity-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ booking.guest_name or 'Guest' }}</strong><br>
-                                        <small class="text-dashboard-muted">{{ booking.listing_title }} - {{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }}</small>
-                                    </div>
-                                    <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
-                                        {{ booking.status.title() }}
-                                    </span>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="activity-item">
-                            <p class="text-dashboard-muted mb-0">No recent bookings</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card activity-card">
-                <div class="card-header">
-                    <h5>Listing Performance</h5>
-                </div>
-                <div class="card-body">
-                    {% if user_listings %}
-                        {% for listing in user_listings[:3] %}
-                        <div class="activity-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ listing.title }}</strong><br>
-                                    <small class="text-dashboard-muted">{{ listing.bookings_count or 0 }} bookings</small>
-                                </div>
-                                <span class="badge bg-{{ 'success' if listing.status == 'active' else 'warning' }}">
-                                    {{ listing.status.title() if listing.status else 'Active' }}
-                                </span>
+                        <div class="card-body">
+                            <p class="text-muted">Add a new property to your portfolio</p>
+                            <div class="admin-quick-actions">
+                                <a href="{{ url_for('listings.create_listing') }}" class="admin-quick-action admin-quick-action-primary">
+                                    <i class="fas fa-plus"></i> Create Listing
+                                </a>
                             </div>
                         </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="activity-item">
-                            <p class="text-dashboard-muted mb-0">No listings yet</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="action-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-list"></i> Manage Listings</h5>
                         </div>
-                    {% endif %}
+                        <div class="card-body">
+                            <p class="text-muted">View and edit your existing properties</p>
+                            <div class="admin-quick-actions">
+                                <a href="{{ url_for('profile.my_listings') }}" class="admin-quick-action admin-quick-action-secondary">
+                                    <i class="fas fa-list"></i> View Listings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="action-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-calendar"></i> Bookings Received</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">View bookings made for your properties</p>
+                            <div class="admin-quick-actions">
+                                <a href="#bookings-section" class="admin-quick-action admin-quick-action-info" onclick="scrollToSection('bookings-section')">
+                                    <i class="fas fa-calendar"></i> View Bookings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
+
+        <!-- Recent Activity -->
+        <div class="dashboard-section">
+            <h3>Recent Activity</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="action-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-clock"></i> Recent Bookings</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if bookings and bookings|length > 0 %}
+                                <div class="list-group list-group-flush">
+                                    {% for booking in bookings[:5] %}
+                                            <tr>
+                                                <td>{{ booking.guest.full_name if booking.guest else 'Unknown' }}</td>
+                                                <td>{{ booking.listing.title[:20] + '...' if booking.listing and booking.listing.title|length > 20 else booking.listing.title if booking.listing else 'Unknown' }}</td>
+                                                <td>
+                                                    <span class="badge badge-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
+                                                        {{ booking.status|title }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ booking.check_in.strftime('%m/%d') if booking.check_in else 'N/A' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No recent bookings to display.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="action-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-home"></i> Your Properties</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if listings and listings|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Property</th>
+                                                <th>Location</th>
+                                                <th>Status</th>
+                                                <th>Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for listing in listings[:5] %}
+                                            <tr>
+                                                <td>{{ listing.title[:20] + '...' if listing.title|length > 20 else listing.title }}</td>
+                                                <td>{{ listing.location[:15] + '...' if listing.location and listing.location|length > 15 else listing.location or 'N/A' }}</td>
+                                                <td>
+                                                    <span class="badge badge-{{ 'success' if listing.status == 'active' else 'warning' }}">
+                                                        {{ listing.status|title if listing.status else 'Unknown' }}
+                                                    </span>
+                                                </td>
+                                                <td>৳{{ listing.price_per_night if listing.price_per_night else 'N/A' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">You haven't created any listings yet.</p>
+                                <a href="{{ url_for('listings.create_listing') }}" class="admin-quick-action admin-quick-action-primary">
+                                    <i class="fas fa-plus"></i> Create Your First Listing
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Host Analytics -->
+        <div class="dashboard-section">
+            <h3>Host Analytics</h3>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="action-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-line"></i> Performance Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 text-center">
+                                    <h4 class="text-primary">{{ average_rating|round(1) if average_rating else 'N/A' }}</h4>
+                                    <p class="text-muted">Average Rating</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <h4 class="text-success">{{ occupancy_rate|round(1) if occupancy_rate else 'N/A' }}%</h4>
+                                    <p class="text-muted">Occupancy Rate</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <h4 class="text-info">৳{{ monthly_revenue|round(2) if monthly_revenue else '0.00' }}</h4>
+                                    <p class="text-muted">This Month's Revenue</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <h4 class="text-warning">{{ response_rate|round(1) if response_rate else 'N/A' }}%</h4>
+                                    <p class="text-muted">Response Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function scrollToSection(sectionId) {
+    document.getElementById(sectionId).scrollIntoView({ 
+        behavior: 'smooth' 
+    });
+}
+
+function updateBookingStatus(bookingId, newStatus) {
+    if (!confirm(`Are you sure you want to ${newStatus === 'confirmed' ? 'accept' : 'decline'} this booking?`)) {
+        return;
+    }
+    
+    // Show loading state
+    const buttons = document.querySelectorAll(`[onclick*="${bookingId}"]`);
+    buttons.forEach(btn => {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    });
+    
+    // Make API call to update booking status
+    fetch(`/api/bookings/${bookingId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the page to show updated status
+            window.location.reload();
+        } else {
+            alert('Error updating booking status: ' + (data.message || 'Unknown error'));
+            // Restore buttons
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.innerHTML = btn.classList.contains('admin-quick-action-primary') ? 
+                    '<i class="fas fa-check"></i> Accept' : 
+                    '<i class="fas fa-times"></i> Decline';
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error. Please try again.');
+        // Restore buttons
+        buttons.forEach(btn => {
+            btn.disabled = false;
+            btn.innerHTML = btn.classList.contains('admin-quick-action-primary') ? 
+                '<i class="fas fa-check"></i> Accept' : 
+                '<i class="fas fa-times"></i> Decline';
+        });
+    });
+}
+</script>
 {% endblock %}

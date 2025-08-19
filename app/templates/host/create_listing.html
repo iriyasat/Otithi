@@ -151,7 +151,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
-                        {{ csrf_token() }}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -297,7 +297,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/config.js') }}"></script>
+<script src="{{ url_for('static', filename='js/maps.js') }}"></script>
 <script async defer 
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAOyKOo-evauWLjq9IJfG-xhOWcRpBpqdw&libraries=places&callback=initMap">
 </script>

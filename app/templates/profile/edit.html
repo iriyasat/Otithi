@@ -4,6 +4,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -20,8 +22,8 @@
                         </h2>
                         <p class="dashboard-subtitle">Update your personal information and profile settings</p>
                     </div>
-                    <a href="{{ url_for('profile.profile') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>
+                    <a href="{{ url_for('profile.profile') }}" class="admin-quick-action">
+                        <i class="fas fa-arrow-left"></i>
                         Back to Profile
                     </a>
                 </div>
@@ -40,18 +42,18 @@
             {% endwith %}
 
             <!-- Profile Form -->
-            <div class="profile-card">
+            <div class="action-card">
                 <form method="POST" enctype="multipart/form-data" class="profile-form" id="editProfileForm">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                     
                     <!-- Profile Picture Section -->
-                    <div class="profile-card-header">
-                        <h5 class="profile-card-title">
-                            <i class="fas fa-camera"></i>
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-camera me-2"></i>
                             Profile Picture
                         </h5>
                     </div>
-                    <div class="profile-card-body text-center">
+                    <div class="card-body text-center">
                         <div class="profile-picture-container mx-auto mb-4">
                             {% if user.profile_photo %}
                                 <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" 
@@ -82,13 +84,13 @@
                     </div>
 
                     <!-- Personal Information -->
-                    <div class="profile-card-header">
-                        <h5 class="profile-card-title">
-                            <i class="fas fa-user"></i>
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-user me-2"></i>
                             Personal Information
                         </h5>
                     </div>
-                    <div class="profile-card-body">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <div class="form-floating">
@@ -208,17 +210,17 @@
                     </div>
 
                     <!-- Form Actions -->
-                    <div class="profile-card-body pt-0">
-                        <div class="d-flex gap-3 justify-content-end">
-                            <a href="{{ url_for('profile.profile') }}" class="btn-profile-outline">
+                    <div class="card-body pt-0">
+                        <div class="admin-quick-actions">
+                            <a href="{{ url_for('profile.profile') }}" class="admin-quick-action admin-quick-action-outline">
                                 <i class="fas fa-times"></i>
                                 Cancel
                             </a>
-                            <button type="reset" class="btn-profile-secondary">
+                            <button type="reset" class="admin-quick-action admin-quick-action-secondary">
                                 <i class="fas fa-undo"></i>
                                 Reset
                             </button>
-                            <button type="submit" class="btn-profile-primary">
+                            <button type="submit" class="admin-quick-action admin-quick-action-primary">
                                 <i class="fas fa-save"></i>
                                 Save Changes
                             </button>
@@ -228,14 +230,14 @@
             </div>
 
             <!-- Danger Zone -->
-            <div class="profile-card">
-                <div class="profile-card-header">
-                    <h5 class="profile-card-title text-danger">
-                        <i class="fas fa-exclamation-triangle"></i>
+            <div class="action-card">
+                <div class="card-header">
+                    <h5 class="text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
                         Danger Zone
                     </h5>
                 </div>
-                <div class="profile-card-body">
+                <div class="card-body">
                     <div class="alert alert-danger">
                         <h6 class="alert-heading">Delete Account</h6>
                         <p class="mb-0">
@@ -243,7 +245,7 @@
                         </p>
                         <hr>
                         <button type="button" 
-                                class="btn btn-outline-danger btn-sm" 
+                                class="admin-quick-action admin-quick-action-danger" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#deleteAccountModal">
                             <i class="fas fa-trash"></i>

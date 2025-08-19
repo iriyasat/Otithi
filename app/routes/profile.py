@@ -152,8 +152,33 @@ def update_privacy_settings():
 def my_listings():
     """User's property listings (for hosts)"""
     if current_user.user_type == 'host':
-        # Get user's listings logic here
-        return render_template('host/my_listings.html', user=current_user)
+        # Get user's listings from database
+        from app.models import Listing, Booking, Review
+        
+        try:
+            user_listings = Listing.get_by_host(current_user.id)
+            
+            # Calculate statistics
+            total_views = 0
+            pending_listings = 0
+            for listing in user_listings if user_listings else []:
+                if hasattr(listing, 'views'):
+                    total_views += listing.views or 0
+                if hasattr(listing, 'status') and listing.status == 'pending':
+                    pending_listings += 1
+            
+            return render_template('host/my_listings.html', 
+                                   user=current_user,
+                                   listings=user_listings or [],
+                                   total_views=total_views,
+                                   pending_listings=pending_listings)
+        except Exception as e:
+            print(f"Error loading listings: {e}")
+            return render_template('host/my_listings.html', 
+                                   user=current_user,
+                                   listings=[],
+                                   total_views=0,
+                                   pending_listings=0)
     else:
         return redirect(url_for('profile.profile'))
 
@@ -201,5 +226,36 @@ def api_profile_data():
     except Exception as e:
         return jsonify({
             'success': False,
+            'error': str(e)
+        }), 500
+
+@profile_bp.route("/api/profile/verify-password", methods=['POST'])
+@login_required
+def api_verify_password():
+    """API endpoint for real-time password verification"""
+    try:
+        data = request.get_json()
+        current_password = data.get('current_password', '')
+        
+        if not current_password:
+            return jsonify({
+                'success': False,
+                'valid': False,
+                'message': 'Password is required'
+            }), 400
+        
+        # Verify current password
+        is_valid = check_password_hash(current_user.password_hash, current_password)
+        
+        return jsonify({
+            'success': True,
+            'valid': is_valid,
+            'message': 'Password verified' if is_valid else 'Invalid password'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'valid': False,
             'error': str(e)
         }), 500

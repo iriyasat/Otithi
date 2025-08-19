@@ -4,6 +4,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -20,8 +22,8 @@
                         </h2>
                         <p class="dashboard-subtitle">Manage your account preferences and privacy settings</p>
                     </div>
-                    <a href="{{ url_for('profile.profile') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>
+                    <a href="{{ url_for('profile.profile') }}" class="admin-quick-action">
+                        <i class="fas fa-arrow-left"></i>
                         Back to Profile
                     </a>
                 </div>
@@ -40,14 +42,14 @@
             {% endwith %}
 
             <!-- Notification Settings -->
-            <div class="profile-card">
-                <div class="profile-card-header">
-                    <h5 class="profile-card-title">
-                        <i class="fas fa-bell"></i>
+            <div class="action-card">
+                <div class="card-header">
+                    <h5>
+                        <i class="fas fa-bell me-2"></i>
                         Notification Preferences
                     </h5>
                 </div>
-                <div class="profile-card-body">
+                <div class="card-body">
                     <form method="POST" action="{{ url_for('profile.update_notification_settings') }}" id="notificationForm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         
@@ -126,8 +128,8 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn-profile-primary">
+                        <div class="admin-quick-actions justify-content-end">
+                            <button type="submit" class="admin-quick-action admin-quick-action-primary">
                                 <i class="fas fa-save"></i>
                                 Save Notification Settings
                             </button>
@@ -137,14 +139,14 @@
             </div>
 
             <!-- Privacy Settings -->
-            <div class="profile-card">
-                <div class="profile-card-header">
-                    <h5 class="profile-card-title">
-                        <i class="fas fa-shield-alt"></i>
+            <div class="action-card">
+                <div class="card-header">
+                    <h5>
+                        <i class="fas fa-shield-alt me-2"></i>
                         Privacy & Security
                     </h5>
                 </div>
-                <div class="profile-card-body">
+                <div class="card-body">
                     <form method="POST" action="{{ url_for('profile.update_privacy_settings') }}" id="privacyForm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                         
@@ -210,8 +212,8 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn-profile-primary">
+                        <div class="admin-quick-actions justify-content-end">
+                            <button type="submit" class="admin-quick-action admin-quick-action-primary">
                                 <i class="fas fa-save"></i>
                                 Save Privacy Settings
                             </button>
@@ -221,14 +223,14 @@
             </div>
 
             <!-- Account Management -->
-            <div class="profile-card">
-                <div class="profile-card-header">
-                    <h5 class="profile-card-title">
-                        <i class="fas fa-user-cog"></i>
+            <div class="action-card">
+                <div class="card-header">
+                    <h5>
+                        <i class="fas fa-user-cog me-2"></i>
                         Account Management
                     </h5>
                 </div>
-                <div class="profile-card-body">
+                <div class="card-body">
                     <div class="settings-section">
                         <div class="setting-item">
                             <div class="setting-info">
@@ -236,7 +238,7 @@
                                 <p class="text-muted mb-0">Update your account password for better security</p>
                             </div>
                             <div class="setting-control">
-                                <a href="{{ url_for('profile.change_password') }}" class="btn-profile-secondary">
+                                <a href="{{ url_for('profile.change_password') }}" class="admin-quick-action admin-quick-action-secondary">
                                     <i class="fas fa-lock"></i>
                                     Change Password
                                 </a>
@@ -249,7 +251,7 @@
                                 <p class="text-muted mb-0">Get a copy of all your data stored on Otithi</p>
                             </div>
                             <div class="setting-control">
-                                <button type="button" class="btn-profile-outline" onclick="requestDataDownload()">
+                                <button type="button" class="admin-quick-action admin-quick-action-outline" onclick="requestDataDownload()">
                                     <i class="fas fa-download"></i>
                                     Request Data
                                 </button>
@@ -270,7 +272,7 @@
                             </div>
                             <div class="setting-control">
                                 {% if user.user_type == 'guest' %}
-                                <button type="button" class="btn-profile-primary" onclick="requestHostUpgrade()">
+                                <button type="button" class="admin-quick-action admin-quick-action-primary" onclick="requestHostUpgrade()">
                                     <i class="fas fa-home"></i>
                                     Become a Host
                                 </button>
@@ -291,7 +293,7 @@
                             </div>
                             <div class="setting-control">
                                 <button type="button" 
-                                        class="btn btn-outline-danger" 
+                                        class="admin-quick-action admin-quick-action-danger" 
                                         data-bs-toggle="modal" 
                                         data-bs-target="#deleteAccountModal">
                                     <i class="fas fa-trash"></i>
