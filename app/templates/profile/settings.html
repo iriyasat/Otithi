@@ -51,7 +51,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('profile.update_notification_settings') }}" id="notificationForm">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
                         <div class="settings-section">
                             <h6 class="settings-section-title">Email Notifications</h6>
@@ -148,7 +148,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('profile.update_privacy_settings') }}" id="privacyForm">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         
                         <div class="settings-section">
                             <h6 class="settings-section-title">Profile Visibility</h6>

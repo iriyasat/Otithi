@@ -61,8 +61,12 @@
                             
                             <div class="conversation-avatar">
                                 {% if conversation.other_participant.profile_photo %}
-                                    <img src="{{ url_for('static', filename='uploads/profiles/' + conversation.other_participant.profile_photo) }}" 
-                                         alt="{{ conversation.other_participant.name }}">
+                                    <img src="{{ url_for('static', filename='uploads/' + conversation.other_participant.profile_photo) }}" 
+                                         alt="{{ conversation.other_participant.name }}"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="avatar-placeholder" style="display: none;">
+                                        {{ conversation.other_participant.name[0].upper() }}
+                                    </div>
                                 {% else %}
                                     <div class="avatar-placeholder">
                                         {{ conversation.other_participant.name[0].upper() }}

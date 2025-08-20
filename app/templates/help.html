@@ -215,9 +215,20 @@ function submitHelpForm(event) {
         return;
     }
     
-    // Get CSRF token
+    // Get CSRF token from hidden field or meta tag
+    let csrfToken = '';
     const csrfTokenField = document.getElementById('csrf-token-field');
-    if (!csrfTokenField || !csrfTokenField.value) {
+    if (csrfTokenField && csrfTokenField.value) {
+        csrfToken = csrfTokenField.value;
+    } else {
+        // Fallback to meta tag
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken && metaToken.content) {
+            csrfToken = metaToken.content;
+        }
+    }
+    
+    if (!csrfToken) {
         alert('Security token missing. Please refresh the page and try again.');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -229,7 +240,7 @@ function submitHelpForm(event) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrfTokenField.value
+            'X-CSRFToken': csrfToken
         },
         body: JSON.stringify(formData)
     })
@@ -273,16 +284,17 @@ function showSuccessNotification(message) {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
         color: white;
         padding: 16px 20px;
         border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         z-index: 10000;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         max-width: 350px;
         animation: slideInRight 0.3s ease;
+        border: 2px solid #28a745;
     `;
     notification.innerHTML = `
         <i class="fas fa-check-circle" style="margin-right: 8px;"></i>

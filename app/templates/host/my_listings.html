@@ -178,12 +178,14 @@
                                                     </a>
                                                     <form method="POST" action="{{ url_for('listings.delete_listing', listing_id=listing.id) }}" 
                                                           class="d-inline" onsubmit="return confirm('Are you sure you want to delete this listing? This action cannot be undone.')">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Listing">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>
                                                     <form method="POST" action="{{ url_for('listings.toggle_listing_status', listing_id=listing.id) }}" 
                                                           class="d-inline">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                         <button type="submit" class="btn btn-outline-secondary btn-sm" 
                                                                 title="{{ 'Deactivate' if listing.available else 'Activate' }} Listing">
                                                             <i class="fas fa-{{ 'pause' if listing.available else 'play' }}"></i>

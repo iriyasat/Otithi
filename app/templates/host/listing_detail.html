@@ -945,6 +945,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                     </div>
                     
                     <form class="booking-form" method="POST" action="{{ url_for('bookings.confirm_booking', listing_id=listing['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="listing_id" value="{{ listing['id'] }}">
                         
                         <div class="date-inputs">
@@ -1015,6 +1016,151 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 {% block extra_js %}
 <script>
+// Modal functions - defined globally so they can be called from HTML
+window.openMessageModal = function() {
+    console.log('Opening message modal');
+    const modal = document.getElementById('messageModal');
+    const messageText = document.getElementById('messageText');
+    
+    // Pre-fill the message with a default text
+    messageText.value = 'Hi {{ listing["host"]["name"] }}! I\'m interested in your listing. Can you tell me more about it?';
+    
+    modal.style.display = 'block';
+    messageText.focus();
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeMessageModal = function() {
+    console.log('Closing message modal');
+    const modal = document.getElementById('messageModal');
+    modal.style.display = 'none';
+    
+    // Restore body scroll
+    document.body.style.overflow = 'auto';
+    
+    // Clear the message text
+    document.getElementById('messageText').value = '';
+};
+
+window.sendMessageFromModal = function() {
+    console.log('Sending message from modal');
+    
+    const messageText = document.getElementById('messageText');
+    const content = messageText.value.trim();
+    const sendButton = document.querySelector('.btn-send-message');
+    
+    if (!content) {
+        alert('Please enter a message before sending.');
+        messageText.focus();
+        return;
+    }
+    
+    // Show loading state
+    const originalText = sendButton.innerHTML;
+    sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    sendButton.disabled = true;
+    
+    // Get CSRF token
+    const csrfTokenField = document.getElementById('csrf-token-field');
+    if (!csrfTokenField || !csrfTokenField.value) {
+        console.error('CSRF token not found');
+        alert('Security token missing. Please refresh the page and try again.');
+        sendButton.innerHTML = originalText;
+        sendButton.disabled = false;
+        return;
+    }
+    
+    const csrfToken = csrfTokenField.value;
+    
+    // Send the message
+    fetch('/messages/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            receiver_id: {{ listing['host']['id'] }},
+            content: content,
+            listing_id: {{ listing['id'] }}
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            // Show success message
+            sendButton.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+            sendButton.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            
+            // Close modal after a short delay and show success notification
+            setTimeout(() => {
+                closeMessageModal();
+                showSuccessNotification('Message sent successfully! You can continue the conversation in your messages.');
+                
+                // Restore button
+                sendButton.innerHTML = originalText;
+                sendButton.disabled = false;
+                sendButton.style.background = '';
+            }, 1500);
+        } else {
+            // Show error and restore button
+            sendButton.innerHTML = originalText;
+            sendButton.disabled = false;
+            alert('Failed to send message: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        // Restore button
+        sendButton.innerHTML = originalText;
+        sendButton.disabled = false;
+        alert('Failed to send message. Please try again. Check the console for details.');
+    });
+};
+
+window.showSuccessNotification = function(message) {
+    // Create a temporary notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        z-index: 10000;
+        font-size: 14px;
+        font-weight: 600;
+        max-width: 350px;
+        animation: slideInRight 0.3s ease;
+        border: 2px solid #28a745;
+    `;
+    notification.innerHTML = `
+        <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 5 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+        }, 5000);
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Force date input calendar functionality
     const dateInputs = document.querySelectorAll('input[type="date"]');
@@ -1215,151 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
     }
     
-    // Modal functions
-    function openMessageModal() {
-        console.log('Opening message modal');
-        const modal = document.getElementById('messageModal');
-        const messageText = document.getElementById('messageText');
-        
-        // Pre-fill the message with a default text
-        messageText.value = 'Hi {{ listing["host"]["name"] }}! I\'m interested in your listing. Can you tell me more about it?';
-        
-        modal.style.display = 'block';
-        messageText.focus();
-        
-        // Prevent body scroll when modal is open
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeMessageModal() {
-        console.log('Closing message modal');
-        const modal = document.getElementById('messageModal');
-        modal.style.display = 'none';
-        
-        // Restore body scroll
-        document.body.style.overflow = 'auto';
-        
-        // Clear the message text
-        document.getElementById('messageText').value = '';
-    }
-    
-    function sendMessageFromModal() {
-        console.log('Sending message from modal');
-        
-        const messageText = document.getElementById('messageText');
-        const content = messageText.value.trim();
-        const sendButton = document.querySelector('.btn-send-message');
-        
-        if (!content) {
-            alert('Please enter a message before sending.');
-            messageText.focus();
-            return;
-        }
-        
-        // Show loading state
-        const originalText = sendButton.innerHTML;
-        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        sendButton.disabled = true;
-        
-        // Get CSRF token
-        const csrfTokenField = document.getElementById('csrf-token-field');
-        if (!csrfTokenField || !csrfTokenField.value) {
-            console.error('CSRF token not found');
-            alert('Security token missing. Please refresh the page and try again.');
-            sendButton.innerHTML = originalText;
-            sendButton.disabled = false;
-            return;
-        }
-        
-        const csrfToken = csrfTokenField.value;
-        
-        // Send the message
-        fetch('/messages/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                receiver_id: {{ listing['host']['id'] }},
-                content: content,
-                listing_id: {{ listing['id'] }}
-            })
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            if (data.success) {
-                // Show success message
-                sendButton.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
-                sendButton.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-                
-                // Close modal after a short delay and show success notification
-                setTimeout(() => {
-                    closeMessageModal();
-                    showSuccessNotification('Message sent successfully! You can continue the conversation in your messages.');
-                    
-                    // Restore button
-                    sendButton.innerHTML = originalText;
-                    sendButton.disabled = false;
-                    sendButton.style.background = '';
-                }, 1500);
-            } else {
-                // Show error and restore button
-                sendButton.innerHTML = originalText;
-                sendButton.disabled = false;
-                alert('Failed to send message: ' + (data.message || 'Unknown error'));
-            }
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            // Restore button
-            sendButton.innerHTML = originalText;
-            sendButton.disabled = false;
-            alert('Failed to send message. Please try again. Check the console for details.');
-        });
-    }
-    
-    function showSuccessNotification(message) {
-        // Create a temporary notification
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
-            z-index: 10000;
-            font-size: 14px;
-            font-weight: 500;
-            max-width: 350px;
-            animation: slideInRight 0.3s ease;
-        `;
-        notification.innerHTML = `
-            <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
-            ${message}
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Remove notification after 5 seconds
-        setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-    }
-    
-    // Close modal when clicking outside
+        // Close modal when clicking outside
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('messageModal');
         if (e.target === modal) {

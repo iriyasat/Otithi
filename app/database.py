@@ -76,6 +76,11 @@ class Database:
     def execute_query(self, query, params=None):
         """Execute a SELECT query"""
         try:
+            # Check if connection is still alive, reconnect if needed
+            if not self.connection or not self.connection.is_connected():
+                print("Database connection lost, reconnecting...")
+                self.connect()
+            
             cursor = self.connection.cursor(dictionary=True)  # Always use dictionary cursor
             cursor.execute(query, params or ())
             result = cursor.fetchall()
@@ -83,11 +88,27 @@ class Database:
             return result
         except Error as e:
             print(f"Error executing query: {e}")
-            return []
+            # Try to reconnect and retry once
+            try:
+                print("Attempting to reconnect and retry...")
+                self.connect()
+                cursor = self.connection.cursor(dictionary=True)
+                cursor.execute(query, params or ())
+                result = cursor.fetchall()
+                cursor.close()
+                return result
+            except Error as retry_error:
+                print(f"Retry failed: {retry_error}")
+                return []
     
     def execute_insert(self, query, params=None):
         """Execute an INSERT query and return the last inserted ID"""
         try:
+            # Check if connection is still alive, reconnect if needed
+            if not self.connection or not self.connection.is_connected():
+                print("Database connection lost, reconnecting...")
+                self.connect()
+            
             cursor = self.connection.cursor(dictionary=True)  # Use dictionary cursor
             cursor.execute(query, params or ())
             last_id = cursor.lastrowid
@@ -95,11 +116,27 @@ class Database:
             return last_id
         except Error as e:
             print(f"Error executing insert: {e}")
-            return None
+            # Try to reconnect and retry once
+            try:
+                print("Attempting to reconnect and retry...")
+                self.connect()
+                cursor = self.connection.cursor(dictionary=True)
+                cursor.execute(query, params or ())
+                last_id = cursor.lastrowid
+                cursor.close()
+                return last_id
+            except Error as retry_error:
+                print(f"Retry failed: {retry_error}")
+                return None
     
     def execute_update(self, query, params=None):
         """Execute an UPDATE/DELETE query"""
         try:
+            # Check if connection is still alive, reconnect if needed
+            if not self.connection or not self.connection.is_connected():
+                print("Database connection lost, reconnecting...")
+                self.connect()
+            
             cursor = self.connection.cursor(dictionary=True)  # Use dictionary cursor
             cursor.execute(query, params or ())
             affected_rows = cursor.rowcount
@@ -107,7 +144,18 @@ class Database:
             return affected_rows
         except Error as e:
             print(f"Error executing update: {e}")
-            return 0
+            # Try to reconnect and retry once
+            try:
+                print("Attempting to reconnect and retry...")
+                self.connect()
+                cursor = self.connection.cursor(dictionary=True)
+                cursor.execute(query, params or ())
+                affected_rows = cursor.rowcount
+                cursor.close()
+                return affected_rows
+            except Error as retry_error:
+                print(f"Retry failed: {retry_error}")
+                return 0
     
     def close(self):
         """Close database connection"""

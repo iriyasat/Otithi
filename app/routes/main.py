@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from app.models import User, Listing, Booking, Review, ListingImage, Message
 
@@ -320,6 +320,9 @@ def favorites():
 @main_bp.route('/help')
 def help_page():
     """Help page - contact admin"""
+    # Ensure session exists for CSRF protection
+    if not session.get('_fresh'):
+        session['_fresh'] = True
     return render_template('help.html')
 
 @main_bp.route('/help/send', methods=['POST'])
@@ -338,37 +341,46 @@ def send_help_message():
                 'message': 'Missing required fields'
             })
         
-        # Get admin user (assuming admin has user_id = 1 or specific admin email)
-        # You can modify this logic based on how you identify admin users
+        # Get admin user - try to find admin by user_type
         admin_user = None
+        admin_users = User.get_all()
         
-        # Try to find admin by email first
-        if email == 'admin@otithi.com' or email == 'admin@example.com':
-            admin_user = User.get_by_email(email)
+        for user in admin_users:
+            if hasattr(user, 'user_type') and user.user_type == 'admin':
+                admin_user = user
+                break
         
-        # If no admin found by email, try to get the first admin user
-        if not admin_user:
-            # This is a simple approach - you might want to add an 'is_admin' field to users table
-            admin_users = User.get_all()
-            for user in admin_users:
-                if hasattr(user, 'role') and user.role == 'admin':
-                    admin_user = user
-                    break
-            
-            # Fallback: use first user as admin (for development)
-            if not admin_users:
-                return jsonify({
-                    'success': False,
-                    'message': 'No admin users found in system'
-                })
+        # Fallback: use first user as admin (for development)
+        if not admin_user and admin_users:
             admin_user = admin_users[0]
+        elif not admin_users:
+            return jsonify({
+                'success': False,
+                'message': 'No users found in system'
+            })
+        
+        # For help messages from non-authenticated users, we need to handle sender_id differently
+        # Since the messages table requires a valid sender_id, we'll use a special approach
+        
+        if current_user.is_authenticated:
+            # User is logged in, use their ID
+            sender_id = current_user.id
+        else:
+            # User is not logged in, use the system administrator user (ID: 1) as sender
+            # This allows us to track help requests while maintaining database constraints
+            system_admin = User.get(1)  # System Administrator
+            if system_admin:
+                sender_id = system_admin.id
+            else:
+                # Fallback to the found admin user
+                sender_id = admin_user.id
         
         # Create help message in the messages table
         help_message = Message.create(
-            sender_id=current_user.id if current_user.is_authenticated else None,
+            sender_id=sender_id,
             receiver_id=admin_user.id,
             content=f"HELP REQUEST - {subject}\n\nFrom: {name} ({email})\n\nMessage:\n{message}",
-            message_type='help',
+            message_type='system',  # Use 'system' type since 'help' is not in the enum
             listing_id=None,
             booking_id=None
         )
@@ -386,9 +398,11 @@ def send_help_message():
             
     except Exception as e:
         print(f"Error sending help message: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
-            'message': 'Error sending help message'
+            'message': f'Error sending help message: {str(e)}'
         })
 
 # Remove the redirect routes - auth blueprint handles /login and /register directly

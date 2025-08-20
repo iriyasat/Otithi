@@ -22,8 +22,11 @@ class MessagesLive {
         document.addEventListener('click', (e) => {
             if (e.target.closest('.conversation-item')) {
                 const conversationItem = e.target.closest('.conversation-item');
-                const userId = conversationItem.dataset.userId;
-                this.loadConversation(userId);
+                const participantId = conversationItem.dataset.participantId;
+                if (participantId) {
+                    this.loadConversation(participantId);
+                    this.markConversationActive(conversationItem);
+                }
             }
         });
 
@@ -109,7 +112,7 @@ class MessagesLive {
             if (data.success) {
                 this.currentConversation = userId;
                 this.renderMessages(data.messages);
-                this.markConversationActive(userId);
+                this.showActiveChat();
                 this.scrollToBottom();
             }
         } catch (error) {
@@ -118,10 +121,10 @@ class MessagesLive {
     }
 
     renderMessages(messages) {
-        const messagesContainer = document.getElementById('messagesContainer');
-        if (!messagesContainer) return;
+        const messagesList = document.getElementById('messagesList');
+        if (!messagesList) return;
 
-        messagesContainer.innerHTML = messages.map(msg => `
+        messagesList.innerHTML = messages.map(msg => `
             <div class="message-item ${msg.sender_id == this.getCurrentUserId() ? 'sent' : 'received'}">
                 <div class="message-content">
                     <div class="message-text">${this.escapeHtml(msg.content)}</div>
@@ -129,13 +132,25 @@ class MessagesLive {
                 </div>
             </div>
         `).join('');
+    }
 
-        // Update conversation title
-        const conversationTitle = document.getElementById('conversationTitle');
-        if (conversationTitle) {
-            const conversation = this.conversations.find(c => c.userId == this.currentConversation);
-            conversationTitle.textContent = conversation ? conversation.name : 'Conversation';
-        }
+    showActiveChat() {
+        // Hide empty state and show active chat
+        const emptyState = document.getElementById('chatEmptyState');
+        const activeChat = document.getElementById('activeChat');
+        
+        if (emptyState) emptyState.style.display = 'none';
+        if (activeChat) activeChat.style.display = 'block';
+    }
+
+    markConversationActive(conversationItem) {
+        // Remove active class from all conversations
+        document.querySelectorAll('.conversation-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Add active class to clicked conversation
+        conversationItem.classList.add('active');
     }
 
     async sendMessage() {

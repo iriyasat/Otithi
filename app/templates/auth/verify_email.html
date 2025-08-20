@@ -179,6 +179,7 @@
     </div>
 
     <form class="verification-form" method="POST" id="verificationForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="verification-code-input">
             <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
             <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>

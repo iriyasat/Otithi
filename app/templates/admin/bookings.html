@@ -161,6 +161,7 @@
                                             {% if booking.status == 'pending' %}
                                             <li>
                                                 <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                     <input type="hidden" name="status" value="confirmed">
                                                     <button type="submit" class="dropdown-item text-success">
                                                         <i class="fas fa-check me-2"></i>Confirm
@@ -171,6 +172,7 @@
                                             {% if booking.status != 'cancelled' %}
                                             <li>
                                                 <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id) }}" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                     <input type="hidden" name="status" value="cancelled">
                                                     <button type="submit" class="dropdown-item text-danger">
                                                         <i class="fas fa-times me-2"></i>Cancel
