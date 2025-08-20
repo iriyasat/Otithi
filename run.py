@@ -1,5 +1,8 @@
-from app import create_app
+#!/usr/bin/env python
 import os
+import sys
+
+from app import create_app
 
 app = create_app()
 
