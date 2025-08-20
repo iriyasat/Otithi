@@ -93,6 +93,167 @@
     transition: var(--admin-transition);
 }
 
+/* Enhanced Listing Image Styles */
+.listing-image-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--admin-border-radius);
+    overflow: hidden;
+    box-shadow: var(--admin-shadow-sm);
+    transition: var(--admin-transition);
+}
+
+.listing-image-container:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--admin-shadow);
+}
+
+.listing-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.listing-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--admin-transition);
+}
+
+.listing-image:hover {
+    transform: scale(1.05);
+}
+
+.listing-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px dashed #dee2e6;
+    color: #6c757d;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: var(--admin-transition);
+    font-size: 18px;
+}
+
+.listing-placeholder:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-color: var(--admin-primary);
+    color: var(--admin-primary);
+    transform: scale(1.02);
+}
+
+.listing-placeholder i {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+.listing-placeholder small {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.listing-placeholder-fallback {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 2px dashed #ffc107;
+    color: #856404;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.listing-placeholder-fallback i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.listing-placeholder-fallback small {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Enhanced Table Row Styles */
+.listing-row {
+    transition: var(--admin-transition);
+    border-left: 3px solid transparent;
+}
+
+.listing-row:hover {
+    background-color: rgba(40, 167, 69, 0.05);
+    border-left-color: var(--admin-primary);
+    transform: translateX(2px);
+}
+
+.listing-row td {
+    vertical-align: middle;
+    padding: 1rem 0.75rem;
+}
+
+/* Listing title styling */
+.listing-row .fw-semibold {
+    color: var(--admin-text-primary);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.listing-row .text-muted {
+    color: var(--admin-text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Status badge enhancements */
+.listing-row .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Price styling */
+.listing-row .fw-bold {
+    color: var(--admin-success);
+    font-size: 1.1rem;
+}
+
+/* Host information styling */
+.listing-row .admin-user-avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+    box-shadow: var(--admin-shadow-sm);
+}
+
+.listing-row .admin-user-avatar-placeholder-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    border: 2px solid #fff;
+    box-shadow: var(--admin-shadow-sm);
+}
+
 .admin-card:hover {
     box-shadow: var(--admin-shadow-lg);
     transform: translateY(-2px);

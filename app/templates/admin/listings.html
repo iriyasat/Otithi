@@ -99,12 +99,28 @@
                                 </thead>
                                 <tbody>
                             {% for listing in listings %}
-                            <tr>
+                            <tr class="listing-row" data-listing-id="{{ listing.id }}">
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="listing-image-sm me-3">
-                                            <img src="{{ listing.primary_photo or '/static/img/placeholder.jpg' }}" 
-                                                 alt="{{ listing.title }}" class="img-fluid rounded">
+                                        <div class="listing-image-container me-3">
+                                            {% if listing.primary_photo %}
+                                                <div class="listing-image-wrapper">
+                                                    <img src="{{ listing.primary_photo }}" 
+                                                         alt="{{ listing.title }}" 
+                                                         class="listing-image"
+                                                         loading="lazy"
+                                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                    <div class="listing-placeholder-fallback" style="display: none;">
+                                                        <i class="fas fa-image"></i>
+                                                        <small>Image Error</small>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="listing-placeholder">
+                                                    <i class="fas fa-home"></i>
+                                                    <small>No Image</small>
+                                                </div>
+                                            {% endif %}
                                         </div>
                                         <div>
                                             <div class="fw-semibold">{{ listing.title or 'Untitled Listing' }}</div>

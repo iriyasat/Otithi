@@ -493,6 +493,32 @@ class Listing:
         self.country = None
         self.latitude = None
         self.longitude = None
+        
+        # Host information will be loaded separately
+        self.host_name = None
+        self.host_email = None
+        self.host_profile_photo = None
+    
+    @property
+    def price_per_night(self):
+        """Alias for price to maintain compatibility with templates"""
+        return self.price
+    
+    @property
+    def primary_photo(self):
+        """Get the first image as primary photo with full URL path"""
+        if self.images and len(self.images) > 0:
+            # Return the full path to the image in the uploads/listings directory
+            return f"/static/uploads/listings/{self.images[0]}"
+        return None
+    
+    @property
+    def status(self):
+        """Get listing status based on is_active"""
+        if self.is_active:
+            return 'active'
+        else:
+            return 'pending'
     
     @staticmethod
     def get(listing_id):
@@ -542,12 +568,15 @@ class Listing:
     
     @staticmethod
     def get_all():
-        """Get all active listings with location and images"""
+        """Get all active listings with location, images, and host information"""
         query = """
             SELECT l.*, loc.address as location_address, loc.city as location_city, 
-                   loc.country as location_country, loc.latitude, loc.longitude 
+                   loc.country as location_country, loc.latitude, loc.longitude,
+                   u.name as host_name, u.email as host_email, ud.profile_photo as host_profile_photo
             FROM listings l 
             LEFT JOIN locations loc ON l.location_id = loc.location_id 
+            LEFT JOIN users u ON l.host_id = u.user_id
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
             WHERE l.is_active = 1
             ORDER BY l.created_at DESC
         """
@@ -591,6 +620,12 @@ class Listing:
             listing.location = f"{listing.city}, {listing.country}" if listing.city and listing.country else ""
             listing.latitude = float(listing_data['latitude']) if listing_data['latitude'] else None
             listing.longitude = float(listing_data['longitude']) if listing_data['longitude'] else None
+            
+            # Add host information
+            listing.host_name = listing_data.get('host_name', 'Unknown Host')
+            listing.host_email = listing_data.get('host_email', '')
+            listing.host_profile_photo = listing_data.get('host_profile_photo', '')
+            
             listings.append(listing)
         return listings
     
