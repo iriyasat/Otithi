@@ -65,7 +65,7 @@ function initializeListingInteractions() {
             }
             
             const listingId = this.dataset.listingId || 1;
-            window.location.href = `/listing/${listingId}`;
+            window.location.href = `/listings/${listingId}`;
         });
     });
 

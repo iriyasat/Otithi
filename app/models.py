@@ -607,6 +607,18 @@ class Listing:
         results = db.execute_query(query, (host_id,))
         listings = []
         for listing_data in results:
+            # Calculate rating and review count
+            rating_query = """
+                SELECT AVG(rating) as avg_rating, COUNT(*) as review_count 
+                FROM reviews WHERE listing_id = %s
+            """
+            rating_result = db.execute_query(rating_query, (listing_data['listing_id'],))
+            avg_rating = float(rating_result[0]['avg_rating']) if rating_result and rating_result[0]['avg_rating'] else 0.0
+            review_count = rating_result[0]['review_count'] if rating_result else 0
+            
+            # Get listing images
+            images = ListingImage.get_by_listing(listing_data['listing_id'])
+            
             listing = Listing(
                 id=listing_data['listing_id'],
                 title=listing_data['title'],
@@ -618,9 +630,11 @@ class Listing:
                 guests=listing_data['max_guests'],
                 amenities=listing_data['amenities'].split(',') if listing_data['amenities'] else [],
                 created_date=listing_data['created_at'],
-                rating=0.0,
-                reviews_count=0,
-                available=True
+                rating=avg_rating,
+                reviews_count=review_count,
+                available=bool(listing_data.get('is_active', 1)),
+                images=[img.image_filename for img in images],
+                is_active=bool(listing_data.get('is_active', 1))
             )
             
             # Add location details as separate attributes

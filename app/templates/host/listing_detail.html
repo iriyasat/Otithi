@@ -2,479 +2,790 @@
 {% block title %}{{ listing['title'] }} - Otithi{% endblock %}
 
 {% block extra_css %}
-<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+<style>
+/* Listing Detail Styles */
+.listing-photos {
+    margin-bottom: 30px;
+}
+
+.main-listing-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.listing-main-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 80px;
+    margin-bottom: 40px;
+}
+
+.listing-title-section {
+    margin-bottom: 30px;
+}
+
+.listing-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 8px;
+}
+
+.listing-subtitle {
+    color: #717171;
+    font-size: 16px;
+}
+
+.host-section {
+    padding: 30px 0;
+    border-bottom: 1px solid #DDDDDD;
+    margin-bottom: 30px;
+}
+
+.host-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.host-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.host-details h3 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #222;
+    margin: 0;
+}
+
+.listing-description {
+    padding: 30px 0;
+    border-bottom: 1px solid #DDDDDD;
+    margin-bottom: 30px;
+}
+
+.listing-description p {
+    color: #222;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.amenities-section {
+    padding: 30px 0;
+    border-bottom: 1px solid #DDDDDD;
+    margin-bottom: 30px;
+}
+
+.amenities-section h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #222;
+}
+
+.amenity-item i {
+    font-size: 20px;
+    color: #717171;
+}
+
+.reviews-section {
+    padding: 30px 0;
+}
+
+.reviews-section h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+.reviews-section h3 i {
+    color: #FFD700;
+    margin-right: 8px;
+}
+
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+}
+
+.review-item {
+    padding: 20px 0;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.reviewer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.reviewer-name {
+    font-weight: 600;
+    color: #222;
+}
+
+.review-date {
+    color: #717171;
+    font-size: 14px;
+}
+
+.review-rating {
+    margin-bottom: 10px;
+}
+
+.review-rating i {
+    color: #FFD700;
+    font-size: 14px;
+}
+
+.review-text {
+    color: #222;
+    line-height: 1.5;
+}
+
+/* Booking Card */
+.booking-card {
+    border: 1px solid #DDDDDD;
+    border-radius: 12px;
+    padding: 24px;
+    position: sticky;
+    top: 120px;
+    height: fit-content;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.booking-header {
+    margin-bottom: 24px;
+}
+
+.price-info {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.price {
+    font-size: 22px;
+    font-weight: 600;
+    color: #222;
+}
+
+.price-unit {
+    color: #717171;
+    font-size: 16px;
+}
+
+.booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.date-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #B0B0B0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    border-right: 1px solid #B0B0B0;
+}
+
+.input-group:last-child {
+    border-right: none;
+}
+
+.input-group label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #222;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.input-group input,
+.guests-input select {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: #222;
+    background: transparent;
+    font-family: inherit;
+    width: 100%;
+    padding: 8px 0;
+}
+
+.input-group input:focus,
+.guests-input select:focus {
+    outline: none;
+    border: none;
+    background: transparent;
+    color: #222;
+}
+
+/* Date input calendar fix - FORCE NATIVE APPEARANCE */
+input#checkin,
+input#checkout,
+input[type="date"] {
+    -webkit-appearance: auto !important;
+    -moz-appearance: auto !important;
+    appearance: auto !important;
+    background: white !important;
+    color: #222 !important;
+    cursor: pointer !important;
+}
+
+input#checkin::-webkit-calendar-picker-indicator,
+input#checkout::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: block !important;
+    opacity: 1 !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    color: #222 !important;
+    font-size: 16px !important;
+    padding: 4px !important;
+    margin: 0 !important;
+    border: none !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Force clickable area */
+.date-inputs .input-group {
+    position: relative;
+}
+
+.date-inputs input[type="date"] {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto !important;
+}
+
+.input-group input[type="date"] {
+    color: #222;
+    font-size: 14px;
+    background: var(--neutral-0);
+    border: none;
+    padding: 8px 0;
+    width: 100%;
+    font-family: inherit;
+    -webkit-appearance: auto;
+    appearance: auto;
+    -moz-appearance: auto;
+}
+
+.input-group input[type="date"]::-webkit-calendar-picker-indicator {
+    color: #222;
+    opacity: 1;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+    margin: 0;
+    display: block;
+    width: auto;
+    height: auto;
+}
+
+.input-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.input-group input[type="date"]::-webkit-inner-spin-button,
+.input-group input[type="date"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input-group input[type="date"]:focus {
+    outline: none;
+    color: #222;
+}
+
+/* Additional visibility fixes for date inputs */
+.form-control[type="date"] {
+    color: #222 !important;
+    background: white !important;
+    font-size: 14px !important;
+    line-height: 1.5;
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+}
+
+.form-control[type="date"]::-webkit-datetime-edit {
+    color: #222;
+}
+
+.form-control[type="date"]::-webkit-datetime-edit-text {
+    color: #222;
+    padding: 0 4px;
+}
+
+.form-control[type="date"]::-webkit-datetime-edit-month-field,
+.form-control[type="date"]::-webkit-datetime-edit-day-field,
+.form-control[type="date"]::-webkit-datetime-edit-year-field {
+    color: #222;
+    background: white;
+}
+
+/* Override Bootstrap form-control appearance for date inputs */
+.input-group .form-control[type="date"] {
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+    background: white !important;
+    border: none !important;
+    outline: none !important;
+}
+
+.input-group .form-control[type="date"]:focus {
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.form-control[type="date"]:invalid {
+    color: #222;
+}
+
+.guests-input {
+    border: 1px solid #B0B0B0;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.guests-input label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #222;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.reserve-btn {
+    background: var(--primary-green, #006a4e);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reserve-btn:hover {
+    background: var(--primary-600, #005439);
+}
+
+.booking-note {
+    text-align: center;
+    color: #717171;
+    font-size: 14px;
+}
+
+.price-breakdown {
+    border-top: 1px solid #DDDDDD;
+    padding-top: 16px;
+}
+
+.price-item {
+    color: #717171;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 950px) {
+    .listing-main-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .booking-card {
+        position: relative;
+        top: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .amenities-grid,
+    .reviews-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .date-inputs {
+        grid-template-columns: 1fr;
+    }
+    
+    .input-group {
+        border-right: none;
+        border-bottom: 1px solid #B0B0B0;
+    }
+    
+    .input-group:last-child {
+        border-bottom: none;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb-nav">
-        <a href="/" class="breadcrumb-link">Otithi</a>
-        <span class="breadcrumb-separator">></span>
-        <a href="/search" class="breadcrumb-link">{{ listing['city'] }}</a>
-        <span class="breadcrumb-separator">></span>
-        <span class="breadcrumb-current">{{ listing['title'] }}</span>
-    </nav>
-    
-    <!-- Title & Actions -->
-    <div class="listing-header">
-        <div>
-            <h1 class="listing-title">{{ listing['title'] }}</h1>
-            <div class="listing-meta">
-                {% if listing['reviews'] > 0 %}
-                <div class="listing-meta-item">
-                    <i class="bi bi-star-fill star-filled"></i>
-                    <span>{{ "%.1f"|format(listing['rating']) }} ({{ listing['reviews'] }} review{{ 's' if listing['reviews'] != 1 else '' }})</span>
-                </div>
-                {% else %}
-                <div class="listing-meta-item">
-                    <i class="bi bi-star star-empty"></i>
-                    <span>No reviews yet</span>
-                </div>
-                {% endif %}
-                <div class="listing-meta-item">
-                    <i class="bi bi-geo-alt"></i>
-                    <span>{{ listing['city'] }}, {{ listing['country'] }}</span>
-                </div>
-            </div>
-        </div>
-        <div class="listing-actions">
-            <button class="btn-outline action-button">
-                <i class="bi bi-share"></i> Share
-            </button>
-            <button class="btn-outline action-button">
-                <i class="bi bi-heart"></i> Save
-            </button>
-        </div>
-    </div>
-    
-    <!-- Photo Gallery -->
-    <div class="photo-gallery">
-        {% if listing['images'] and listing['images']|length > 1 %}
-        <!-- Multiple images - show gallery -->
-        <div class="photo-grid">
-            <!-- Main image -->
-            <div class="photo-main">
-                <img src="{{ url_for('static', filename='uploads/listings/' + listing['images'][0]) if listing['images'][0] != 'demo_listing_1.jpg' else url_for('static', filename='img/' + listing['images'][0]) }}" 
-                     alt="{{ listing['title'] }}" 
-                     class="photo-item"
-                     onclick="openImageModal(0)">
-            </div>
-            <!-- Secondary images -->
-            {% for image in listing['images'][1:3] %}
-            <div class="photo-container">
-                <img src="{{ url_for('static', filename='uploads/listings/' + image) if image != 'demo_listing_1.jpg' else url_for('static', filename='img/' + image) }}" 
-                     alt="{{ listing['title'] }}" 
-                     class="photo-item"
-                     onclick="openImageModal({{ loop.index }})">
-                {% if loop.last and listing['images']|length > 3 %}
-                <div class="photo-overlay" onclick="openImageModal({{ loop.index }})">
-                    +{{ listing['images']|length - 3 }} more
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <!-- Single image -->
-        <div style="border-radius: var(--radius-lg); overflow: hidden;">
-            <img src="{{ url_for('static', filename='uploads/listings/' + listing['images'][0]) if listing['images'] and listing['images'][0] != 'demo_listing_1.jpg' else url_for('static', filename='img/demo_listing_1.jpg') }}" 
+<div class="container">
+    <div class="listing-detail-page">
+        <!-- Photo Section -->
+        <div class="listing-photos">
+            <img src="{% if listing['images'][0] == 'demo_listing_1.jpg' %}{{ url_for('static', filename='img/demo_listing_1.jpg') }}{% else %}{{ url_for('static', filename='uploads/listings/' + listing['images'][0]) }}{% endif %}" 
                  alt="{{ listing['title'] }}" 
-                 style="width: 100%; height: 400px; object-fit: cover; cursor: pointer;"
-                 onclick="openImageModal(0)">
+                 class="main-listing-image">
         </div>
-        {% endif %}
         
-        <!-- Image Modal -->
-        <div id="imageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000;">
-            <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                <button onclick="closeImageModal()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; padding: 10px; border-radius: 50%; cursor: pointer;">&times;</button>
-                <button onclick="prevImage()" style="position: absolute; left: 20px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; padding: 10px 15px; border-radius: 50%; cursor: pointer;">‹</button>
-                <button onclick="nextImage()" style="position: absolute; right: 60px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; padding: 10px 15px; border-radius: 50%; cursor: pointer;">›</button>
-                <img id="modalImage" style="max-width: 90%; max-height: 90%; object-fit: contain;">
-                <div id="imageCounter" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: white; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px;"></div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
         <!-- Main Content -->
-        <div class="col-lg-7">
-            <!-- Host Info -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 24px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
-                <div>
-                    <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">
-                        {{ listing['room_type'].replace('_', ' ').title() }} hosted by {{ listing['host']['name'] }}
-                    </h2>
-                    <p style="color: var(--text-secondary); margin: 0;">
-                        {% if listing['room_type'] == 'entire_place' %}
-                            {{ listing['max_guests'] }} guest{% if listing['max_guests'] != 1 %}s{% endif %} · 
-                            {{ listing['bedrooms'] }} bedroom{% if listing['bedrooms'] != 1 %}s{% endif %} · 
-                            {{ listing['bedrooms'] }} bed{% if listing['bedrooms'] != 1 %}s{% endif %} · 
-                            {{ listing['bathrooms']|int if listing['bathrooms'] == listing['bathrooms']|int else listing['bathrooms'] }} bathroom{% if listing['bathrooms'] != 1 %}s{% endif %}
-                        {% elif listing['room_type'] == 'private_room' %}
-                            {{ listing['max_guests'] }} guest{% if listing['max_guests'] != 1 %}s{% endif %} · 
-                            Private room · Shared bathroom
-                        {% elif listing['room_type'] == 'shared_room' %}
-                            {{ listing['max_guests'] }} guest{% if listing['max_guests'] != 1 %}s{% endif %} · 
-                            Shared room · Shared bathroom
-                        {% endif %}
-                    </p>
-                </div>
-                {% if listing['host']['avatar'] != 'user-gear.png' %}
-                    <img src="{{ url_for('static', filename='uploads/' + listing['host']['avatar']) }}" 
-                         alt="{{ listing['host']['name'] }}" 
-                         style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;">
-                {% else %}
-                    <div style="width: 56px; height: 56px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 24px;">
-                        {{ listing['host']['name'][0].upper() if listing['host']['name'] else 'H' }}
+        <div class="listing-main-content">
+            <!-- Left Column - Listing Details -->
+            <div class="listing-left-column">
+                <!-- Title Section -->
+                <div class="listing-title-section">
+                    <h1 class="listing-title">{{ listing['title'] }}</h1>
+                    <div class="listing-subtitle">
+                        {{ listing['guests'] }} guests · {{ listing['type'].replace('_', ' ').title() }}
                     </div>
+                </div>
+                
+                <!-- Host Section -->
+                <div class="host-section">
+                    <div class="host-info">
+                        <img src="{{ url_for('static', filename='uploads/' + listing['host']['avatar']) }}" 
+                             alt="{{ listing['host']['name'] }}" 
+                             class="host-avatar">
+                        <div class="host-details">
+                            <h3>{{ listing['type'].replace('_', ' ').title() }} hosted by {{ listing['host']['name'] }}</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div class="listing-description">
+                    <p>{{ listing['description'] }}</p>
+                </div>
+                
+                <!-- Amenities -->
+                <div class="amenities-section">
+                    <h3>What this place offers</h3>
+                    <div class="amenities-grid">
+                        {% if listing['rating'] >= 4.5 %}
+                        <div class="amenity-item">
+                            <i class="bi bi-star-fill"></i>
+                            <span>{{ "%.1f"|format(listing['rating']) }} · {{ listing['reviews'] }} reviews</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="amenity-item">
+                            <i class="bi bi-wifi"></i>
+                            <span>Wifi</span>
+                        </div>
+                        
+                        <div class="amenity-item">
+                            <i class="bi bi-snow"></i>
+                            <span>Air conditioning</span>
+                        </div>
+                        
+                        <div class="amenity-item">
+                            <i class="bi bi-car-front"></i>
+                            <span>Parking</span>
+                        </div>
+                        
+                        <div class="amenity-item">
+                            <i class="bi bi-tv"></i>
+                            <span>TV</span>
+                        </div>
+                        
+                        <div class="amenity-item">
+                            <i class="bi bi-house"></i>
+                            <span>Balcony</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reviews Section -->
+                {% if listing['reviews'] > 0 %}
+                <div class="reviews-section">
+                    <h3><i class="bi bi-star-fill"></i> {{ "%.1f"|format(listing['rating']) }} · {{ listing['reviews'] }} review{{ 's' if listing['reviews'] != 1 else '' }}</h3>
+                    
+                    <!-- Sample Reviews -->
+                    <div class="reviews-grid">
+                        <div class="review-item">
+                            <div class="review-header">
+                                <img src="{{ url_for('static', filename='uploads/marzia_hossain_5_profile.jpeg') }}" 
+                                     alt="Marzia Hossain" 
+                                     class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-name">Marzia Hossain</div>
+                                    <div class="review-date">August 2025</div>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p class="review-text">Very clean and comfortable apartment. Great amenities and excellent communication from the host. Would definitely recommend!</p>
+                        </div>
+                        
+                        <div class="review-item">
+                            <div class="review-header">
+                                <img src="{{ url_for('static', filename='uploads/marzia_hossain_8_profile.jpeg') }}" 
+                                     alt="Marzia Hossain" 
+                                     class="reviewer-avatar">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-name">Marzia Hossain</div>
+                                    <div class="review-date">August 2025</div>
+                                </div>
+                            </div>
+                            <div class="review-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star"></i>
+                            </div>
+                            <p class="review-text">Amazing place! Ibrahim was a wonderful host and the apartment exceeded our expectations. The location is perfect for exploring Dhaka.</p>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
             </div>
             
-            <!-- Description -->
-            <div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
-                <p style="line-height: 1.6; color: var(--text-primary);">
-                    {{ listing['description'] or "Experience authentic Bangladeshi hospitality in this beautiful space. Perfect for travelers looking to immerse themselves in local culture while enjoying modern comforts." }}
-                </p>
-            </div>
-            
-            <!-- Amenities -->
-            <div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
-                <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 24px;">What this place offers</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-                    {% set amenities_list = listing['amenities'].split(',') if listing['amenities'] else ['Wi-Fi', 'Kitchen', 'Air conditioning', 'Parking'] %}
-                    {% for amenity in amenities_list[:6] %}
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <i class="bi bi-check-circle" style="color: var(--primary-green);"></i>
-                        <span>{{ amenity.strip() }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Booking Card -->
-        <div class="col-lg-5">
-            <div style="position: sticky; top: 120px;">
-                <div style="background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-lg);">
-                    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 24px;">
-                        <span style="font-size: 22px; font-weight: 600;">৳{{ listing['price_per_night'] }}</span>
-                        <span style="color: var(--text-secondary);">night</span>
+            <!-- Right Column - Booking Card -->
+            <div class="listing-right-column">
+                <div class="booking-card">
+                    <div class="booking-header">
+                        <div class="price-info">
+                            <span class="price">৳{{ "{:,.0f}".format(listing['price']) }}</span>
+                            <span class="price-unit">night</span>
+                        </div>
                     </div>
                     
-                    <form action="/booking" method="GET" style="margin-bottom: 16px;">
-                        <input type="hidden" name="listing_id" value="{{ listing['listing_id'] }}">
+                    <form class="booking-form" method="POST" action="{{ url_for('bookings.confirm_booking', listing_id=listing['id']) }}">
+                        <input type="hidden" name="listing_id" value="{{ listing['id'] }}">
                         
-                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 16px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr;">
-                                <div style="padding: 12px; border-right: 1px solid var(--border-light);">
-                                    <label style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-primary);">Check-in</label>
-                                    <input type="date" name="check_in" style="width: 100%; border: none; background: none; outline: none; font-size: 14px; margin-top: 4px;">
-                                </div>
-                                <div style="padding: 12px;">
-                                    <label style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-primary);">Check-out</label>
-                                    <input type="date" name="check_out" style="width: 100%; border: none; background: none; outline: none; font-size: 14px; margin-top: 4px;">
-                                </div>
+                        <div class="date-inputs">
+                            <div class="input-group">
+                                <label for="checkin">CHECK-IN</label>
+                                <input type="date" 
+                                       id="checkin" 
+                                       name="checkin" 
+                                       required
+                                       class="form-control">
                             </div>
-                            <div style="padding: 12px; border-top: 1px solid var(--border-light);">
-                                <label style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-primary);">Guests</label>
-                                <select name="guests" style="width: 100%; border: none; background: none; outline: none; font-size: 14px; margin-top: 4px;">
-                                    <option value="1">1 guest</option>
-                                    <option value="2">2 guests</option>
-                                    <option value="3">3 guests</option>
-                                    <option value="4">4 guests</option>
-                                </select>
+                            <div class="input-group">
+                                <label for="checkout">CHECK-OUT</label>
+                                <input type="date" 
+                                       id="checkout" 
+                                       name="checkout" 
+                                       required
+                                       class="form-control">
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn-primary w-100" style="font-size: 16px; padding: 14px;">
-                            Reserve
-                        </button>
+                        <div class="guests-input">
+                            <label for="guests">GUESTS</label>
+                            <select id="guests" name="guests" class="form-control">
+                                {% for i in range(1, listing['guests'] + 1) %}
+                                <option value="{{ i }}">{{ i }} guest{{ 's' if i != 1 else '' }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="reserve-btn">Reserve</button>
+                        
+                        <div class="booking-note">
+                            <small>You won't be charged yet</small>
+                        </div>
+                        
+                        <div class="price-breakdown">
+                            <div class="price-item" id="price-summary" style="display: none;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>৳<span id="price-per-night">{{ "{:,.0f}".format(listing['price']) }}</span> × <span id="total-nights">0</span> nights</span>
+                                    <span>৳<span id="base-price">0</span></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Cleaning fee</span>
+                                    <span>৳500</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Service fee (15%)</span>
+                                    <span>৳<span id="service-fee">0</span></span>
+                                </div>
+                                <hr style="margin: 12px 0; border: none; border-top: 1px solid #DDDDDD;">
+                                <div style="display: flex; justify-content: space-between; font-weight: 600; color: #222;">
+                                    <span>Total</span>
+                                    <span>৳<span id="total-price">0</span></span>
+                                </div>
+                            </div>
+                            <div class="price-item" id="price-placeholder">
+                                <span>Select dates to see pricing</span>
+                            </div>
+                        </div>
                     </form>
-                    
-                    <p style="text-align: center; color: var(--text-secondary); font-size: 14px; margin: 0;">
-                        You won't be charged yet
-                    </p>
-                    
-                    <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light);">
-                        <div id="price-breakdown" style="display: none;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                <span id="nights-text">৳{{ listing['price_per_night'] }} x 0 nights</span>
-                                <span id="base-price">৳0</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                                <span>Service fee (15%)</span>
-                                <span id="service-fee">৳0</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border-light); font-weight: 600;">
-                                <span>Total before taxes</span>
-                                <span id="total-price">৳0</span>
-                            </div>
-                        </div>
-                        <div id="price-placeholder" style="text-align: center; color: var(--text-secondary); padding: 20px;">
-                            Select dates to see pricing
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Reviews Section -->
-    <div style="margin-top: 48px; padding-top: 48px; border-top: 1px solid var(--border-light);">
-        {% if reviews %}
-        <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 32px;">
-            <i class="bi bi-star-fill" style="color: #FFD700; margin-right: 8px;"></i>
-            {{ "%.1f"|format(listing['rating']) }} · {{ reviews|length }} review{{ 's' if reviews|length != 1 else '' }}
-        </h3>
-        
-        <div class="row g-4">
-            {% for review in reviews %}
-            <div class="col-md-6">
-                <div style="padding: 16px 0;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                        {% if review.user_profile_photo %}
-                            <img src="{{ url_for('static', filename='uploads/' + review.user_profile_photo) }}" 
-                                 alt="{{ review.user_name or 'User' }}" 
-                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                        {% else %}
-                            <div style="width: 40px; height: 40px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                                {{ review.user_name[0].upper() if review.user_name else 'U' }}
-                            </div>
-                        {% endif %}
-                        <div>
-                            <div style="font-weight: 600;">{{ review.user_name or 'Anonymous' }}</div>
-                            <div style="font-size: 14px; color: var(--text-secondary);">
-                                {{ review.created_date.strftime('%B %Y') }}
-                            </div>
-                            <div style="font-size: 14px; color: #FFD700;">
-                                {% for i in range(review.rating|int) %}
-                                    <i class="bi bi-star-fill"></i>
-                                {% endfor %}
-                                {% if review.rating % 1 >= 0.5 %}
-                                    <i class="bi bi-star-half"></i>
-                                {% endif %}
-                                {% for i in range(5 - (review.rating|int + (1 if review.rating % 1 >= 0.5 else 0))) %}
-                                    <i class="bi bi-star"></i>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-primary); line-height: 1.6;">
-                        {{ review.comment }}
-                    </p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <h3 style="font-size: 22px; font-weight: 600; margin-bottom: 16px;">
-            <i class="bi bi-star" style="color: #ddd; margin-right: 8px;"></i>
-            No reviews yet
-        </h3>
-        <p style="color: var(--text-secondary); margin-bottom: 32px;">Be the first to leave a review for this listing!</p>
-        {% endif %}
-        
-        <!-- Add Review Form -->
-        {% if current_user.is_authenticated and current_user.id != listing['host']['id'] %}
-        <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);">
-            <h4 style="font-size: 20px; font-weight: 600; margin-bottom: 24px;">Leave a Review</h4>
-            <form action="{{ url_for('main.add_review', listing_id=listing['id']) }}" method="POST" style="max-width: 600px;">
-                {{ csrf_token() }}
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 500; margin-bottom: 8px;">Rating</label>
-                    <div style="display: flex; gap: 4px; margin-bottom: 16px;">
-                        {% for i in range(1, 6) %}
-                        <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}" style="display: none;" required>
-                        <label for="star{{ i }}" class="star-rating" style="font-size: 24px; color: #ddd; cursor: pointer; transition: color 0.2s;">
-                            <i class="bi bi-star-fill"></i>
-                        </label>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label for="comment" style="display: block; font-weight: 500; margin-bottom: 8px;">Your Review</label>
-                    <textarea name="comment" id="comment" rows="4" 
-                              style="width: 100%; padding: 12px; border: 1px solid var(--border-light); border-radius: var(--radius-md); resize: vertical;"
-                              placeholder="Share your experience with future guests..." required></textarea>
-                </div>
-                <button type="submit" class="btn-primary" style="padding: 12px 24px;">
-                    Submit Review
-                </button>
-            </form>
-        </div>
-        {% elif not current_user.is_authenticated %}
-        <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border-light);">
-            <p style="color: var(--text-secondary);">
-                <a href="{{ url_for('auth.login') }}" style="color: var(--primary-green); text-decoration: none;">Sign in</a> to leave a review.
-            </p>
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script>
-// Image gallery functionality
-let currentImageIndex = 0;
-let listingImages = {{ listing['images'] | tojson }};
-
-function openImageModal(index) {
-    currentImageIndex = index;
-    const modal = document.getElementById('imageModal');
-    const modalImage = document.getElementById('modalImage');
-    const counter = document.getElementById('imageCounter');
-    
-    const imagePath = listingImages[currentImageIndex];
-    const imageUrl = imagePath === 'demo_listing_1.jpg' 
-        ? "{{ url_for('static', filename='img/demo_listing_1.jpg') }}"
-        : "{{ url_for('static', filename='uploads/listings/') }}" + imagePath;
-    
-    modalImage.src = imageUrl;
-    counter.textContent = `${currentImageIndex + 1} / ${listingImages.length}`;
-    modal.style.display = 'block';
-    
-    // Prevent body scroll
-    document.body.style.overflow = 'hidden';
-}
-
-function closeImageModal() {
-    document.getElementById('imageModal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-function nextImage() {
-    currentImageIndex = (currentImageIndex + 1) % listingImages.length;
-    openImageModal(currentImageIndex);
-}
-
-function prevImage() {
-    currentImageIndex = (currentImageIndex - 1 + listingImages.length) % listingImages.length;
-    openImageModal(currentImageIndex);
-}
-
-// Close modal on escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageModal();
-    }
-});
-
-// Close modal on background click
-document.getElementById('imageModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeImageModal();
-    }
-});
-
-// Star rating functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const starLabels = document.querySelectorAll('.star-rating');
-    const ratingInputs = document.querySelectorAll('input[name="rating"]');
-    
-    starLabels.forEach((label, index) => {
-        label.addEventListener('mouseover', function() {
-            // Highlight stars up to current one
-            for (let i = 0; i <= index; i++) {
-                starLabels[i].style.color = '#FFD700';
-            }
-            // Unhighlight stars after current one
-            for (let i = index + 1; i < starLabels.length; i++) {
-                starLabels[i].style.color = '#ddd';
-            }
+    // Force date input calendar functionality
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        // Force native appearance
+        input.style.webkitAppearance = 'auto';
+        input.style.appearance = 'auto';
+        input.style.cursor = 'pointer';
+        
+        // Ensure calendar opens on click
+        input.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.showPicker();
         });
         
-        label.addEventListener('click', function() {
-            // Set the rating
-            ratingInputs[index].checked = true;
-            // Keep stars highlighted
-            for (let i = 0; i <= index; i++) {
-                starLabels[i].style.color = '#FFD700';
-            }
-            for (let i = index + 1; i < starLabels.length; i++) {
-                starLabels[i].style.color = '#ddd';
+        // Also trigger on calendar icon click
+        input.addEventListener('mousedown', function(e) {
+            if (e.target === this) {
+                setTimeout(() => {
+                    try {
+                        this.showPicker();
+                    } catch (err) {
+                        // Fallback: focus the input
+                        this.focus();
+                    }
+                }, 10);
             }
         });
     });
     
-    // Reset stars on mouse leave if no rating selected
-    const starContainer = document.querySelector('.star-rating').parentNode;
-    if (starContainer) {
-        starContainer.addEventListener('mouseleave', function() {
-            const selectedRating = document.querySelector('input[name="rating"]:checked');
-            if (selectedRating) {
-                const selectedIndex = parseInt(selectedRating.value) - 1;
-                for (let i = 0; i <= selectedIndex; i++) {
-                    starLabels[i].style.color = '#FFD700';
-                }
-                for (let i = selectedIndex + 1; i < starLabels.length; i++) {
-                    starLabels[i].style.color = '#ddd';
-                }
-            } else {
-                starLabels.forEach(label => {
-                    label.style.color = '#ddd';
-                });
-            }
-        });
-    }
-});
-
-// Dynamic price calculation
-function updatePriceCalculation() {
-    const checkInInput = document.querySelector('input[name="check_in"]');
-    const checkOutInput = document.querySelector('input[name="check_out"]');
-    const priceBreakdown = document.getElementById('price-breakdown');
-    const pricePlaceholder = document.getElementById('price-placeholder');
+    const checkInInput = document.getElementById('checkin');
+    const checkOutInput = document.getElementById('checkout');
+    const pricePerNight = {{ listing['price'] }};
     
-    if (checkInInput && checkOutInput && checkInInput.value && checkOutInput.value) {
-        const checkIn = new Date(checkInInput.value);
-        const checkOut = new Date(checkOutInput.value);
+    function calculatePrice() {
+        const checkInDate = new Date(checkInInput.value);
+        const checkOutDate = new Date(checkOutInput.value);
         
-        if (checkOut > checkIn) {
-            const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-            const pricePerNight = {{ listing['price_per_night'] }};
-            const basePrice = pricePerNight * nights;
-            const serviceFee = basePrice * 0.15; // 15% service fee
-            const total = basePrice + serviceFee;
+        if (checkInDate && checkOutDate && checkOutDate > checkInDate) {
+            // Calculate number of nights
+            const timeDiff = checkOutDate - checkInDate;
+            const nights = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
             
-            // Update the display
-            document.getElementById('nights-text').textContent = `৳${pricePerNight} x ${nights} night${nights > 1 ? 's' : ''}`;
-            document.getElementById('base-price').textContent = `৳${basePrice.toFixed(2)}`;
-            document.getElementById('service-fee').textContent = `৳${serviceFee.toFixed(2)}`;
-            document.getElementById('total-price').textContent = `৳${total.toFixed(2)}`;
-            
-            // Show price breakdown, hide placeholder
-            priceBreakdown.style.display = 'block';
-            pricePlaceholder.style.display = 'none';
+            if (nights > 0) {
+                // Calculate prices (matching backend logic)
+                const basePrice = pricePerNight * nights;
+                const cleaningFee = 500;
+                const serviceFee = Math.round(basePrice * 0.15);
+                const total = basePrice + cleaningFee + serviceFee;
+                
+                // Update display
+                document.getElementById('total-nights').textContent = nights;
+                document.getElementById('base-price').textContent = basePrice.toLocaleString();
+                document.getElementById('service-fee').textContent = serviceFee.toLocaleString();
+                document.getElementById('total-price').textContent = total.toLocaleString();
+                
+                // Show price breakdown, hide placeholder
+                document.getElementById('price-summary').style.display = 'block';
+                document.getElementById('price-placeholder').style.display = 'none';
+            } else {
+                showPlaceholder();
+            }
         } else {
-            // Hide price breakdown, show placeholder
-            priceBreakdown.style.display = 'none';
-            pricePlaceholder.style.display = 'block';
+            showPlaceholder();
         }
-    } else {
-        // Hide price breakdown, show placeholder
-        priceBreakdown.style.display = 'none';
-        pricePlaceholder.style.display = 'block';
-    }
-}
-
-// Add event listeners for date inputs
-document.addEventListener('DOMContentLoaded', function() {
-    const checkInInput = document.querySelector('input[name="check_in"]');
-    const checkOutInput = document.querySelector('input[name="check_out"]');
-    
-    if (checkInInput) {
-        checkInInput.addEventListener('change', updatePriceCalculation);
-    }
-    if (checkOutInput) {
-        checkOutInput.addEventListener('change', updatePriceCalculation);
     }
     
-    // Initial calculation
-    updatePriceCalculation();
+    function showPlaceholder() {
+        document.getElementById('price-summary').style.display = 'none';
+        document.getElementById('price-placeholder').style.display = 'block';
+    }
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    checkInInput.setAttribute('min', today);
+    
+    // Add event listeners
+    checkInInput.addEventListener('change', function() {
+        // Set checkout minimum to day after checkin
+        if (this.value) {
+            const checkInDate = new Date(this.value);
+            const nextDay = new Date(checkInDate);
+            nextDay.setDate(checkInDate.getDate() + 1);
+            checkOutInput.setAttribute('min', nextDay.toISOString().split('T')[0]);
+        }
+        calculatePrice();
+    });
+    
+    checkOutInput.addEventListener('change', calculatePrice);
+    
+    // Validate form before submission
+    document.querySelector('.booking-form').addEventListener('submit', function(e) {
+        if (!checkInInput.value || !checkOutInput.value) {
+            e.preventDefault();
+            alert('Please select check-in and check-out dates.');
+            return false;
+        }
+        
+        const checkInDate = new Date(checkInInput.value);
+        const checkOutDate = new Date(checkOutInput.value);
+        
+        if (checkOutDate <= checkInDate) {
+            e.preventDefault();
+            alert('Check-out date must be after check-in date.');
+            return false;
+        }
+    });
 });
 </script>
 {% endblock %}

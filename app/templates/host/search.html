@@ -1,16 +1,6 @@
-{% extends "base.                <div class="filter-section">
-                    <h5 class="filter-section-title">Price range</h5>
-                    <div class="price-grid">
-                        <div>
-                            <label class="price-label">Min price</label>
-                            <input type="number" class="form-control" name="min_price" placeholder="৳0">
-                        </div>
-                        <div>
-                            <label class="price-label">Max price</label>
-                            <input type="number" class="form-control" name="max_price" placeholder="৳1000+">
-                        </div>
-                    </div>
-                </div>lock title %}Search results - Otithi{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Search Results - Otithi{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/home.css') }}?v=2025010802" rel="stylesheet">
@@ -24,52 +14,60 @@
         <div class="col-lg-3">
             <div class="sticky-top-120">
                 <h4 class="filter-title">Filters</h4>
-                
-                <!-- Price Range -->
-                <div class="filter-section">
-                    <h5 class="filter-section-title">Price range</h5>
-                    <div class="price-grid">
-                        <div>
-                            <label class="price-label">Min price</label>
-                            <input type="number" class="form-control" placeholder="৳0">
-                        </div>
-                        <div>
-                            <label class="price-label">Max price</label>
-                            <input type="number" class="form-control" placeholder="৳1000+">
+                <form method="GET" action="/search">
+                    <input type="hidden" name="city" value="{{ location }}">
+                    <input type="hidden" name="check_in" value="{{ checkin }}">
+                    <input type="hidden" name="check_out" value="{{ checkout }}">
+                    <input type="hidden" name="max_guests" value="{{ guests }}">
+                    
+                    <!-- Price Range -->
+                    <div class="filter-section">
+                        <h5 class="filter-section-title">Price range</h5>
+                        <div class="price-grid">
+                            <div>
+                                <label class="price-label">Min price</label>
+                                <input type="number" class="form-control" name="min_price" placeholder="৳0">
+                            </div>
+                            <div>
+                                <label class="price-label">Max price</label>
+                                <input type="number" class="form-control" name="max_price" placeholder="৳1000+">
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Room Type -->
-                <div class="filter-section">
-                    <h5 class="filter-section-title">Type of place</h5>
-                    <div class="checkbox-group">
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="room_type" value="entire_place" class="checkbox-input">
-                            <span class="checkbox-text">Entire place</span>
-                        </label>
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="room_type" value="private_room" class="checkbox-input">
-                            <span class="checkbox-text">Private room</span>
-                        </label>
-                        <label class="checkbox-item">
-                            <input type="checkbox" name="room_type" value="shared_room" class="checkbox-input">
-                            <span class="checkbox-text">Shared room</span>
-                        </label>
+                    
+                    <!-- Room Type -->
+                    <div class="filter-section">
+                        <h5 class="filter-section-title">Type of place</h5>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="room_type" value="entire_place" class="checkbox-input">
+                                <span class="checkbox-text">Entire place</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="room_type" value="private_room" class="checkbox-input">
+                                <span class="checkbox-text">Private room</span>
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="room_type" value="shared_room" class="checkbox-input">
+                                <span class="checkbox-text">Shared room</span>
+                            </label>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Guests -->
-                <div class="filter-section">
-                    <h5 class="filter-section-title">Guests</h5>
-                    <select class="form-control">
-                        <option>Any</option>
-                        <option>1 guest</option>
-                        <option>2 guests</option>
-                        <option>3 guests</option>
-                        <option>4+ guests</option>
-                    </select>
-                </div>
+                    
+                    <!-- Guests -->
+                    <div class="filter-section">
+                        <h5 class="filter-section-title">Guests</h5>
+                        <select class="form-control" name="guests">
+                            <option value="">Any</option>
+                            <option value="1">1 guest</option>
+                            <option value="2">2 guests</option>
+                            <option value="3">3 guests</option>
+                            <option value="4">4+ guests</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Apply Filters</button>
+                </form>
             </div>
         </div>
         
@@ -80,10 +78,16 @@
                     {% if query %}
                         Search results for "{{ query }}"
                     {% else %}
-                        Places to stay
+                        Places to stay in {{ location or 'Bangladesh' }}
                     {% endif %}
                 </h1>
-                <p class="search-subtitle">Over 1,000 homes in Bangladesh</p>
+                <p class="search-subtitle">
+                    {% if listings %}
+                        {{ listings|length }} place{{ 's' if listings|length != 1 else '' }} found
+                    {% else %}
+                        No places found matching your criteria
+                    {% endif %}
+                </p>
             </div>
             
             <!-- Results Grid -->
@@ -95,17 +99,20 @@
                             <img src="{{ url_for('static', filename='img/' + (listing.image if listing.image else 'demo_listing_1.jpg')) }}" 
                                  alt="{{ listing.title }}" class="listing-image">
                             <div class="listing-content">
-                                <div class="listing-location">{{ listing.city }}, {{ listing.country }}</div>
+                                <div class="listing-location">{{ listing.location or 'Bangladesh' }}</div>
                                 <div class="listing-title">{{ listing.title }}</div>
-                                <div class="listing-details">{{ listing.room_type.replace('_', ' ').title() }} · {{ listing.max_guests }} guests</div>
-                                {% if listing.rating > 0 %}
+                                <div class="listing-details">
+                                    {{ listing.room_type.replace('_', ' ').title() if listing.room_type else 'Private room' }} · 
+                                    {{ listing.guests or 1 }} guest{{ 's' if (listing.guests or 1) != 1 else '' }}
+                                </div>
+                                {% if listing.rating and listing.rating > 0 %}
                                 <div class="star-rating">
                                     <i class="bi bi-star-fill star-filled"></i>
-                                    <span class="rating-score">{{ listing.rating }}</span>
-                                    <span class="rating-count">({{ listing.reviews }})</span>
+                                    <span class="rating-score">{{ "%.1f"|format(listing.rating) }}</span>
+                                    <span class="rating-count">({{ listing.reviews or 0 }})</span>
                                 </div>
                                 {% endif %}
-                                <div class="listing-price">৳{{ listing.price_per_night }} night</div>
+                                <div class="listing-price">৳{{ listing.price_per_night or listing.price }} night</div>
                             </div>
                             <a href="/listings/{{ listing.id }}" class="stretched-link" title="View {{ listing.title }}"></a>
                         </div>

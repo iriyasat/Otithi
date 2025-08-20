@@ -91,7 +91,10 @@ def listing_detail(listing_id):
         return render_template('host/listing_detail.html', listing=listing_data, reviews=reviews)
     
     except Exception as e:
-        flash('Error loading listing details.', 'error')
+        print(f"ERROR in listing_detail: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading listing details: {str(e)}', 'error')
         return redirect(url_for('main.index'))
 
 @listings_bp.route('/listings/<int:listing_id>/review', methods=['POST'])
@@ -393,3 +396,125 @@ def create_listing():
     except Exception as e:
         flash('Error creating listing.', 'error')
         return render_template('host/create_listing.html')
+
+# CRUD Operations for Listings
+
+@listings_bp.route('/listings/<int:listing_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_listing(listing_id):
+    """Edit an existing listing"""
+    try:
+        # Get the listing
+        listing = Listing.get(listing_id)
+        if not listing:
+            flash('Listing not found.', 'error')
+            return redirect(url_for('profile.my_listings'))
+        
+        # Check if current user owns this listing
+        if listing.host_id != current_user.id:
+            flash('You can only edit your own listings.', 'error')
+            return redirect(url_for('profile.my_listings'))
+        
+        if request.method == 'POST':
+            # Get form data
+            title = request.form.get('title', '').strip()
+            description = request.form.get('description', '').strip()
+            price = request.form.get('price', '').strip()
+            property_type = request.form.get('property_type', '').strip()
+            guests = request.form.get('guests', '').strip()
+            amenities = request.form.getlist('amenities')
+            
+            # Validate required fields
+            if not all([title, description, price, property_type, guests]):
+                flash('All fields are required.', 'error')
+                return render_template('host/edit_listing.html', listing=listing)
+            
+            try:
+                price = float(price)
+                guests = int(guests)
+            except ValueError:
+                flash('Price must be a number and guests must be an integer.', 'error')
+                return render_template('host/edit_listing.html', listing=listing)
+            
+            # Update the listing
+            success = listing.update(
+                title=title,
+                description=description,
+                price=price,
+                property_type=property_type,
+                guests=guests,
+                amenities=amenities
+            )
+            
+            if success:
+                flash('Listing updated successfully!', 'success')
+                return redirect(url_for('profile.my_listings'))
+            else:
+                flash('Failed to update listing. Please try again.', 'error')
+        
+        return render_template('host/edit_listing.html', listing=listing)
+    
+    except Exception as e:
+        flash('Error updating listing.', 'error')
+        return redirect(url_for('profile.my_listings'))
+
+@listings_bp.route('/listings/<int:listing_id>/delete', methods=['POST'])
+@login_required
+def delete_listing(listing_id):
+    """Delete a listing"""
+    try:
+        # Get the listing
+        listing = Listing.get(listing_id)
+        if not listing:
+            flash('Listing not found.', 'error')
+            return redirect(url_for('profile.my_listings'))
+        
+        # Check if current user owns this listing
+        if listing.host_id != current_user.id:
+            flash('You can only delete your own listings.', 'error')
+            return redirect(url_for('profile.my_listings'))
+        
+        # Delete the listing
+        success = listing.delete()
+        
+        if success:
+            flash(f'Listing "{listing.title}" has been deleted successfully.', 'success')
+        else:
+            flash('Failed to delete listing. Please try again.', 'error')
+    
+    except Exception as e:
+        flash('Error deleting listing.', 'error')
+    
+    return redirect(url_for('profile.my_listings'))
+
+@listings_bp.route('/listings/<int:listing_id>/toggle-status', methods=['POST'])
+@login_required
+def toggle_listing_status(listing_id):
+    """Toggle listing availability status"""
+    try:
+        # Get the listing
+        listing = Listing.get(listing_id)
+        if not listing:
+            flash('Listing not found.', 'error')
+            return redirect(url_for('profile.my_listings'))
+        
+        # Check if current user owns this listing
+        if listing.host_id != current_user.id:
+            flash('You can only modify your own listings.', 'error')
+            return redirect(url_for('profile.my_listings'))
+        
+        # Toggle availability
+        new_status = not listing.available
+        query = "UPDATE listings SET available = %s WHERE listing_id = %s"
+        success = db.execute_update(query, (new_status, listing_id))
+        
+        if success:
+            status_text = "activated" if new_status else "deactivated"
+            flash(f'Listing "{listing.title}" has been {status_text}.', 'success')
+        else:
+            flash('Failed to update listing status.', 'error')
+    
+    except Exception as e:
+        flash('Error updating listing status.', 'error')
+    
+    return redirect(url_for('profile.my_listings'))

@@ -5,6 +5,7 @@ from werkzeug.security import check_password_hash
 import os
 import time
 from app.models import User
+from app.database import db
 
 profile_bp = Blueprint("profile", __name__)
 
@@ -156,35 +157,53 @@ def my_listings():
         from app.models import Listing, Booking, Review
         
         try:
-            user_listings = Listing.get_by_host(current_user.id)
-            print(f"DEBUG: My Listings - User ID: {current_user.id}")
-            print(f"DEBUG: My Listings - Retrieved {len(user_listings) if user_listings else 0} listings")
-            if user_listings:
-                for listing in user_listings:
-                    print(f"  - Listing: {listing.title} (ID: {listing.id})")
+            # Get user's listings
+            listings = Listing.get_by_host(current_user.id)
+            print(f"DEBUG: My Listings - Retrieved {len(listings)} listings")
             
-            # Calculate statistics
-            total_views = 0
-            pending_listings = 0
-            for listing in user_listings if user_listings else []:
-                if hasattr(listing, 'views'):
-                    total_views += listing.views or 0
-                if hasattr(listing, 'status') and listing.status == 'pending':
-                    pending_listings += 1
+            # Get booking counts and add missing attributes for each listing
+            total_bookings = 0
+            for listing in listings:
+                print(f"  - Listing: {listing.title} (ID: {listing.id})")
+                
+                # Get booking count for this listing
+                booking_query = "SELECT COUNT(*) as count FROM bookings WHERE listing_id = %s"
+                booking_result = db.execute_query(booking_query, (listing.id,))
+                booking_count = booking_result[0]['count'] if booking_result else 0
+                
+                # Add missing attributes to the listing object
+                listing.booking_count = booking_count
+                total_bookings += booking_count
+                
+                # Ensure images is always a list and get the images for this listing
+                if not hasattr(listing, 'images') or listing.images is None:
+                    from app.models import ListingImage
+                    images = ListingImage.get_by_listing(listing.id)
+                    listing.images = [img.image_filename for img in images] if images else []
+                
+                # Ensure other required attributes exist
+                if not hasattr(listing, 'reviews_count'):
+                    listing.reviews_count = 0
+                if not hasattr(listing, 'rating'):
+                    listing.rating = 0.0
             
-            print(f"DEBUG: Rendering template with {len(user_listings) if user_listings else 0} listings")
+            print(f"DEBUG: Rendering template with {len(listings)} listings")
+            
             return render_template('host/my_listings.html', 
-                                   user=current_user,
-                                   listings=user_listings or [],
-                                   total_views=total_views,
-                                   pending_listings=pending_listings)
+                                 listings=listings,
+                                 total_bookings=total_bookings,
+                                 pending_listings=0,  # You can implement this later
+                                 total_views=0)  # You can implement this later
         except Exception as e:
-            print(f"Error loading listings: {e}")
+            print(f"Error loading listings: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            # Return empty state if there's an error
             return render_template('host/my_listings.html', 
-                                   user=current_user,
-                                   listings=[],
-                                   total_views=0,
-                                   pending_listings=0)
+                                 listings=[],
+                                 total_bookings=0,
+                                 pending_listings=0,
+                                 total_views=0)
     else:
         return redirect(url_for('profile.profile'))
 

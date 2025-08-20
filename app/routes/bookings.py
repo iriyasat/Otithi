@@ -38,8 +38,7 @@ def book_listing(listing_id):
             'image': listing_images[0].image_filename if listing_images else 'demo_listing_1.jpg',
             'type': listing.property_type.title(),
             'guests': listing.guests,
-            'bedrooms': listing.bedrooms,
-            'bathrooms': listing.bathrooms,
+            'room_type': listing.room_type,
             'description': listing.description,
             'amenities': listing.amenities,
             'host': {

@@ -1176,5 +1176,96 @@
     font-size: var(--font-size-base);
 }
 
+/* My Listings Page Styles */
+.listing-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.listing-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--neutral-200);
+}
+
+.btn-group-sm {
+    display: flex;
+    gap: var(--space-1);
+    flex-wrap: nowrap;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: var(--radius-sm);
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-group-sm form {
+    margin: 0;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-warning:hover,
+.btn-outline-danger:hover,
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.location-text {
+    font-weight: 500;
+    color: var(--neutral-700);
+}
+
+.price-text {
+    font-weight: 600;
+    color: var(--primary-600);
+    font-size: 1rem;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.table-responsive {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: var(--neutral-50);
+    border-bottom: 2px solid var(--neutral-200);
+    font-weight: 600;
+    color: var(--neutral-700);
+    padding: var(--space-3);
+}
+
+.table td {
+    padding: var(--space-3);
+    vertical-align: middle;
+    border-bottom: 1px solid var(--neutral-100);
+}
+
+.table tbody tr:hover {
+    background-color: var(--neutral-25);
+    transition: background-color 0.2s ease;
+}
+
 /* Password Strength Styles (included in change_password.html as <style> tag) */
 /* These styles are already defined in the template file */
