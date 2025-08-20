@@ -101,6 +101,13 @@
                                     <span>{{ conversation.listing.title | truncate(30) }}</span>
                                 </div>
                                 {% endif %}
+                                
+                                {% if conversation.booking %}
+                                <div class="conversation-context booking">
+                                    <i class="icon-calendar"></i>
+                                    <span>Booking #{{ conversation.booking.id }}</span>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
@@ -167,6 +174,54 @@
                                 <!-- Messages will be loaded here -->
                             </div>
                             
+                            <!-- Message Template (Hidden) -->
+                            <template id="messageTemplate">
+                                <div class="message-item" data-message-id="">
+                                    <div class="message-avatar">
+                                        <img src="" alt="" class="sender-avatar">
+                                    </div>
+                                    <div class="message-content">
+                                        <div class="message-header">
+                                            <span class="sender-name"></span>
+                                            <span class="message-time"></span>
+                                            <span class="message-type-badge"></span>
+                                        </div>
+                                        <div class="message-body">
+                                            <!-- Text Message -->
+                                            <div class="message-text" style="display: none;"></div>
+                                            
+                                            <!-- Image Message -->
+                                            <div class="message-image" style="display: none;">
+                                                <img src="" alt="Image message" class="message-img">
+                                            </div>
+                                            
+                                            <!-- System Message -->
+                                            <div class="message-system" style="display: none;">
+                                                <i class="icon-info"></i>
+                                                <span class="system-text"></span>
+                                            </div>
+                                            
+                                            <!-- File Attachment -->
+                                            <div class="message-attachment" style="display: none;">
+                                                <div class="attachment-info">
+                                                    <i class="icon-file"></i>
+                                                    <span class="attachment-name"></span>
+                                                    <button class="btn-download-attachment" title="Download">
+                                                        <i class="icon-download"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="message-footer">
+                                            <span class="read-status">
+                                                <i class="icon-check"></i>
+                                                <span class="status-text">Sent</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            
                             <!-- Typing Indicator -->
                             <div class="typing-indicator" id="typingIndicator" style="display: none;">
                                 <div class="typing-avatar">
@@ -186,11 +241,21 @@
                         <div class="message-input-container">
                             <form class="message-form" id="messageForm">
                                 <div class="input-group">
-                                    <button type="button" class="btn-attachment" id="attachmentBtn">
+                                    <button type="button" class="btn-attachment" id="attachmentBtn" title="Attach file">
                                         <i class="icon-paperclip"></i>
                                     </button>
                                     <input type="hidden" id="conversationId" name="conversation_id">
                                     <input type="hidden" id="receiverId" name="receiver_id">
+                                    <input type="hidden" id="listingId" name="listing_id">
+                                    <input type="hidden" id="bookingId" name="booking_id">
+                                    
+                                    <!-- Message Type Selector -->
+                                    <select id="messageType" name="message_type" class="message-type-selector">
+                                        <option value="text">💬 Text</option>
+                                        <option value="image">🖼️ Image</option>
+                                        <option value="system">⚙️ System</option>
+                                    </select>
+                                    
                                     <textarea id="messageInput" 
                                               name="message_content" 
                                               placeholder="Type your message..." 
@@ -202,12 +267,24 @@
                                     </button>
                                 </div>
                                 
-                                <!-- File Upload (Hidden) -->
+                                <!-- File Upload -->
                                 <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx" style="display: none;">
+                                
+                                <!-- Attachment Preview -->
+                                <div class="attachment-preview" id="attachmentPreview" style="display: none;">
+                                    <div class="attachment-item">
+                                        <i class="icon-file" id="attachmentIcon"></i>
+                                        <span id="attachmentName"></span>
+                                        <button type="button" class="btn-remove-attachment" id="removeAttachment">
+                                            <i class="icon-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 
                                 <!-- Character Counter -->
                                 <div class="message-meta">
                                     <span class="char-counter" id="charCounter">0/2000</span>
+                                    <span class="message-type-indicator" id="messageTypeIndicator">Text message</span>
                                 </div>
                             </form>
                         </div>
@@ -346,11 +423,7 @@
     </div>
 </div>
 
-<!-- Audio notifications -->
-<audio id="messageSound" preload="auto">
-    <source src="{{ url_for('static', filename='sounds/message.mp3') }}" type="audio/mpeg">
-    <source src="{{ url_for('static', filename='sounds/message.wav') }}" type="audio/wav">
-</audio>
+
 
 <!-- Connection Status -->
 <div class="connection-status" id="connectionStatus" style="display: none;">

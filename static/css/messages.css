@@ -1,0 +1,217 @@
+/* Message Type Selector */
+.message-type-selector {
+    padding: 8px 12px;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    background: white;
+    font-size: 14px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.message-type-selector:focus {
+    outline: none;
+    border-color: #006a4e;
+    box-shadow: 0 0 0 2px rgba(0, 106, 78, 0.1);
+}
+
+/* Message Type Badge */
+.message-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+.message-type-badge[data-type="text"] {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.message-type-badge[data-type="image"] {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.message-type-badge[data-type="system"] {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+/* Attachment Preview */
+.attachment-preview {
+    margin-top: 8px;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attachment-item .icon-file {
+    font-size: 20px;
+    color: #6c757d;
+}
+
+.attachment-name {
+    flex: 1;
+    font-size: 14px;
+    color: #495057;
+}
+
+.btn-remove-attachment {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.btn-remove-attachment:hover {
+    background: #f8d7da;
+}
+
+/* Message Types Display */
+.message-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #212529;
+}
+
+.message-image {
+    margin: 8px 0;
+}
+
+.message-img {
+    max-width: 300px;
+    max-height: 300px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-system {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    color: #856404;
+}
+
+.message-system .icon-info {
+    font-size: 16px;
+}
+
+.message-attachment {
+    margin: 8px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+}
+
+.attachment-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.attachment-info .icon-file {
+    font-size: 20px;
+    color: #6c757d;
+}
+
+.attachment-name {
+    flex: 1;
+    font-size: 14px;
+    color: #495057;
+}
+
+.btn-download-attachment {
+    background: none;
+    border: none;
+    color: #006a4e;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.btn-download-attachment:hover {
+    background: #e8f5e8;
+}
+
+/* Read Status */
+.message-footer {
+    margin-top: 4px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.read-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.read-status .icon-check {
+    font-size: 12px;
+}
+
+.read-status.read .icon-check {
+    color: #28a745;
+}
+
+.read-status.delivered .icon-check {
+    color: #17a2b8;
+}
+
+.read-status.sent .icon-check {
+    color: #6c757d;
+}
+
+/* Message Type Indicator */
+.message-type-indicator {
+    font-size: 12px;
+    color: #6c757d;
+    margin-left: 12px;
+}
+
+/* Conversation Context */
+.conversation-context.booking {
+    background: #e8f5e8;
+    color: #006a4e;
+}
+
+.conversation-context.booking .icon-calendar {
+    color: #006a4e;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .message-type-selector {
+        margin-bottom: 8px;
+        width: 100%;
+    }
+    
+    .message-img {
+        max-width: 100%;
+        max-height: 200px;
+    }
+    
+    .attachment-preview {
+        margin: 8px 0;
+    }
+}

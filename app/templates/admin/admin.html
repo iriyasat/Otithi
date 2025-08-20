@@ -56,11 +56,11 @@
                     </div>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <div class="stat-card bg-warning text-white">
+                    <div class="stat-card bg-info text-white">
                         <div class="card-body">
-                            <h5>Revenue</h5>
-                            <h2>{{ stats.revenue_display if stats else "৳0.0K" }}</h2>
-                            <i class="fas fa-money-bill-wave fa-3x"></i>
+                            <h5>Guests</h5>
+                            <h2>{{ users|selectattr('user_type', 'equalto', 'guest')|list|length }}</h2>
+                            <i class="fas fa-user fa-3x"></i>
                         </div>
                     </div>
                 </div>

@@ -38,11 +38,14 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            from app.models import User
             if user_id is None or user_id == 'None':
                 return None
+            
+            # Import here to avoid circular imports
+            from app.models import User
             return User.get(int(user_id))
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, ImportError, Exception) as e:
+            print(f"Error loading user {user_id}: {e}")
             return None
 
     # Register all blueprints

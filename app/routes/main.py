@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
 from app.models import User, Listing, Booking, Review, ListingImage, Message
+from app.database import db
+from datetime import datetime
 
 main_bp = Blueprint('main', __name__)
 
@@ -264,50 +266,7 @@ def dashboard():
                              user=current_user,
                              bookings=[])
 
-@main_bp.route('/my-bookings')
-@login_required
-def my_bookings():
-    """View user's bookings"""
-    try:
-        bookings = Booking.get_by_user(current_user.id)
-        
-        # Enrich bookings with listing information
-        enriched_bookings = []
-        for booking in bookings:
-            listing = Listing.get(booking.listing_id)
-            host = User.get(listing.host_id) if listing else None
-            confirmed_by_user = User.get(booking.confirmed_by) if booking.confirmed_by else None
-            
-            booking_data = {
-                'booking_id': booking.booking_id,
-                'user_id': booking.user_id,
-                'listing_id': booking.listing_id,
-                'check_in': booking.check_in,
-                'check_out': booking.check_out,
-                'total_price': booking.total_price,
-                'status': booking.status,
-                'created_at': booking.created_at,
-                'confirmed_by': booking.confirmed_by,
-                'confirmed_at': booking.confirmed_at,
-                'confirmed_by_name': confirmed_by_user.full_name if confirmed_by_user else None,
-                'listing': {
-                    'id': listing.id if listing else None,
-                    'title': listing.title if listing else 'Unknown Listing',
-                    'location': listing.location if listing else '',
-                    'image': 'demo_listing_1.jpg',
-                    'host_name': host.full_name if host else 'Unknown Host'
-                } if listing else None
-            }
-            enriched_bookings.append(booking_data)
-        
-        # Sort by creation date
-        enriched_bookings.sort(key=lambda x: x['created_at'], reverse=True)
-        
-        return render_template('guest/my_bookings.html', bookings=enriched_bookings, user=current_user)
-    
-    except Exception as e:
-        flash('Error loading bookings.', 'error')
-        return render_template('guest/my_bookings.html', bookings=[], user=current_user)
+# Removed duplicate route - bookings handled by bookings blueprint
 
 @main_bp.route('/favorites')
 @login_required
@@ -413,3 +372,43 @@ def send_help_message():
 def book_listing(listing_id):
     """Booking page - redirect to bookings blueprint"""
     return redirect(url_for('bookings.book_listing', listing_id=listing_id))
+
+@main_bp.route('/health')
+def health_check():
+    """Health check endpoint to monitor application and database status"""
+    try:
+        # Check database connection
+        db_status = db.get_connection_info()
+        
+        # Test database query
+        try:
+            from app.models import User
+            user_count = len(User.get_all()) if hasattr(User, 'get_all') else 0
+            db_working = True
+        except Exception as e:
+            db_working = False
+            user_count = 0
+        
+        health_data = {
+            'status': 'healthy' if db_working else 'unhealthy',
+            'timestamp': str(datetime.now()),
+            'database': {
+                'status': db_status,
+                'working': db_working,
+                'user_count': user_count
+            },
+            'application': {
+                'flask': True,
+                'blueprints': True
+            }
+        }
+        
+        status_code = 200 if db_working else 503
+        return jsonify(health_data), status_code
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': str(datetime.now())
+        }), 500

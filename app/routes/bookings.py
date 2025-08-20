@@ -5,6 +5,20 @@ from datetime import datetime, date
 
 bookings_bp = Blueprint('bookings', __name__)
 
+@bookings_bp.route('/debug-user')
+@login_required
+def debug_user():
+    """Debug route to check current user and their bookings"""
+    user_bookings = Booking.get_by_user(current_user.id)
+    return jsonify({
+        'user_id': current_user.id,
+        'user_name': current_user.name,
+        'user_email': current_user.email,
+        'user_type': current_user.user_type,
+        'bookings_count': len(user_bookings),
+        'bookings': [{'id': b.id, 'status': b.status, 'listing_id': b.listing_id} for b in user_bookings]
+    })
+
 @bookings_bp.route('/book/<int:listing_id>')
 @login_required
 def book_listing(listing_id):
@@ -131,72 +145,133 @@ def confirm_booking(listing_id):
 def my_bookings():
     """View user's bookings with real-time updates"""
     try:
+        # Debug: Print current user info and authentication status
+        print(f"DEBUG: Current user ID: {current_user.id}, Name: {current_user.name}, Email: {current_user.email}")
+        print(f"DEBUG: User authenticated: {current_user.is_authenticated}")
+        print(f"DEBUG: User type: {getattr(current_user, 'user_type', 'unknown')}")
+        print(f"DEBUG: Session data: {dict(request.cookies)}")
+        
         # Update expired booking statuses first
-        Booking.update_expired_statuses()
+        try:
+            Booking.update_expired_statuses()
+        except Exception as e:
+            print(f"DEBUG: Error updating expired statuses: {e}")
+            # Continue without updating expired statuses
         
         # Get all user bookings
-        bookings = Booking.get_by_user(current_user.id)
+        try:
+            bookings = Booking.get_by_user(current_user.id)
+            print(f"DEBUG: Found {len(bookings)} bookings for user {current_user.id}")
+        except Exception as e:
+            print(f"DEBUG: Error getting user bookings: {e}")
+            bookings = []
         
         # Get upcoming check-ins and recently completed stays
-        upcoming_checkins = Booking.get_upcoming_checkins(current_user.id, days_ahead=7)
-        recently_completed = Booking.get_recently_completed(current_user.id, days_back=30)
+        try:
+            upcoming_checkins = Booking.get_upcoming_checkins(current_user.id, days_ahead=7)
+        except Exception as e:
+            print(f"DEBUG: Error getting upcoming checkins: {e}")
+            upcoming_checkins = []
+            
+        try:
+            recently_completed = Booking.get_recently_completed(current_user.id, days_back=30)
+        except Exception as e:
+            print(f"DEBUG: Error getting recently completed: {e}")
+            recently_completed = []
         
         # Enrich bookings with listing information and real-time data
         enriched_bookings = []
         total_spent = 0
         
         for booking in bookings:
-            listing = Listing.get(booking.listing_id)
-            host = User.get(listing.host_id) if listing else None
-            confirmed_by_user = User.get(booking.confirmed_by) if booking.confirmed_by else None
+            try:
+                listing = Listing.get(booking.listing_id)
+                host = User.get(listing.host_id) if listing else None
+                confirmed_by_user = User.get(booking.confirmed_by) if booking.confirmed_by else None
+            except Exception as e:
+                print(f"DEBUG: Error getting listing/user data for booking {booking.id}: {e}")
+                listing = None
+                host = None
+                confirmed_by_user = None
+            
+            # Skip this booking if we can't get basic data
+            if not listing:
+                print(f"DEBUG: Skipping booking {booking.id} - no listing data")
+                continue
             
             # Check if user has already reviewed this booking
             has_reviewed = False
-            if booking.can_review:
-                from app.models import Review
-                has_reviewed = Review.has_user_reviewed_booking(current_user.id, booking.id)
+            try:
+                if hasattr(booking, 'can_review') and booking.can_review:
+                    from app.models import Review
+                    has_reviewed = Review.has_user_reviewed_booking(current_user.id, booking.id)
+            except Exception as e:
+                print(f"DEBUG: Error checking review status for booking {booking.id}: {e}")
+                has_reviewed = False
             
             # Calculate total spent for confirmed/completed bookings
-            if booking.status in ['confirmed', 'completed']:
-                total_spent += float(booking.total_price)
+            try:
+                if booking.status in ['confirmed', 'completed']:
+                    total_spent += float(booking.total_price or 0)
+            except Exception as e:
+                print(f"DEBUG: Error calculating total spent for booking {booking.id}: {e}")
+                # Continue with the booking even if price calculation fails
             
-            booking_data = {
-                'id': booking.id,
-                'booking_id': booking.booking_id,
-                'user_id': booking.user_id,
-                'listing_id': booking.listing_id,
-                'check_in': booking.check_in,
-                'check_out': booking.check_out,
-                'guests': booking.guests,
-                'total_price': booking.total_price,
-                'total_amount': booking.total_price,  # Alias for template
-                'status': booking.status,
-                'created_at': booking.created_at,
-                'confirmed_by': booking.confirmed_by,
-                'confirmed_at': booking.confirmed_at,
-                'confirmed_by_name': confirmed_by_user.full_name if confirmed_by_user else None,
-                
-                # Real-time properties
-                'is_checkin_today': booking.is_checkin_today,
-                'is_checkout_today': booking.is_checkout_today,
-                'days_until_checkin': booking.days_until_checkin,
-                'days_until_checkout': booking.days_until_checkout,
-                'stay_duration': booking.stay_duration,
-                'can_review': booking.can_review,
-                'has_reviewed': has_reviewed,
-                
-                'listing': {
-                    'id': listing.id if listing else None,
-                    'title': listing.title if listing else 'Unknown Listing',
-                    'location': listing.location if listing else '',
-                    'image': 'demo_listing_1.jpg',
-                    'host_name': host.full_name if host else 'Unknown Host'
-                } if listing else None
-            }
-            enriched_bookings.append(booking_data)
+            try:
+                booking_data = {
+                    'id': booking.id,
+                    'booking_id': booking.booking_id,
+                    'user_id': booking.user_id,
+                    'listing_id': booking.listing_id,
+                    'check_in': booking.check_in,
+                    'check_out': booking.check_out,
+                    'guests': booking.guests,
+                    'total_price': booking.total_price,
+                    'total_amount': booking.total_price,  # Alias for template
+                    'status': booking.status,
+                    'created_at': booking.created_at,
+                    'confirmed_by': booking.confirmed_by,
+                    'confirmed_at': booking.confirmed_at,
+                    'confirmed_by_name': confirmed_by_user.full_name if confirmed_by_user else None,
+                    
+                    # Real-time properties - with safe property access
+                    'is_checkin_today': getattr(booking, 'is_checkin_today', False),
+                    'is_checkout_today': getattr(booking, 'is_checkout_today', False),
+                    'days_until_checkin': getattr(booking, 'days_until_checkin', None),
+                    'days_until_checkout': getattr(booking, 'days_until_checkout', None),
+                    'stay_duration': getattr(booking, 'stay_duration', None),
+                    'can_review': getattr(booking, 'can_review', False),
+                    'has_reviewed': has_reviewed,
+                    
+                    'listing': {
+                        'id': getattr(listing, 'id', None) if listing else None,
+                        'title': getattr(listing, 'title', 'Unknown Listing') if listing else 'Unknown Listing',
+                        'location': getattr(listing, 'location', '') if listing else '',
+                        'image': 'demo_listing_1.jpg',
+                        'host_name': getattr(host, 'full_name', 'Unknown Host') if host else 'Unknown Host'
+                    } if listing else None
+                }
+                enriched_bookings.append(booking_data)
+            except Exception as e:
+                print(f"DEBUG: Error creating booking data for booking {booking.id}: {e}")
+                # Continue with next booking
+                continue
         
         # Sort by creation date
-        enriched_bookings.sort(key=lambda x: x['created_at'], reverse=True)
+        try:
+            enriched_bookings.sort(key=lambda x: x.get('created_at', datetime.now()), reverse=True)
+        except Exception as e:
+            print(f"DEBUG: Error sorting bookings: {e}")
+            # Continue without sorting
+        
+        # Debug: Print final data being passed to template
+        print(f"DEBUG: Passing to template - Bookings: {len(enriched_bookings)}, Total spent: {total_spent}")
+        print(f"DEBUG: Upcoming checkins: {len(upcoming_checkins)}, Recently completed: {len(recently_completed)}")
+        print(f"DEBUG: About to render template with {len(enriched_bookings)} bookings")
+        
+        # Check if we're actually going to render the template
+        if len(enriched_bookings) == 0:
+            print("DEBUG: WARNING - No enriched bookings to pass to template!")
         
         return render_template('guest/my_bookings.html', 
                              bookings=enriched_bookings, 
@@ -206,6 +281,10 @@ def my_bookings():
                              recently_completed=recently_completed)
     
     except Exception as e:
+        print(f"DEBUG: EXCEPTION OCCURRED: {e}")
+        print(f"DEBUG: Exception type: {type(e)}")
+        import traceback
+        traceback.print_exc()
         flash('Error loading bookings.', 'error')
         return render_template('guest/my_bookings.html', 
                              bookings=[], 
@@ -260,6 +339,46 @@ def host_bookings():
     except Exception as e:
         flash('Error loading host bookings.', 'error')
         return render_template('host/host_bookings.html', bookings=[], user=current_user)
+
+@bookings_bp.route('/review-form/<int:booking_id>')
+@login_required
+def review_form(booking_id):
+    """Show review form for a completed stay"""
+    try:
+        # Get the booking
+        booking = Booking.get(booking_id)
+        if not booking:
+            flash('Booking not found.', 'error')
+            return redirect(url_for('bookings.my_bookings'))
+        
+        # Verify the booking belongs to the current user
+        if booking.user_id != current_user.id:
+            flash('Access denied.', 'error')
+            return redirect(url_for('bookings.my_bookings'))
+        
+        # Check if user can review this booking
+        if not booking.can_review:
+            flash('This booking cannot be reviewed yet.', 'error')
+            return redirect(url_for('bookings.my_bookings'))
+        
+        # Check if user has already reviewed this booking
+        from app.models import Review
+        if Review.has_user_reviewed_booking(current_user.id, int(booking_id)):
+            flash('You have already reviewed this stay.', 'info')
+            return redirect(url_for('bookings.my_bookings'))
+        
+        # Get listing information
+        from app.models import Listing
+        listing = Listing.get(booking.listing_id)
+        
+        # Enrich booking with listing data
+        booking.listing = listing
+        
+        return render_template('guest/review_form.html', booking=booking, user=current_user)
+        
+    except Exception as e:
+        flash('Error loading review form.', 'error')
+        return redirect(url_for('bookings.my_bookings'))
 
 @bookings_bp.route('/submit-review', methods=['POST'])
 @login_required

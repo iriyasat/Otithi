@@ -85,7 +85,7 @@
                                 </a>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('main.my_bookings') }}" class="admin-action-btn">
+                                <a href="{{ url_for('bookings.my_bookings') }}" class="admin-action-btn">
                                     <i class="fas fa-list"></i>
                                     <span>My Bookings</span>
                                 </a>
@@ -136,7 +136,7 @@
                                                 <small>{{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }} - {{ booking.check_out_date.strftime('%Y-%m-%d') if booking.check_out_date else 'N/A' }}</small>
                                             </td>
                                             <td>
-                                                <span class="status-badge status-{{ booking.status }}">
+                                                <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' if booking.status == 'cancelled' else 'info' }}">
                                                     {{ booking.status.title() }}
                                                 </span>
                                             </td>
@@ -250,190 +250,6 @@
             </div>
         </div>
 
-    </div>
-</div>
-{% endblock %}
-        
-        <div class="col-md-3">
-            <div class="card stat-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5>Upcoming Trips</h5>
-                            <h2>{{ upcoming_trips|length if upcoming_trips else 0 }}</h2>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-plane fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card stat-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5>Completed Stays</h5>
-                            <h2>{{ completed_stays if completed_stays else 0 }}</h2>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-check-circle fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card stat-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5>Total Spent</h5>
-                            <h2>৳{{ "%.0f"|format(total_spent or 0) }}</h2>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-receipt fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Guest Actions -->
-    <div class="row dashboard-animate">
-        <div class="col-12">
-            <div class="card action-card">
-                <div class="card-header">
-                    <h5>Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <a href="{{ url_for('main.index') }}" class="action-btn btn-outline-primary">
-                                <i class="fas fa-search dashboard-icon"></i> Explore Listings
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('main.my_bookings') }}" class="action-btn btn-outline-success">
-                                <i class="fas fa-list dashboard-icon"></i> My Bookings
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('main.index') }}" class="action-btn btn-outline-info">
-                                <i class="fas fa-search dashboard-icon"></i> Explore
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{{ url_for('profile.profile') }}" class="action-btn btn-outline-warning">
-                                <i class="fas fa-user-cog dashboard-icon"></i> Profile
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Activity -->
-    <div class="row dashboard-animate">
-        <div class="col-md-6">
-            <div class="card activity-card">
-                <div class="card-header">
-                    <h5>Recent Bookings</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if my_bookings %}
-                        <div class="activity-list">
-                            {% for booking in my_bookings[:5] %}
-                            <div class="activity-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>{{ booking.listing_title or 'Booking' }}</strong><br>
-                                        <small class="text-dashboard-muted">{{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }} - {{ booking.check_out_date.strftime('%Y-%m-%d') if booking.check_out_date else 'N/A' }}</small>
-                                    </div>
-                                    <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' if booking.status == 'pending' else 'danger' }}">
-                                        {{ booking.status.title() }}
-                                    </span>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="activity-item">
-                            <p class="text-dashboard-muted mb-0">No bookings yet</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card activity-card">
-                <div class="card-header">
-                    <h5>Recommended for You</h5>
-                </div>
-                <div class="card-body">
-                    {% if recommended_listings %}
-                        {% for listing in recommended_listings[:3] %}
-                        <div class="activity-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ listing.title }}</strong><br>
-                                    <small class="text-dashboard-muted">{{ listing.location }} - ৳{{ listing.price_per_night }}/night</small>
-                                </div>
-                                <a href="{{ url_for('main.listing_detail', listing_id=listing.id) }}" class="btn btn-sm btn-outline-primary">
-                                    View
-                                </a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="activity-item">
-                            <p class="text-dashboard-muted mb-0">Explore listings to get recommendations</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Travel Tips -->
-    <div class="row dashboard-animate">
-        <div class="col-12">
-            <div class="card activity-card">
-                <div class="card-header">
-                    <h5>Travel Tips & Updates</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="activity-item">
-                                <h6><i class="fas fa-shield-alt text-primary"></i> Safety First</h6>
-                                <p class="text-dashboard-muted mb-0">Always verify host identity and read previous guest reviews before booking.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="activity-item">
-                                <h6><i class="fas fa-star text-warning"></i> Leave Reviews</h6>
-                                <p class="text-dashboard-muted mb-0">Help other travelers by leaving honest reviews after your stay.</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="activity-item">
-                                <h6><i class="fas fa-calendar-alt text-info"></i> Book Early</h6>
-                                <p class="text-dashboard-muted mb-0">Popular destinations fill up quickly. Book your next trip in advance!</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     </div>
 </div>
 {% endblock %}

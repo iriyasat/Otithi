@@ -19,6 +19,21 @@ def messages():
             other_user = User.get(other_user_id)
             
             if other_user:
+                # Get listing and booking context if available
+                listing = None
+                booking = None
+                
+                # Try to get listing context from recent messages
+                recent_messages = Message.get_conversation_messages(current_user.id, other_user_id, limit=1)
+                if recent_messages:
+                    latest_msg = recent_messages[0]
+                    if latest_msg.listing_id:
+                        from app.models import Listing
+                        listing = Listing.get(latest_msg.listing_id)
+                    if latest_msg.booking_id:
+                        from app.models import Booking
+                        booking = Booking.get(latest_msg.booking_id)
+                
                 conversation = {
                     'conversation_id': f"{min(current_user.id, other_user_id)}_{max(current_user.id, other_user_id)}",
                     'other_participant': {
@@ -33,7 +48,8 @@ def messages():
                     },
                     'last_message_time': conv_data['last_message_time'].strftime('%Y-%m-%d %H:%M') if conv_data['last_message_time'] else 'Never',
                     'unread_count': conv_data['unread_count'] or 0,
-                    'listing': None  # TODO: Add listing context if available
+                    'listing': listing,
+                    'booking': booking
                 }
                 conversations.append(conversation)
         
@@ -91,8 +107,10 @@ def send_message():
         data = request.get_json()
         receiver_id = data.get('receiver_id')
         content = data.get('content')
+        message_type = data.get('message_type', 'text')
         listing_id = data.get('listing_id')
         booking_id = data.get('booking_id')
+        attachment_filename = data.get('attachment_filename')
         
         if not receiver_id or not content:
             return jsonify({
@@ -100,13 +118,32 @@ def send_message():
                 'message': 'Missing required fields'
             })
         
+        # Validate message type
+        if message_type not in ['text', 'image', 'system']:
+            message_type = 'text'
+        
+        # Handle different message types
+        if message_type == 'image':
+            # For image messages, content should be image description or caption
+            if not attachment_filename:
+                return jsonify({
+                    'success': False,
+                    'message': 'Image message requires attachment'
+                })
+        elif message_type == 'system':
+            # System messages are typically auto-generated
+            if not current_user.is_admin:  # Only admins can send system messages
+                message_type = 'text'
+        
         # Create the message
         message = Message.create(
             sender_id=current_user.id,
             receiver_id=receiver_id,
             content=content,
+            message_type=message_type,
             listing_id=listing_id,
-            booking_id=booking_id
+            booking_id=booking_id,
+            attachment_filename=attachment_filename
         )
         
         if message:
@@ -115,8 +152,11 @@ def send_message():
                 'message': {
                     'id': message.id,
                     'content': message.content,
+                    'message_type': message.message_type,
+                    'attachment_filename': message.attachment_filename,
                     'created_at': message.created_at.strftime('%Y-%m-%d %H:%M'),
-                    'sender_name': current_user.name
+                    'sender_name': current_user.name,
+                    'sender_photo': current_user.profile_photo
                 }
             })
         else:
@@ -147,4 +187,69 @@ def get_unread_count():
         return jsonify({
             'success': False,
             'count': 0
+        })
+
+@messages_bp.route('/upload-attachment', methods=['POST'])
+@login_required
+def upload_attachment():
+    """Upload file attachment for messages"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'message': 'No file provided'
+            })
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'message': 'No file selected'
+            })
+        
+        # Validate file type
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
+        if not file.filename.lower().endswith(tuple('.' + ext for ext in allowed_extensions)):
+            return jsonify({
+                'success': False,
+                'message': 'File type not allowed'
+            })
+        
+        # Validate file size (max 10MB)
+        if len(file.read()) > 10 * 1024 * 1024:
+            file.seek(0)  # Reset file pointer
+            return jsonify({
+                'success': False,
+                'message': 'File too large (max 10MB)'
+            })
+        
+        file.seek(0)  # Reset file pointer
+        
+        # Generate unique filename
+        import os
+        from datetime import datetime
+        import uuid
+        
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"msg_attachment_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}{file_extension}"
+        
+        # Save file to uploads/messages directory
+        upload_dir = os.path.join('app', 'static', 'uploads', 'messages')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        file_path = os.path.join(upload_dir, unique_filename)
+        file.save(file_path)
+        
+        return jsonify({
+            'success': True,
+            'filename': unique_filename,
+            'original_name': file.filename,
+            'file_path': f'/static/uploads/messages/{unique_filename}'
+        })
+        
+    except Exception as e:
+        print(f"Error uploading attachment: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Error uploading file'
         })

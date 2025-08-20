@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}Otithi - Experience Bangladesh Like a Local{% endblock %}</title>
+    <title>{% block title %}<span style="color: #006a4e; font-weight: bold; font-size: 1.2em;">অ</span>{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80' font-family='Arial, sans-serif' fill='%23006a4e' font-weight='bold'>অ</text></svg>">
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
@@ -42,7 +46,7 @@
                         <a href="{{ url_for('admin.listings') }}" class="nav-link{% if request.endpoint == 'admin.listings' %} active{% endif %}">Manage Listings</a>
                         <a href="{{ url_for('admin.bookings') }}" class="nav-link{% if request.endpoint == 'admin.bookings' %} active{% endif %}">Manage Bookings</a>
                     {% elif current_user.user_type == 'guest' %}
-                        <a href="{{ url_for('main.my_bookings') }}" class="nav-link{% if request.endpoint == 'main.my_bookings' %} active{% endif %}">My Bookings</a>
+                        <a href="{{ url_for('bookings.my_bookings') }}" class="nav-link{% if request.endpoint == 'bookings.my_bookings' %} active{% endif %}">My Bookings</a>
                         <a href="{{ url_for('main.favorites') }}" class="nav-link{% if request.endpoint == 'main.favorites' %} active{% endif %}">Favorites</a>
                     {% elif current_user.user_type == 'host' %}
                         <a href="{{ url_for('listings.create_listing') }}" class="nav-link{% if request.endpoint == 'listings.create_listing' %} active{% endif %}">Create Listing</a>
@@ -196,6 +200,18 @@
                     // Show loading state
                     this.innerHTML = 'Logging out...';
                     this.style.pointerEvents = 'none';
+                    this.disabled = true;
+                    
+                    // Add a timeout to prevent button from being stuck forever
+                    const timeoutId = setTimeout(() => {
+                        this.innerHTML = 'Logout';
+                        this.style.pointerEvents = 'auto';
+                        this.disabled = false;
+                    }, 10000); // 10 second timeout
+                    
+                    // Store timeout ID on the button for cleanup
+                    this.dataset.timeoutId = timeoutId;
+                    
                     // Allow normal navigation to proceed
                     return true;
                 } else {
