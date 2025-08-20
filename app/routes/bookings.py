@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app.models import User, Listing, Booking, ListingImage
 from datetime import datetime, date
@@ -129,29 +129,62 @@ def confirm_booking(listing_id):
 @bookings_bp.route('/my-bookings')
 @login_required
 def my_bookings():
-    """View user's bookings"""
+    """View user's bookings with real-time updates"""
     try:
+        # Update expired booking statuses first
+        Booking.update_expired_statuses()
+        
+        # Get all user bookings
         bookings = Booking.get_by_user(current_user.id)
         
-        # Enrich bookings with listing information
+        # Get upcoming check-ins and recently completed stays
+        upcoming_checkins = Booking.get_upcoming_checkins(current_user.id, days_ahead=7)
+        recently_completed = Booking.get_recently_completed(current_user.id, days_back=30)
+        
+        # Enrich bookings with listing information and real-time data
         enriched_bookings = []
+        total_spent = 0
+        
         for booking in bookings:
             listing = Listing.get(booking.listing_id)
             host = User.get(listing.host_id) if listing else None
             confirmed_by_user = User.get(booking.confirmed_by) if booking.confirmed_by else None
             
+            # Check if user has already reviewed this booking
+            has_reviewed = False
+            if booking.can_review:
+                from app.models import Review
+                has_reviewed = Review.has_user_reviewed_booking(current_user.id, booking.id)
+            
+            # Calculate total spent for confirmed/completed bookings
+            if booking.status in ['confirmed', 'completed']:
+                total_spent += float(booking.total_price)
+            
             booking_data = {
+                'id': booking.id,
                 'booking_id': booking.booking_id,
                 'user_id': booking.user_id,
                 'listing_id': booking.listing_id,
                 'check_in': booking.check_in,
                 'check_out': booking.check_out,
+                'guests': booking.guests,
                 'total_price': booking.total_price,
+                'total_amount': booking.total_price,  # Alias for template
                 'status': booking.status,
                 'created_at': booking.created_at,
                 'confirmed_by': booking.confirmed_by,
                 'confirmed_at': booking.confirmed_at,
                 'confirmed_by_name': confirmed_by_user.full_name if confirmed_by_user else None,
+                
+                # Real-time properties
+                'is_checkin_today': booking.is_checkin_today,
+                'is_checkout_today': booking.is_checkout_today,
+                'days_until_checkin': booking.days_until_checkin,
+                'days_until_checkout': booking.days_until_checkout,
+                'stay_duration': booking.stay_duration,
+                'can_review': booking.can_review,
+                'has_reviewed': has_reviewed,
+                
                 'listing': {
                     'id': listing.id if listing else None,
                     'title': listing.title if listing else 'Unknown Listing',
@@ -165,11 +198,21 @@ def my_bookings():
         # Sort by creation date
         enriched_bookings.sort(key=lambda x: x['created_at'], reverse=True)
         
-        return render_template('guest/my_bookings.html', bookings=enriched_bookings, user=current_user)
+        return render_template('guest/my_bookings.html', 
+                             bookings=enriched_bookings, 
+                             user=current_user,
+                             total_spent=total_spent,
+                             upcoming_checkins=upcoming_checkins,
+                             recently_completed=recently_completed)
     
     except Exception as e:
         flash('Error loading bookings.', 'error')
-        return render_template('guest/my_bookings.html', bookings=[], user=current_user)
+        return render_template('guest/my_bookings.html', 
+                             bookings=[], 
+                             user=current_user,
+                             total_spent=0,
+                             upcoming_checkins=[],
+                             recently_completed=[])
 
 @bookings_bp.route('/host-bookings')
 @login_required
@@ -217,3 +260,76 @@ def host_bookings():
     except Exception as e:
         flash('Error loading host bookings.', 'error')
         return render_template('host/host_bookings.html', bookings=[], user=current_user)
+
+@bookings_bp.route('/submit-review', methods=['POST'])
+@login_required
+def submit_review():
+    """Submit a review for a completed stay"""
+    try:
+        booking_id = request.form.get('booking_id')
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+        
+        if not all([booking_id, rating, comment]):
+            return jsonify({'success': False, 'message': 'All fields are required'})
+        
+        # Get the booking
+        booking = Booking.get(int(booking_id))
+        if not booking:
+            return jsonify({'success': False, 'message': 'Booking not found'})
+        
+        # Verify the booking belongs to the current user
+        if booking.user_id != current_user.id:
+            return jsonify({'success': False, 'message': 'Access denied'})
+        
+        # Check if user can review this booking
+        if not booking.can_review:
+            return jsonify({'success': False, 'message': 'This booking cannot be reviewed yet'})
+        
+        # Check if user has already reviewed this booking
+        from app.models import Review
+        if Review.has_user_reviewed_booking(current_user.id, int(booking_id)):
+            return jsonify({'success': False, 'message': 'You have already reviewed this stay'})
+        
+        # Create the review
+        review = Review.create(
+            listing_id=booking.listing_id,
+            user_id=current_user.id,
+            rating=float(rating),
+            comment=comment,
+            booking_id=int(booking_id)
+        )
+        
+        if review:
+            return jsonify({'success': True, 'message': 'Review submitted successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to submit review'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'An error occurred while submitting review'})
+
+@bookings_bp.route('/cancel-booking/<int:booking_id>', methods=['POST'])
+@login_required
+def cancel_booking(booking_id):
+    """Cancel a booking"""
+    try:
+        booking = Booking.get(booking_id)
+        if not booking:
+            return jsonify({'success': False, 'message': 'Booking not found'})
+        
+        # Verify the booking belongs to the current user
+        if booking.user_id != current_user.id:
+            return jsonify({'success': False, 'message': 'Access denied'})
+        
+        # Only allow cancellation of pending or confirmed bookings
+        if booking.status not in ['pending', 'confirmed']:
+            return jsonify({'success': False, 'message': 'This booking cannot be cancelled'})
+        
+        # Cancel the booking
+        if booking.cancel():
+            return jsonify({'success': True, 'message': 'Booking cancelled successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to cancel booking'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'An error occurred while cancelling booking'})

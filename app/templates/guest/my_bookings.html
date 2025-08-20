@@ -5,27 +5,96 @@
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+<style>
+.booking-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.booking-card.checkin-today {
+    border-left: 4px solid #ffc107;
+    background: #fff3cd;
+}
+
+.booking-card.checkout-today {
+    border-left: 4px solid #dc3545;
+    background: #f8d7da;
+}
+
+.booking-card.completed {
+    border-left: 4px solid #28a745;
+    background: #d4edda;
+}
+
+.real-time-updates {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 1px solid #c3e6cb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.review-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.review-modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<!-- My Bookings Container -->
 <div class="dashboard-container admin-dashboard">
-    <!-- Dashboard Header -->
     <div class="dashboard-header">
         <div class="container">
-            <h1>
-                {% if user and user.profile_photo %}
-                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
-                {% else %}
-                    <i class="fas fa-calendar-check"></i>
-                {% endif %}
-                My Bookings
-            </h1>
-            <p class="lead">Manage your travel bookings and reservations.</p>
+            <h1><i class="fas fa-calendar-check"></i> My Bookings</h1>
+            <p class="lead">Manage your travel bookings with real-time updates.</p>
         </div>
     </div>
 
     <div class="container">
+        <!-- Real-time Updates -->
+        {% if bookings %}
+        <div class="real-time-updates">
+            <h5><i class="fas fa-clock"></i> Real-time Updates</h5>
+            {% for booking in bookings %}
+                {% if booking.is_checkin_today %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-sign-in-alt"></i> <strong>Check-in Today:</strong> {{ booking.listing.title if booking.listing else 'Property' }}
+                </div>
+                {% endif %}
+                
+                {% if booking.is_checkout_today %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-sign-out-alt"></i> <strong>Check-out Today:</strong> {{ booking.listing.title if booking.listing else 'Property' }}
+                </div>
+                {% endif %}
+                
+                {% if booking.status == 'completed' and not booking.has_reviewed %}
+                <div class="alert alert-success">
+                    <i class="fas fa-star"></i> <strong>Review Your Stay:</strong> {{ booking.listing.title if booking.listing else 'Property' }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Bookings Overview -->
         <div class="dashboard-stats">
             <div class="row">
@@ -68,394 +137,143 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="admin-card">
-                    <div class="admin-card-header">
-                        <h5><i class="fas fa-rocket"></i> Quick Actions</h5>
-                    </div>
-                    <div class="admin-card-body">
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('main.index') }}" class="admin-action-btn">
-                                    <i class="fas fa-search"></i>
-                                    <span>Find New Places</span>
-                                </a>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('main.index') }}" class="admin-action-btn">
-                                    <i class="fas fa-tachometer-alt"></i>
-                                    <span>Dashboard</span>
-                                </a>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('main.index') }}" class="admin-action-btn">
-                                    <i class="fas fa-heart"></i>
-                                    <span>Favorites</span>
-                                </a>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <a href="{{ url_for('profile.profile') }}" class="admin-action-btn">
-                                    <i class="fas fa-user-cog"></i>
-                                    <span>Profile</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Bookings List -->
         <div class="row">
             <div class="col-12">
                 <div class="admin-card">
                     <div class="admin-card-header">
                         <h5><i class="fas fa-list"></i> All Bookings</h5>
-                        <div class="admin-card-tools">
-                            <select class="form-select form-select-sm" id="statusFilter">
-                                <option value="">All Status</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="pending">Pending</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div>
                     </div>
                     <div class="admin-card-body">
                         {% if bookings %}
-                            <div class="admin-table-container">
-                                <table class="admin-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Booking ID</th>
-                                            <th>Property</th>
-                                            <th>Check-in</th>
-                                            <th>Check-out</th>
-                                            <th>Guests</th>
-                                            <th>Total</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for booking in bookings %}
-                                        <tr>
-                                            <td>
-                                                <strong>#{{ booking.id }}</strong>
-                                            </td>
-                                            <td>
-                                                <div class="booking-property">
-                                                    <strong>{{ booking.listing_title or 'Property' }}</strong><br>
-                                                    <small class="text-muted">{{ booking.listing_location or 'Location' }}</small>
-                                                </div>
-                                            </td>
-                                            <td>{{ booking.check_in_date.strftime('%Y-%m-%d') if booking.check_in_date else 'N/A' }}</td>
-                                            <td>{{ booking.check_out_date.strftime('%Y-%m-%d') if booking.check_out_date else 'N/A' }}</td>
-                                            <td>{{ booking.guests or 'N/A' }}</td>
-                                            <td>৳{{ "%.2f"|format(booking.total_amount or 0) }}</td>
-                                            <td>
-                                                <span class="status-badge status-{{ booking.status }}">
-                                                    {{ booking.status.title() }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    {% if booking.listing_id %}
-                                                        <a href="{{ url_for('listings.listing_detail', listing_id=booking.listing_id) }}" 
-                                                           class="btn btn-sm btn-outline-primary" title="View Property">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                    {% endif %}
-                                                    {% if booking.status == 'confirmed' %}
-                                                        <button class="btn btn-sm btn-outline-danger" 
-                                                                onclick="cancelBooking({{ booking.id }})" title="Cancel Booking">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                            {% for booking in bookings %}
+                            <div class="booking-card {% if booking.is_checkin_today %}checkin-today{% elif booking.is_checkout_today %}checkout-today{% elif booking.status == 'completed' %}completed{% endif %}">
+                                <div class="admin-card-header">
+                                    <h6>{{ booking.listing.title if booking.listing else 'Unknown Listing' }}</h6>
+                                    <span class="status-badge status-{{ booking.status }}">{{ booking.status.title() }}</span>
+                                </div>
+                                <div class="admin-card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <strong>Check-in:</strong><br>
+                                            {% if booking.is_checkin_today %}
+                                                <span class="text-warning">TODAY!</span>
+                                            {% else %}
+                                                {{ booking.check_in.strftime('%B %d, %Y') if booking.check_in else 'N/A' }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Check-out:</strong><br>
+                                            {% if booking.is_checkout_today %}
+                                                <span class="text-danger">TODAY!</span>
+                                            {% else %}
+                                                {{ booking.check_out.strftime('%B %d, %Y') if booking.check_out else 'N/A' }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>Guests:</strong><br>
+                                            {{ booking.guests or 'N/A' }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <strong>Total:</strong><br>
+                                            ৳{{ "%.2f"|format(booking.total_price) }}
+                                        </div>
+                                        <div class="col-md-2">
+                                            {% if booking.can_review and not booking.has_reviewed %}
+                                                <button class="btn btn-success btn-sm" onclick="openReviewModal({{ booking.id }})">
+                                                    <i class="fas fa-star"></i> Review
+                                                </button>
+                                            {% elif booking.has_reviewed %}
+                                                <button class="btn btn-secondary btn-sm" disabled>Reviewed</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            {% endfor %}
                         {% else %}
-                            <div class="admin-empty-state">
-                                <i class="fas fa-calendar-times"></i>
-                                <h4>No Bookings Yet</h4>
-                                <p>You haven't made any bookings yet. Start exploring amazing places to stay!</p>
-                                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                                    <i class="fas fa-search"></i> Explore Listings
-                                </a>
+                            <div class="text-center py-5">
+                                <i class="fas fa-calendar-times fa-4x text-muted"></i>
+                                <h4>No bookings yet</h4>
+                                <p class="text-muted">Start exploring amazing places to stay!</p>
+                                <a href="{{ url_for('main.index') }}" class="btn btn-primary">Explore Listings</a>
                             </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
+<!-- Review Modal -->
+<div id="reviewModal" class="review-modal">
+    <div class="review-modal-content">
+        <h4>Review Your Stay</h4>
+        <form id="reviewForm" onsubmit="submitReview(event)">
+            <input type="hidden" id="reviewBookingId" name="booking_id">
+            <div class="mb-3">
+                <label class="form-label">Rating</label>
+                <select class="form-select" name="rating" required>
+                    <option value="">Select rating</option>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Comment</label>
+                <textarea class="form-control" name="comment" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Review</button>
+            <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+        </form>
     </div>
 </div>
 
 <script>
-// Filter bookings by status
-document.getElementById('statusFilter').addEventListener('change', function() {
-    const selectedStatus = this.value.toLowerCase();
-    const rows = document.querySelectorAll('tbody tr');
+function openReviewModal(bookingId) {
+    document.getElementById('reviewBookingId').value = bookingId;
+    document.getElementById('reviewModal').style.display = 'block';
+}
+
+function closeReviewModal() {
+    document.getElementById('reviewModal').style.display = 'none';
+}
+
+function submitReview(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
     
-    rows.forEach(row => {
-        if (selectedStatus === '') {
-            row.style.display = '';
-        } else {
-            const statusBadge = row.querySelector('.status-badge');
-            if (statusBadge && statusBadge.textContent.trim().toLowerCase() === selectedStatus) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+    fetch('/bookings/submit-review', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
         }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Review submitted successfully!');
+            closeReviewModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
     });
-});
-
-// Cancel booking function
-function cancelBooking(bookingId) {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-        // Add AJAX call to cancel booking
-        fetch(`/bookings/${bookingId}/cancel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Failed to cancel booking. Please try again.');
-            }
-        })
-        .catch(error => {
-            alert('An error occurred. Please try again.');
-        });
-    }
 }
+
+// Real-time updates every 30 seconds
+setInterval(function() {
+    // This could make an AJAX call to check for new updates
+    console.log('Checking for real-time updates...');
+}, 30000);
 </script>
-{% endblock %}
-    margin-bottom: 20px;
-}
-.meta-item {
-    display: flex;
-    flex-direction: column;
-}
-.meta-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
-.meta-value {
-    font-size: 14px;
-    color: var(--text-primary);
-    font-weight: 500;
-}
-.status-badge {
-    padding: 4px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-.status-confirmed { background: #d4edda; color: #155724; }
-.status-pending { background: #fff3cd; color: #856404; }
-.status-cancelled { background: #f8d7da; color: #721c24; }
-.booking-actions {
-    border-top: 1px solid var(--border-light);
-    padding-top: 16px;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-}
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4">My Bookings</h2>
-            
-            {% if bookings %}
-                {% for booking in bookings %}
-                <div class="booking-card">
-                    <div class="booking-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-1">{{ booking.listing.title if booking.listing else 'Unknown Listing' }}</h5>
-                                <small class="text-muted">Booking ID: #{{ booking.booking_id }}</small>
-                            </div>
-                            <span class="status-badge status-{{ booking.status }}">
-                                {{ booking.status.title() }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="booking-body">
-                        <!-- Booking Details Grid -->
-                        <div class="booking-meta">
-                            <div class="meta-item">
-                                <span class="meta-label">User ID</span>
-                                <span class="meta-value">{{ booking.user_id }}</span>
-                            </div>
-                            
-                            <div class="meta-item">
-                                <span class="meta-label">Listing ID</span>
-                                <span class="meta-value">{{ booking.listing_id }}</span>
-                            </div>
-                            
-                            <div class="meta-item">
-                                <span class="meta-label">Check-in Date</span>
-                                <span class="meta-value">{{ booking.check_in.strftime('%B %d, %Y') if booking.check_in else 'N/A' }}</span>
-                            </div>
-                            
-                            <div class="meta-item">
-                                <span class="meta-label">Check-out Date</span>
-                                <span class="meta-value">{{ booking.check_out.strftime('%B %d, %Y') if booking.check_out else 'N/A' }}</span>
-                            </div>
-                            
-                            <div class="meta-item">
-                                <span class="meta-label">Total Price</span>
-                                <span class="meta-value">৳{{ "%.2f"|format(booking.total_price) }}</span>
-                            </div>
-                            
-                            <div class="meta-item">
-                                <span class="meta-label">Created At</span>
-                                <span class="meta-value">{{ booking.created_at.strftime('%B %d, %Y at %I:%M %p') if booking.created_at else 'N/A' }}</span>
-                            </div>
-                            
-                            {% if booking.confirmed_by %}
-                            <div class="meta-item">
-                                <span class="meta-label">Confirmed By</span>
-                                <span class="meta-value">{{ booking.confirmed_by_name or 'User #' + booking.confirmed_by|string }}</span>
-                            </div>
-                            {% endif %}
-                            
-                            {% if booking.confirmed_at %}
-                            <div class="meta-item">
-                                <span class="meta-label">Confirmed At</span>
-                                <span class="meta-value">{{ booking.confirmed_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Listing Information -->
-                        {% if booking.listing %}
-                        <div class="mt-3 p-3 booking-detail-bg">
-                            <h6 class="mb-2">Property Details</h6>
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <p class="mb-1"><strong>Location:</strong> {{ booking.listing.location or 'Not specified' }}</p>
-                                    <p class="mb-1"><strong>Host:</strong> {{ booking.listing.host_name or 'Unknown Host' }}</p>
-                                </div>
-                                <div class="col-md-4 text-end">
-                                    {% if booking.listing.image %}
-                                    <img src="{{ url_for('static', filename='img/' + booking.listing.image) }}" 
-                                         alt="{{ booking.listing.title }}" 
-                                         class="booking-image-small">
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Action Buttons -->
-                        <div class="booking-actions">
-                            {% if booking.listing %}
-                            <a href="{{ url_for('main.listing_detail', listing_id=booking.listing_id) }}" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i> View Listing
-                            </a>
-                            {% endif %}
-                            
-                            {% if booking.status == 'pending' %}
-                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                    onclick="cancelBooking({{ booking.booking_id }})">
-                                <i class="fas fa-times"></i> Cancel Booking
-                            </button>
-                            {% endif %}
-                            
-                            {% if booking.status == 'confirmed' %}
-                            <button type="button" class="btn btn-sm btn-outline-info" 
-                                    onclick="showBookingDetails({{ booking.booking_id }})">
-                                <i class="fas fa-info-circle"></i> Details
-                            </button>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-                
-                <!-- Booking Statistics -->
-                <div class="row mt-5">
-                    <div class="col-12">
-                        <h4>Booking Summary</h4>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <h5>{{ bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</h5>
-                                        <small class="text-success">Confirmed</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <h5>{{ bookings|selectattr('status', 'equalto', 'pending')|list|length }}</h5>
-                                        <small class="text-warning">Pending</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <h5>{{ bookings|selectattr('status', 'equalto', 'cancelled')|list|length }}</h5>
-                                        <small class="text-danger">Cancelled</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <h5>৳{{ "%.2f"|format(bookings|selectattr('status', 'equalto', 'confirmed')|map(attribute='total_price')|sum) }}</h5>
-                                        <small class="text-primary">Total Spent</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            {% else %}
-                <div class="text-center py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-calendar-times fa-4x text-muted"></i>
-                    </div>
-                    <h4>No bookings yet</h4>
-                    <p class="text-muted mb-4">Start exploring amazing places to stay!</p>
-                    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Browse Listings
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
 
 {% endblock %}

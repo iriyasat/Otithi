@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 20, 2025 at 03:16 AM
+-- Generation Time: Aug 20, 2025 at 10:21 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -41,6 +41,14 @@ CREATE TABLE `bookings` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `bookings`
+--
+
+INSERT INTO `bookings` (`booking_id`, `user_id`, `listing_id`, `check_in`, `check_out`, `guests`, `total_price`, `status`, `confirmed_by`, `confirmed_at`, `created_at`, `updated_at`) VALUES
+(1, 3, 3, '2025-08-25', '2025-08-27', 2, 2410.00, 'confirmed', NULL, NULL, '2025-08-20 12:46:14', '2025-08-20 12:46:14'),
+(2, 3, 3, '2025-08-20', '2025-08-22', 1, 1205.00, 'completed', NULL, NULL, '2025-08-20 12:46:19', '2025-08-20 12:46:19');
 
 -- --------------------------------------------------------
 
@@ -98,6 +106,8 @@ CREATE TABLE `listings` (
 --
 
 INSERT INTO `listings` (`listing_id`, `host_id`, `location_id`, `title`, `description`, `room_type`, `price_per_night`, `max_guests`, `amenities`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, 'Cozy Apartment in Gulshan', 'Beautiful modern apartment in the heart of Gulshan with all amenities. Perfect for business travelers and tourists. Features include a spacious living room, modern kitchen, comfortable bedroom, and a lovely balcony with city views.', 'entire_place', 3500.00, 4, 'wifi,air_conditioning,kitchen,parking,tv,balcony', 1, '2025-08-20 08:42:53', '2025-08-20 08:42:53'),
+(2, 2, 2, 'Modern Studio in Banani', 'Stylish studio apartment in Banani.', 'private_room', 2500.00, 2, 'wifi,air_conditioning,tv', 1, '2025-08-20 08:48:38', '2025-08-20 08:48:38'),
 (3, 2, 3, 'small room', 'small room', 'private_room', 1205.00, 2, 'wifi, parking, etc', 1, '2025-08-20 05:10:15', '2025-08-20 05:10:15');
 
 -- --------------------------------------------------------
@@ -120,6 +130,7 @@ CREATE TABLE `listing_images` (
 --
 
 INSERT INTO `listing_images` (`image_id`, `listing_id`, `image_filename`, `image_order`, `is_primary`, `uploaded_at`) VALUES
+(1, 1, 'demo_listing_1.jpg', 1, 1, '2025-08-20 08:42:53'),
 (3, 3, 'listing_3_fe8cdff0.webp', 1, 0, '2025-08-20 05:10:15');
 
 -- --------------------------------------------------------
@@ -144,6 +155,8 @@ CREATE TABLE `locations` (
 --
 
 INSERT INTO `locations` (`location_id`, `address`, `city`, `country`, `latitude`, `longitude`, `listing_id`, `created_at`) VALUES
+(1, '123 Gulshan Avenue, Dhaka 1212, Bangladesh', 'Dhaka', 'Bangladesh', 23.78160000, 90.42030000, 1, '2025-08-20 08:42:53'),
+(2, '456 Banani Road, Dhaka 1213, Bangladesh', 'Dhaka', 'Bangladesh', 23.79460000, 90.40030000, 2, '2025-08-20 08:48:38'),
 (3, '331, 1 Sonargaon Road, Dhaka 1205, Bangladesh', 'Dhaka', 'Bangladesh', 23.74480787, 90.39131981, 3, '2025-08-20 05:10:15');
 
 -- --------------------------------------------------------
@@ -360,7 +373,7 @@ ALTER TABLE `user_details`
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `email_verifications`
@@ -408,7 +421,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `reviews`
 --
 ALTER TABLE `reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`

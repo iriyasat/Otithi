@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
-from app.models import User, Listing, Booking, Review, ListingImage
+from app.models import User, Listing, Booking, Review, ListingImage, Message
 
 main_bp = Blueprint('main', __name__)
 
@@ -316,6 +316,80 @@ def favorites():
     # TODO: Implement actual favorites functionality
     # For now, return empty favorites page
     return render_template('guest/favorites.html', favorites=[], user=current_user)
+
+@main_bp.route('/help')
+def help_page():
+    """Help page - contact admin"""
+    return render_template('help.html')
+
+@main_bp.route('/help/send', methods=['POST'])
+def send_help_message():
+    """Send help message to admin"""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        subject = data.get('subject')
+        message = data.get('message')
+        
+        if not all([name, email, subject, message]):
+            return jsonify({
+                'success': False,
+                'message': 'Missing required fields'
+            })
+        
+        # Get admin user (assuming admin has user_id = 1 or specific admin email)
+        # You can modify this logic based on how you identify admin users
+        admin_user = None
+        
+        # Try to find admin by email first
+        if email == 'admin@otithi.com' or email == 'admin@example.com':
+            admin_user = User.get_by_email(email)
+        
+        # If no admin found by email, try to get the first admin user
+        if not admin_user:
+            # This is a simple approach - you might want to add an 'is_admin' field to users table
+            admin_users = User.get_all()
+            for user in admin_users:
+                if hasattr(user, 'role') and user.role == 'admin':
+                    admin_user = user
+                    break
+            
+            # Fallback: use first user as admin (for development)
+            if not admin_users:
+                return jsonify({
+                    'success': False,
+                    'message': 'No admin users found in system'
+                })
+            admin_user = admin_users[0]
+        
+        # Create help message in the messages table
+        help_message = Message.create(
+            sender_id=current_user.id if current_user.is_authenticated else None,
+            receiver_id=admin_user.id,
+            content=f"HELP REQUEST - {subject}\n\nFrom: {name} ({email})\n\nMessage:\n{message}",
+            message_type='help',
+            listing_id=None,
+            booking_id=None
+        )
+        
+        if help_message:
+            return jsonify({
+                'success': True,
+                'message': 'Help message sent successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to send help message'
+            })
+            
+    except Exception as e:
+        print(f"Error sending help message: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Error sending help message'
+        })
 
 # Remove the redirect routes - auth blueprint handles /login and /register directly
 # Note: Removed duplicate logout route to prevent conflicts - auth.logout handles this

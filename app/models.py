@@ -1007,6 +1007,31 @@ class Review:
                 booking_id=review_data.get('booking_id')
             )
         return None
+    
+    @staticmethod
+    def has_user_reviewed_booking(user_id, booking_id):
+        """Check if a user has already reviewed a specific booking"""
+        query = "SELECT * FROM reviews WHERE reviewer_id = %s AND booking_id = %s"
+        result = db.execute_query(query, (user_id, booking_id))
+        return len(result) > 0
+    
+    @staticmethod
+    def get_by_booking(booking_id):
+        """Get review by booking ID"""
+        query = "SELECT * FROM reviews WHERE booking_id = %s"
+        result = db.execute_query(query, (booking_id,))
+        if result:
+            review_data = result[0]
+            return Review(
+                id=review_data['review_id'],
+                listing_id=review_data['listing_id'],
+                user_id=review_data['reviewer_id'],
+                rating=float(review_data['rating']),
+                comment=review_data['comments'],
+                created_date=review_data['review_date'],
+                booking_id=review_data.get('booking_id')
+            )
+        return None
 
 class Booking:
     def __init__(self, id, listing_id, user_id, check_in, check_out, total_price, 
@@ -1024,6 +1049,19 @@ class Booking:
         self.created_at = created_date or datetime.now()  # Alias for consistency
         self.confirmed_by = confirmed_by
         self.confirmed_at = confirmed_at
+        
+        # Convert string dates to date objects if needed
+        if isinstance(self.check_in, str):
+            try:
+                self.check_in = datetime.strptime(self.check_in, '%Y-%m-%d').date()
+            except ValueError:
+                self.check_in = None
+                
+        if isinstance(self.check_out, str):
+            try:
+                self.check_out = datetime.strptime(self.check_out, '%Y-%m-%d').date()
+            except ValueError:
+                self.check_out = None
     
     @staticmethod
     def get_all():
@@ -1203,6 +1241,133 @@ class Booking:
                 self.status = new_status
                 return True
         return False
+    
+    @property
+    def is_checkin_today(self):
+        """Check if check-in is today"""
+        if not self.check_in:
+            return False
+        return self.check_in == date.today()
+    
+    @property
+    def is_checkout_today(self):
+        """Check if check-out is today"""
+        if not self.check_out:
+            return False
+        return self.check_out == date.today()
+    
+    @property
+    def is_past_checkout(self):
+        """Check if check-out date has passed"""
+        if not self.check_out:
+            return False
+        return self.check_out < date.today()
+    
+    @property
+    def can_review(self):
+        """Check if guest can leave a review (completed stay)"""
+        return self.status == 'completed' and self.is_past_checkout
+    
+    @property
+    def days_until_checkin(self):
+        """Calculate days until check-in"""
+        if not self.check_in:
+            return None
+        delta = self.check_in - date.today()
+        return delta.days
+    
+    @property
+    def days_until_checkout(self):
+        """Calculate days until check-out"""
+        if not self.check_out:
+            return None
+        delta = self.check_out - date.today()
+        return delta.days
+    
+    @property
+    def stay_duration(self):
+        """Calculate total stay duration in days"""
+        if not self.check_in or not self.check_out:
+            return None
+        delta = self.check_out - self.check_in
+        return delta.days
+    
+    @staticmethod
+    def get_upcoming_checkins(user_id, days_ahead=7):
+        """Get upcoming check-ins within specified days"""
+        query = """
+            SELECT * FROM bookings 
+            WHERE user_id = %s AND status = 'confirmed' 
+            AND check_in BETWEEN %s AND %s
+            ORDER BY check_in ASC
+        """
+        start_date = date.today()
+        end_date = start_date + timedelta(days=days_ahead)
+        results = db.execute_query(query, (user_id, start_date, end_date))
+        
+        bookings = []
+        for booking_data in results:
+            bookings.append(Booking(
+                id=booking_data['booking_id'],
+                listing_id=booking_data['listing_id'],
+                user_id=booking_data['user_id'],
+                check_in=booking_data['check_in'],
+                check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
+                total_price=float(booking_data['total_price']),
+                status=booking_data['status'],
+                created_date=booking_data['created_at'],
+                confirmed_by=booking_data['confirmed_by'],
+                confirmed_at=booking_data['confirmed_at']
+            ))
+        return bookings
+    
+    @staticmethod
+    def get_recently_completed(user_id, days_back=30):
+        """Get recently completed stays for review purposes"""
+        query = """
+            SELECT * FROM bookings 
+            WHERE user_id = %s AND status = 'completed' 
+            AND check_out < %s
+            ORDER BY check_out DESC
+        """
+        cutoff_date = date.today() - timedelta(days=days_back)
+        results = db.execute_query(query, (user_id, cutoff_date))
+        
+        bookings = []
+        for booking_data in results:
+            bookings.append(Booking(
+                id=booking_data['booking_id'],
+                listing_id=booking_data['listing_id'],
+                user_id=booking_data['user_id'],
+                check_in=booking_data['check_in'],
+                check_out=booking_data['check_out'],
+                guests=booking_data.get('guests', 1),
+                total_price=float(booking_data['total_price']),
+                status=booking_data['status'],
+                created_date=booking_data['created_at'],
+                confirmed_by=booking_data['confirmed_by'],
+                confirmed_at=booking_data['confirmed_at']
+            ))
+        return bookings
+    
+    @staticmethod
+    def update_expired_statuses():
+        """Automatically update booking statuses based on dates"""
+        today = date.today()
+        
+        # Mark past check-outs as completed
+        completed_query = """
+            UPDATE bookings 
+            SET status = 'completed', updated_at = %s 
+            WHERE status = 'confirmed' AND check_out < %s
+        """
+        db.execute_update(completed_query, (datetime.now(), today))
+        
+        # Mark today's check-ins as active (could add 'active' status if needed)
+        # For now, we'll keep them as 'confirmed' but could add logic here
+        
+        return True
 
 
 class Favorite:

@@ -1,11 +1,16 @@
 {% extends "base.html" %}
-{% set title = "Messages" %}
 
-{% block head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/messages.css') }}">
+{% block title %}Messages - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/messages.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
+<!-- Hidden CSRF token field -->
+<input type="hidden" id="csrf-token-field" value="{{ csrf_token() }}" />
+<input type="hidden" id="current-user-id" data-current-user-id="{{ current_user.id }}" />
+
 <div class="messages-container">
     <!-- Messages Header -->
     <div class="messages-header">

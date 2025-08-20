@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Help & Contact Admin - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+<style>
+.help-topics-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.help-topic-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.help-topic-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.help-topic-item i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.help-topic-item span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.dashboard-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dashboard-header h1 i {
+    color: #28a745;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Help Dashboard Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-question-circle"></i>
+                Help & Support Center
+            </h1>
+            <p class="lead">We're here to help! Contact our admin team for assistance with your account, listings, bookings, or any other questions.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Help Topics Section -->
+            <div class="col-md-4 mb-4">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5><i class="fas fa-info-circle"></i> Common Help Topics</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <div class="help-topics-list">
+                            <div class="help-topic-item">
+                                <i class="fas fa-user text-primary"></i>
+                                <span>Account & Profile Issues</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-home text-success"></i>
+                                <span>Listing Management</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-calendar-check text-warning"></i>
+                                <span>Booking Problems</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-credit-card text-info"></i>
+                                <span>Payment Issues</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-shield-alt text-danger"></i>
+                                <span>Security Concerns</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-bug text-secondary"></i>
+                                <span>Technical Problems</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-star text-warning"></i>
+                                <span>Reviews & Ratings</span>
+                            </div>
+                            <div class="help-topic-item">
+                                <i class="fas fa-phone text-primary"></i>
+                                <span>General Inquiries</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Form Section -->
+            <div class="col-md-8">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5><i class="fas fa-envelope"></i> Contact Admin Team</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <form id="helpContactForm" onsubmit="submitHelpForm(event)">
+                            <!-- Hidden CSRF token field -->
+                            <input type="hidden" id="csrf-token-field" value="{{ csrf_token() }}" />
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="helpName" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="helpName" name="name" required 
+                                           value="{{ current_user.full_name if current_user.is_authenticated else '' }}"
+                                           placeholder="Enter your full name">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="helpEmail" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="helpEmail" name="email" required 
+                                           value="{{ current_user.email if current_user.is_authenticated else '' }}"
+                                           placeholder="Enter your email address">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="helpSubject" class="form-label">Subject *</label>
+                                <select class="form-select" id="helpSubject" name="subject" required>
+                                    <option value="">Select a topic</option>
+                                    <option value="Account Issues">Account Issues</option>
+                                    <option value="Listing Problems">Listing Problems</option>
+                                    <option value="Booking Issues">Booking Issues</option>
+                                    <option value="Payment Problems">Payment Problems</option>
+                                    <option value="Technical Support">Technical Support</option>
+                                    <option value="Security Concerns">Security Concerns</option>
+                                    <option value="General Inquiry">General Inquiry</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="helpMessage" class="form-label">Message *</label>
+                                <textarea class="form-control" id="helpMessage" name="message" required rows="5"
+                                          placeholder="Please describe your issue or question in detail. Include any relevant information like listing IDs, booking numbers, or error messages."></textarea>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitHelpBtn">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Send Message to Admin
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Help Tips -->
+                        <div class="alert alert-info mt-4">
+                            <h6><i class="fas fa-lightbulb"></i> Tips for Faster Help</h6>
+                            <ul class="mb-0">
+                                <li>Be specific about your issue</li>
+                                <li>Include relevant IDs or numbers</li>
+                                <li>Describe what you were trying to do</li>
+                                <li>Mention any error messages you saw</li>
+                                <li>We typically respond within 24 hours</li>
+                            </ul>
+                            <p class="mb-0"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitHelpForm(event) {
+    event.preventDefault();
+    
+    const submitBtn = document.getElementById('submitHelpBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    submitBtn.disabled = true;
+    
+    // Get form data
+    const formData = {
+        name: document.getElementById('helpName').value.trim(),
+        email: document.getElementById('helpEmail').value.trim(),
+        subject: document.getElementById('helpSubject').value,
+        message: document.getElementById('helpMessage').value.trim()
+    };
+    
+    // Validate form
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+        alert('Please fill in all required fields.');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+    }
+    
+    // Get CSRF token
+    const csrfTokenField = document.getElementById('csrf-token-field');
+    if (!csrfTokenField || !csrfTokenField.value) {
+        alert('Security token missing. Please refresh the page and try again.');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+    }
+    
+    // Send help message
+    fetch('/help/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfTokenField.value
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+            submitBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            
+            // Reset form
+            document.getElementById('helpContactForm').reset();
+            
+            // Show success notification
+            showSuccessNotification('Your message has been sent to admin! We\'ll get back to you soon.');
+            
+            // Restore button after delay
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.style.background = '';
+            }, 2000);
+        } else {
+            alert('Failed to send message: ' + (data.message || 'Unknown error'));
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error sending help message:', error);
+        alert('Failed to send message. Please try again.');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function showSuccessNotification(message) {
+    // Create a temporary notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+        z-index: 10000;
+        font-size: 14px;
+        font-weight: 500;
+        max-width: 350px;
+        animation: slideInRight 0.3s ease;
+    `;
+    notification.innerHTML = `
+        <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 5 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

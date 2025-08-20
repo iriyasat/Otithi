@@ -180,6 +180,59 @@
     gap: var(--space-4);
 }
 
+/* ===== MESSAGE ICON ===== */
+.otithi-navbar .message-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--neutral-100);
+    border: 2px solid var(--neutral-200);
+    border-radius: var(--radius-base);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}
+
+.otithi-navbar .message-icon:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-300);
+    color: var(--primary-600);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.otithi-navbar .message-icon i {
+    font-size: var(--font-size-lg);
+}
+
+.otithi-navbar .message-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--error-500);
+    color: var(--neutral-0);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-1);
+    border: 2px solid var(--neutral-0);
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
 .otithi-navbar .auth-buttons {
     display: flex;
     align-items: center;

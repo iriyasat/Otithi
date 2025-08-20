@@ -64,6 +64,277 @@
     margin: 0;
 }
 
+.host-actions {
+    margin-top: 15px;
+}
+
+.btn-message-host {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    text-decoration: none;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn-message-host:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+}
+
+.btn-message-host:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+}
+
+.btn-message-host:active {
+    transform: translateY(0);
+}
+
+.btn-message-host i {
+    font-size: 16px;
+}
+
+.btn-message-host:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-message-host .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Message Modal Styles */
+.message-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.message-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+.message-modal-content {
+    position: relative;
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    margin: 50px auto;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: slideIn 0.3s ease;
+}
+
+.message-modal-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.message-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.message-modal-header i {
+    margin-right: 8px;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.message-modal-body {
+    padding: 24px;
+}
+
+.host-info-modal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.host-avatar-modal {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.host-details-modal h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.host-details-modal p {
+    margin: 4px 0 0 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.message-input-section label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.message-input-section textarea {
+    width: 100%;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s ease;
+}
+
+.message-input-section textarea:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.message-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.btn-send-message {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-send-message:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-send-message:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
 .listing-description {
     padding: 30px 0;
     border-bottom: 1px solid #DDDDDD;
@@ -499,6 +770,72 @@ input[type="date"]::-webkit-calendar-picker-indicator {
                              class="host-avatar">
                         <div class="host-details">
                             <h3>{{ listing['type'].replace('_', ' ').title() }} hosted by {{ listing['host']['name'] }}</h3>
+                            <div class="host-actions">
+                                                        {% if current_user.is_authenticated %}
+                            {% if current_user.id != listing['host']['id'] %}
+                                <button class="btn-message-host" onclick="openMessageModal()">
+                                    <i class="fas fa-envelope"></i>
+                                    Message Host
+                                </button>
+                            {% else %}
+                                <button class="btn-message-host" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                    <i class="fas fa-user"></i>
+                                    This is your listing
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <button class="btn-message-host" onclick="redirectToLogin()">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Login to Message Host
+                            </button>
+                        {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden CSRF token field -->
+                <input type="hidden" id="csrf-token-field" value="{{ csrf_token() }}" />
+                
+                <!-- Message Host Modal -->
+                <div id="messageModal" class="message-modal" style="display: none;">
+                    <div class="message-modal-overlay" onclick="closeMessageModal()"></div>
+                    <div class="message-modal-content">
+                        <div class="message-modal-header">
+                            <h3>
+                                <i class="fas fa-envelope"></i>
+                                Message {{ listing['host']['name'] }}
+                            </h3>
+                            <button class="modal-close-btn" onclick="closeMessageModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="message-modal-body">
+                            <div class="host-info-modal">
+                                <img src="{{ url_for('static', filename='uploads/' + listing['host']['avatar']) }}" 
+                                     alt="{{ listing['host']['name'] }}" 
+                                     class="host-avatar-modal">
+                                <div class="host-details-modal">
+                                    <h4>{{ listing['host']['name'] }}</h4>
+                                    <p>Host of {{ listing['title'] }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="message-input-section">
+                                <label for="messageText">Your Message</label>
+                                <textarea id="messageText" 
+                                         placeholder="Hi {{ listing['host']['name'] }}! I'm interested in your listing. Can you tell me more about it?"
+                                         rows="4"></textarea>
+                                
+                                <div class="message-actions">
+                                    <button class="btn-cancel" onclick="closeMessageModal()">Cancel</button>
+                                    <button class="btn-send-message" onclick="sendMessageFromModal()">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Send Message
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -784,6 +1121,259 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             alert('Check-out date must be after check-in date.');
             return false;
+        }
+    });
+    
+    // Function to start a conversation with the host
+    function startConversation(hostId, hostName, listingId) {
+        console.log('Starting conversation with:', hostId, hostName, listingId);
+        
+        // Check if user is logged in
+        {% if current_user.is_authenticated %}
+            // Check if the current user is the host
+            {% if current_user.id == listing['host']['id'] %}
+                alert('You cannot message yourself!');
+                return;
+            {% else %}
+                // Show loading state
+                const button = event.target.closest('.btn-message-host');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                button.disabled = true;
+                
+                // Create a new conversation by sending an initial message
+                const initialMessage = `Hi ${hostName}! I'm interested in your listing. Can you tell me more about it?`;
+                
+                console.log('Sending message:', initialMessage);
+                
+                // Get CSRF token from hidden field
+                const csrfTokenField = document.getElementById('csrf-token-field');
+                if (!csrfTokenField || !csrfTokenField.value) {
+                    console.error('CSRF token not found');
+                    alert('Security token missing. Please refresh the page and try again.');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    return;
+                }
+                
+                const csrfToken = csrfTokenField.value;
+                console.log('CSRF Token:', csrfToken);
+                
+                // Send the message to start the conversation
+                fetch('/messages/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        receiver_id: hostId,
+                        content: initialMessage,
+                        listing_id: listingId
+                    })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        // Show success message
+                        button.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+                        button.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                        
+                        // Redirect to messages page after a short delay
+                        setTimeout(() => {
+                            window.location.href = '/messages/';
+                        }, 1500);
+                    } else {
+                        // Show error and restore button
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                        alert('Failed to send message: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    // Restore button
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    alert('Failed to send message. Please try again. Check the console for details.');
+                });
+            {% endif %}
+        {% else %}
+            // Redirect to login page if not authenticated
+            console.log('User not authenticated, redirecting to login');
+            window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+        {% endif %}
+    }
+    
+    // Function to redirect to login page
+    function redirectToLogin() {
+        console.log('Redirecting to login page');
+        window.location.href = '/login?next=' + encodeURIComponent(window.location.pathname);
+    }
+    
+    // Modal functions
+    function openMessageModal() {
+        console.log('Opening message modal');
+        const modal = document.getElementById('messageModal');
+        const messageText = document.getElementById('messageText');
+        
+        // Pre-fill the message with a default text
+        messageText.value = 'Hi {{ listing["host"]["name"] }}! I\'m interested in your listing. Can you tell me more about it?';
+        
+        modal.style.display = 'block';
+        messageText.focus();
+        
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeMessageModal() {
+        console.log('Closing message modal');
+        const modal = document.getElementById('messageModal');
+        modal.style.display = 'none';
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+        
+        // Clear the message text
+        document.getElementById('messageText').value = '';
+    }
+    
+    function sendMessageFromModal() {
+        console.log('Sending message from modal');
+        
+        const messageText = document.getElementById('messageText');
+        const content = messageText.value.trim();
+        const sendButton = document.querySelector('.btn-send-message');
+        
+        if (!content) {
+            alert('Please enter a message before sending.');
+            messageText.focus();
+            return;
+        }
+        
+        // Show loading state
+        const originalText = sendButton.innerHTML;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        sendButton.disabled = true;
+        
+        // Get CSRF token
+        const csrfTokenField = document.getElementById('csrf-token-field');
+        if (!csrfTokenField || !csrfTokenField.value) {
+            console.error('CSRF token not found');
+            alert('Security token missing. Please refresh the page and try again.');
+            sendButton.innerHTML = originalText;
+            sendButton.disabled = false;
+            return;
+        }
+        
+        const csrfToken = csrfTokenField.value;
+        
+        // Send the message
+        fetch('/messages/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                receiver_id: {{ listing['host']['id'] }},
+                content: content,
+                listing_id: {{ listing['id'] }}
+            })
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                // Show success message
+                sendButton.innerHTML = '<i class="fas fa-check"></i> Message Sent!';
+                sendButton.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                
+                // Close modal after a short delay and show success notification
+                setTimeout(() => {
+                    closeMessageModal();
+                    showSuccessNotification('Message sent successfully! You can continue the conversation in your messages.');
+                    
+                    // Restore button
+                    sendButton.innerHTML = originalText;
+                    sendButton.disabled = false;
+                    sendButton.style.background = '';
+                }, 1500);
+            } else {
+                // Show error and restore button
+                sendButton.innerHTML = originalText;
+                sendButton.disabled = false;
+                alert('Failed to send message: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+            // Restore button
+            sendButton.innerHTML = originalText;
+            sendButton.disabled = false;
+            alert('Failed to send message. Please try again. Check the console for details.');
+        });
+    }
+    
+    function showSuccessNotification(message) {
+        // Create a temporary notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+            z-index: 10000;
+            font-size: 14px;
+            font-weight: 500;
+            max-width: 350px;
+            animation: slideInRight 0.3s ease;
+        `;
+        notification.innerHTML = `
+            <i class="fas fa-check-circle" style="margin-right: 8px;"></i>
+            ${message}
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('messageModal');
+        if (e.target === modal) {
+            closeMessageModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('messageModal');
+            if (modal && modal.style.display === 'block') {
+                closeMessageModal();
+            }
         }
     });
 });
