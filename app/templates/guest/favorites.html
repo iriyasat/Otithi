@@ -1,33 +1,349 @@
 {% extends "base.html" %}
 
-{% set page_title = "My Favorites" %}
-
-{% block title %}{{ page_title }} | Otithi{% endblock %}
-
-{% block body_class %}guest-dashboard{% endblock %}
+{% block title %}My Favorites - Otithi{% endblock %}
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<!-- Favorites Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                {% if user and user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.full_name }}" class="dashboard-profile-image">
+                {% else %}
+                    <i class="fas fa-heart"></i>
+                {% endif %}
+                My Favorites
+            </h1>
+            <p class="lead">Your saved listings and wishlist items.</p>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-lg-3 col-md-4 mb-4">
-                <div class="dashboard-sidebar">
-                    <div class="sidebar-header">
-                        <div class="user-info">
-                            <div class="user-avatar">
-                                {% if user.profile_photo %}
-                                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" alt="{{ user.name }}">
-                                {% else %}
-                                    <i class="fas fa-user"></i>
-                                {% endif %}
+        <!-- Favorites Overview -->
+        <div class="dashboard-stats">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-danger text-white">
+                        <div class="card-body">
+                            <h5>Favorite Properties</h5>
+                            <h2>{{ favorites|length if favorites else 0 }}</h2>
+                            <i class="fas fa-heart fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Avg. Price Range</h5>
+                            <h2>৳{{ avg_price if avg_price else '0' }}</h2>
+                            <i class="fas fa-chart-line fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Available Now</h5>
+                            <h2>{{ available_count if available_count else 0 }}</h2>
+                            <i class="fas fa-check-circle fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="stat-card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Cities</h5>
+                            <h2>{{ cities_count if cities_count else 0 }}</h2>
+                            <i class="fas fa-map-marker-alt fa-3x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5><i class="fas fa-rocket"></i> Quick Actions</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.explore') }}" class="admin-action-btn">
+                                    <i class="fas fa-search"></i>
+                                    <span>Explore More</span>
+                                </a>
                             </div>
-                            <div class="user-details">
-                                <h6>{{ user.full_name }}</h6>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.index') }}" class="admin-action-btn">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('main.my_bookings') }}" class="admin-action-btn">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>My Bookings</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="admin-action-btn" onclick="clearAllFavorites()">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Clear All</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Favorites Grid -->
+        <div class="row">
+            <div class="col-12">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5><i class="fas fa-heart"></i> Saved Properties</h5>
+                        <div class="admin-card-tools">
+                            <select class="form-select form-select-sm" id="sortFilter">
+                                <option value="recent">Recently Added</option>
+                                <option value="price-low">Price: Low to High</option>
+                                <option value="price-high">Price: High to Low</option>
+                                <option value="rating">Highest Rated</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="admin-card-body">
+                        {% if favorites %}
+                            <div class="row" id="favoritesGrid">
+                                {% for favorite in favorites %}
+                                <div class="col-md-6 col-lg-4 mb-4 favorite-item" 
+                                     data-price="{{ favorite.price }}" 
+                                     data-rating="{{ favorite.rating or 0 }}"
+                                     data-added="{{ favorite.added_date }}">
+                                    <div class="admin-card favorite-card">
+                                        <div class="favorite-image">
+                                            {% if favorite.image %}
+                                                <img src="{{ url_for('static', filename='uploads/listings/' + favorite.image) }}" 
+                                                     alt="{{ favorite.title }}" class="img-fluid">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='img/demo_listing_1.jpg') }}" 
+                                                     alt="{{ favorite.title }}" class="img-fluid">
+                                            {% endif %}
+                                            <button class="favorite-remove-btn" onclick="removeFavorite({{ favorite.id }})">
+                                                <i class="fas fa-heart"></i>
+                                            </button>
+                                        </div>
+                                        <div class="admin-card-body">
+                                            <h6 class="favorite-title">{{ favorite.title }}</h6>
+                                            <p class="favorite-location">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                {{ favorite.location }}
+                                            </p>
+                                            <div class="favorite-details">
+                                                <div class="favorite-price">
+                                                    <strong>৳{{ favorite.price }}/night</strong>
+                                                </div>
+                                                {% if favorite.rating %}
+                                                <div class="favorite-rating">
+                                                    <i class="fas fa-star"></i>
+                                                    {{ "%.1f"|format(favorite.rating) }}
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="favorite-actions mt-3">
+                                                <a href="{{ url_for('listings.listing_detail', listing_id=favorite.listing_id) }}" 
+                                                   class="btn btn-sm btn-primary flex-fill me-2">
+                                                    View Details
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-primary" 
+                                                        onclick="bookNow({{ favorite.listing_id }})">
+                                                    Book Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="admin-empty-state">
+                                <i class="fas fa-heart-broken"></i>
+                                <h4>No Favorites Yet</h4>
+                                <p>Start exploring and save properties you love to see them here!</p>
+                                <a href="{{ url_for('main.explore') }}" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Explore Listings
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.favorite-card {
+    height: 100%;
+    overflow: hidden;
+}
+
+.favorite-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.favorite-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.favorite-remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    color: #dc3545;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.favorite-remove-btn:hover {
+    background: #dc3545;
+    color: white;
+    transform: scale(1.1);
+}
+
+.favorite-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.favorite-location {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.favorite-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.favorite-price {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.favorite-rating {
+    color: #ffc107;
+}
+
+.favorite-actions {
+    display: flex;
+    gap: 8px;
+}
+</style>
+
+<script>
+// Sort favorites
+document.getElementById('sortFilter').addEventListener('change', function() {
+    const sortBy = this.value;
+    const grid = document.getElementById('favoritesGrid');
+    const items = Array.from(grid.children);
+    
+    items.sort((a, b) => {
+        switch(sortBy) {
+            case 'price-low':
+                return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+            case 'price-high':
+                return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+            case 'rating':
+                return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+            case 'recent':
+            default:
+                return new Date(b.dataset.added) - new Date(a.dataset.added);
+        }
+    });
+    
+    items.forEach(item => grid.appendChild(item));
+});
+
+// Remove favorite
+function removeFavorite(favoriteId) {
+    if (confirm('Remove this property from your favorites?')) {
+        fetch(`/favorites/${favoriteId}/remove`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to remove favorite. Please try again.');
+            }
+        })
+        .catch(error => {
+            alert('An error occurred. Please try again.');
+        });
+    }
+}
+
+// Clear all favorites
+function clearAllFavorites() {
+    if (confirm('Are you sure you want to remove all favorites? This action cannot be undone.')) {
+        fetch('/favorites/clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to clear favorites. Please try again.');
+            }
+        })
+        .catch(error => {
+            alert('An error occurred. Please try again.');
+        });
+    }
+}
+
+// Book now
+function bookNow(listingId) {
+    window.location.href = `/book/${listingId}`;
+}
+</script>
+{% endblock %}
                                 <span class="user-type">{{ user.user_type.title() }}</span>
                             </div>
                         </div>

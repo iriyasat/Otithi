@@ -40,8 +40,10 @@
                         <a href="{{ url_for('admin.listings') }}" class="nav-link{% if request.endpoint == 'admin.listings' %} active{% endif %}">Manage Listings</a>
                         <a href="{{ url_for('admin.bookings') }}" class="nav-link{% if request.endpoint == 'admin.bookings' %} active{% endif %}">Manage Bookings</a>
                     {% elif current_user.user_type == 'guest' %}
+                        <a href="{{ url_for('main.index') }}" class="nav-link{% if request.endpoint == 'main.index' %} active{% endif %}">Dashboard</a>
                         <a href="{{ url_for('main.explore') }}" class="nav-link{% if request.endpoint == 'main.explore' %} active{% endif %}">Explore</a>
                         <a href="{{ url_for('main.my_bookings') }}" class="nav-link{% if request.endpoint == 'main.my_bookings' %} active{% endif %}">My Bookings</a>
+                        <a href="{{ url_for('main.favorites') }}" class="nav-link{% if request.endpoint == 'main.favorites' %} active{% endif %}">Favorites</a>
                     {% elif current_user.user_type == 'host' %}
                         <a href="{{ url_for('listings.create_listing') }}" class="nav-link{% if request.endpoint == 'listings.create_listing' %} active{% endif %}">Create Listing</a>
                         <a href="{{ url_for('main.dashboard') }}" class="nav-link{% if request.endpoint == 'main.dashboard' %} active{% endif %}">Dashboard</a>

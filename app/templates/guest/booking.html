@@ -1,118 +1,150 @@
 {% extends "base.html" %}
-{% block title %}Confirm and pay - Otithi{% endblock %}
+
+{% block title %}Booking Confirmation - Otithi{% endblock %}
 
 {% block extra_css %}
-<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/responsive.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-lg-7">
-            <div style="background: var(--secondary-color); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-md);">
-                <h2 style="font-size: 32px; font-weight: 600; color: var(--text-primary); margin-bottom: 32px;">
-                    Confirm and pay
-                </h2>
-                
-                <form method="POST">
-                    {{ csrf_token() }}
-                    <!-- Booking Details -->
-                    <div class="form-group">
-                        <label for="user_id" class="form-label">User ID</label>
-                        <input type="number" class="form-control" id="user_id" name="user_id" 
-                               placeholder="Your user ID" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="listing_id" class="form-label">Listing ID</label>
-                        <input type="number" class="form-control" id="listing_id" name="listing_id" 
-                               placeholder="Listing ID" required>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="check_in" class="form-label">Check-in</label>
-                            <input type="date" class="form-control" id="check_in" name="check_in" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="check_out" class="form-label">Check-out</label>
-                            <input type="date" class="form-control" id="check_out" name="check_out" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="total_price" class="form-label">Total Price (৳)</label>
-                        <input type="number" step="0.01" class="form-control" id="total_price" name="total_price" 
-                               placeholder="Total price" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="status" class="form-label">Booking Status</label>
-                        <select class="form-control" id="status" name="status" required>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Payment Method -->
-                    <div class="form-group">
-                        <label class="form-label">Payment method</label>
-                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 16px;">
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                                <input type="radio" name="payment_method" value="card" id="card" checked>
-                                <label for="card" style="font-weight: 600; margin: 0;">Credit or debit card</label>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                <input type="text" class="form-control" placeholder="Card number">
-                                <input type="text" class="form-control" placeholder="MM / YY">
-                            </div>
-                            <div style="margin-top: 16px;">
-                                <input type="text" class="form-control" placeholder="Security code">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary w-100" style="font-size: 16px; padding: 16px;">
-                        Confirm and pay
-                    </button>
-                </form>
-            </div>
+<!-- Booking Container -->
+<div class="dashboard-container admin-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-credit-card"></i>
+                Confirm and Pay
+            </h1>
+            <p class="lead">Complete your booking reservation.</p>
         </div>
-        
-        <!-- Booking Summary -->
-        <div class="col-lg-5">
-            <div style="background: var(--secondary-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; position: sticky; top: 120px;">
-                <div style="display: flex; gap: 16px; margin-bottom: 24px;">
-                    <img src="{{ url_for('static', filename='uploads/listings/' + listing.image) if listing.image != 'demo_listing_1.jpg' else url_for('static', filename='img/' + listing.image) }}" 
-                         style="width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-sm);">
-                    <div>
-                        <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Booking Summary</h4>
-                        <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
-                            Complete your reservation details
-                        </p>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Booking Form -->
+            <div class="col-lg-8 mb-4">
+                <div class="admin-card">
+                    <div class="admin-card-header">
+                        <h5><i class="fas fa-calendar-check"></i> Booking Details</h5>
+                    </div>
+                    <div class="admin-card-body">
+                        <form method="POST">
+                            {{ csrf_token() }}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="user_id" class="form-label">User ID</label>
+                                    <input type="number" class="form-control" id="user_id" name="user_id" 
+                                           placeholder="Your user ID" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="listing_id" class="form-label">Listing ID</label>
+                                    <input type="number" class="form-control" id="listing_id" name="listing_id" 
+                                           placeholder="Listing ID" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="check_in" class="form-label">Check-in</label>
+                                    <input type="date" class="form-control" id="check_in" name="check_in" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="check_out" class="form-label">Check-out</label>
+                                    <input type="date" class="form-control" id="check_out" name="check_out" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="total_price" class="form-label">Total Price (৳)</label>
+                                    <input type="number" step="0.01" class="form-control" id="total_price" name="total_price" 
+                                           placeholder="Total price" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="status" class="form-label">Booking Status</label>
+                                    <select class="form-control" id="status" name="status" required>
+                                        <option value="pending">Pending</option>
+                                        <option value="confirmed">Confirmed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Payment method</label>
+                                <div class="admin-card">
+                                    <div class="admin-card-body">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="radio" name="payment_method" value="card" id="card" checked>
+                                            <label class="form-check-label" for="card">
+                                                <strong>Credit or debit card</strong>
+                                            </label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-8 mb-3">
+                                                <input type="text" class="form-control" placeholder="Card number">
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <input type="text" class="form-control" placeholder="MM / YY">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control" placeholder="Security code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Confirm and Pay
+                            </button>
+                        </form>
                     </div>
                 </div>
-                
-                <div style="border-top: 1px solid var(--border-light); padding-top: 24px;">
-                    <h5 style="font-size: 22px; font-weight: 600; margin-bottom: 16px;">Price details</h5>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                        <span id="nights-breakdown">৳0.00 x 0 nights</span>
-                        <span id="base-total">৳0.00</span>
+            </div>
+            
+            <!-- Booking Summary -->
+            <div class="col-lg-4 mb-4">
+                <div class="admin-card sticky-top" style="top: 120px;">
+                    <div class="admin-card-header">
+                        <h5><i class="fas fa-receipt"></i> Booking Summary</h5>
                     </div>
-                    
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                        <span>Service fee</span>
-                        <span id="service-fee-total">৳0.00</span>
-                    </div>
-                    
-                    <div style="border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 16px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 16px;">
-                            <span>Total (BDT)</span>
-                            <span id="final-total">৳0.00</span>
+                    <div class="admin-card-body">
+                        <div class="booking-property mb-4">
+                            <div class="d-flex gap-3">
+                                <img src="{{ url_for('static', filename='uploads/listings/' + listing.image) if listing and listing.image != 'demo_listing_1.jpg' else url_for('static', filename='img/demo_listing_1.jpg') }}" 
+                                     style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px;">
+                                <div>
+                                    <h6 class="mb-1">{{ listing.title if listing else 'Property' }}</h6>
+                                    <small class="text-muted">{{ listing.location if listing else 'Location' }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="price-breakdown">
+                            <h6 class="mb-3">Price details</h6>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span id="nights-breakdown">৳0.00 x 0 nights</span>
+                                <span id="base-total">৳0.00</span>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Service fee</span>
+                                <span id="service-fee-total">৳0.00</span>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between">
+                                <strong>Total (BDT)</strong>
+                                <strong id="final-total">৳0.00</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -121,6 +153,38 @@
     </div>
 </div>
 
-
-
+<script>
+// Auto-calculate totals when dates change
+document.addEventListener('DOMContentLoaded', function() {
+    const checkIn = document.getElementById('check_in');
+    const checkOut = document.getElementById('check_out');
+    const totalPrice = document.getElementById('total_price');
+    const basePrice = {{ listing.price_per_night if listing else 0 }};
+    
+    function calculateTotal() {
+        if (checkIn.value && checkOut.value) {
+            const start = new Date(checkIn.value);
+            const end = new Date(checkOut.value);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays > 0) {
+                const subtotal = basePrice * diffDays;
+                const serviceFee = subtotal * 0.1; // 10% service fee
+                const total = subtotal + serviceFee;
+                
+                document.getElementById('nights-breakdown').textContent = `৳${basePrice.toFixed(2)} x ${diffDays} nights`;
+                document.getElementById('base-total').textContent = `৳${subtotal.toFixed(2)}`;
+                document.getElementById('service-fee-total').textContent = `৳${serviceFee.toFixed(2)}`;
+                document.getElementById('final-total').textContent = `৳${total.toFixed(2)}`;
+                
+                totalPrice.value = total.toFixed(2);
+            }
+        }
+    }
+    
+    checkIn.addEventListener('change', calculateTotal);
+    checkOut.addEventListener('change', calculateTotal);
+});
+</script>
 {% endblock %}
