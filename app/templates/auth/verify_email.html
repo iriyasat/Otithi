@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Email - Otithi{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/auth.css') }}" rel="stylesheet">
+<style>
+.verification-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.verification-header {
+    margin-bottom: 30px;
+}
+
+.verification-header h1 {
+    color: #28a745;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.verification-header p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.verification-form {
+    margin-bottom: 30px;
+}
+
+.verification-code-input {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 25px 0;
+}
+
+.verification-code-input input {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.verification-code-input input:focus {
+    outline: none;
+    border-color: #28a745;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.verification-code-input input:valid {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.verification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn-verify {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-verify:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-resend {
+    background: transparent;
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-resend:hover {
+    background: #6c757d;
+    color: white;
+}
+
+.verification-info {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.verification-info h4 {
+    color: #1976d2;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.verification-info p {
+    color: #424242;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.verification-info i {
+    color: #1976d2;
+    margin-right: 8px;
+}
+
+.countdown {
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .verification-container {
+        margin: 20px;
+        padding: 30px 20px;
+    }
+    
+    .verification-code-input {
+        gap: 8px;
+    }
+    
+    .verification-code-input input {
+        width: 45px;
+        height: 55px;
+        font-size: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verification-container">
+    <div class="verification-header">
+        <div style="font-size: 4rem; color: #28a745; margin-bottom: 20px;">
+            <i class="fas fa-envelope-open"></i>
+        </div>
+        <h1>Verify Your Email</h1>
+        <p>
+            We've sent a 6-digit verification code to<br>
+            <strong>{{ email }}</strong>
+        </p>
+    </div>
+
+    <div class="verification-info">
+        <h4><i class="fas fa-info-circle"></i> Check Your Email</h4>
+        <p>
+            Please check your email inbox (and spam folder) for a message from 
+            <strong>noreply@otithi.com</strong> with the subject "Verify Your Email - Otithi"
+        </p>
+    </div>
+
+    <form class="verification-form" method="POST" id="verificationForm">
+        <div class="verification-code-input">
+            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+        </div>
+        
+        <input type="hidden" name="verification_code" id="verificationCode">
+        
+        <div class="verification-actions">
+            <button type="submit" class="btn-verify" id="verifyBtn">
+                <i class="fas fa-check"></i> Verify Email
+            </button>
+            
+            <button type="button" class="btn-resend" id="resendBtn" onclick="resendVerification()">
+                <i class="fas fa-redo"></i> Resend Code
+            </button>
+        </div>
+    </form>
+
+    <div style="margin-top: 30px; color: #6c757d; font-size: 14px;">
+        <p>Didn't receive the email? Check your spam folder or</p>
+        <p>Contact support if you continue to have issues</p>
+    </div>
+</div>
+
+<script>
+// Auto-focus and auto-advance verification code inputs
+const codeInputs = document.querySelectorAll('.verification-code-input input');
+const verificationCodeField = document.getElementById('verificationCode');
+const verifyBtn = document.getElementById('verifyBtn');
+const resendBtn = document.getElementById('resendBtn');
+
+// Focus first input on page load
+codeInputs[0].focus();
+
+// Handle input behavior
+codeInputs.forEach((input, index) => {
+    input.addEventListener('input', function(e) {
+        const value = e.target.value;
+        
+        // Only allow numbers
+        if (!/^\d$/.test(value)) {
+            e.target.value = '';
+            return;
+        }
+        
+        // Update hidden field
+        updateVerificationCode();
+        
+        // Auto-advance to next input
+        if (value && index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+        }
+        
+        // Check if all inputs are filled
+        checkCompletion();
+    });
+    
+    input.addEventListener('keydown', function(e) {
+        // Handle backspace
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            codeInputs[index - 1].focus();
+        }
+    });
+    
+    input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text');
+        const numbers = pastedData.match(/\d/g);
+        
+        if (numbers && numbers.length === 6) {
+            codeInputs.forEach((input, i) => {
+                if (numbers[i]) {
+                    input.value = numbers[i];
+                }
+            });
+            updateVerificationCode();
+            checkCompletion();
+        }
+    });
+});
+
+function updateVerificationCode() {
+    const code = Array.from(codeInputs).map(input => input.value).join('');
+    verificationCodeField.value = code;
+}
+
+function checkCompletion() {
+    const code = verificationCodeField.value;
+    const isComplete = code.length === 6;
+    
+    verifyBtn.disabled = !isComplete;
+    verifyBtn.style.opacity = isComplete ? '1' : '0.6';
+    verifyBtn.style.cursor = isComplete ? 'pointer' : 'not-allowed';
+}
+
+// Form submission
+document.getElementById('verificationForm').addEventListener('submit', function(e) {
+    const code = verificationCodeField.value;
+    
+    if (code.length !== 6) {
+        e.preventDefault();
+        alert('Please enter the complete 6-digit verification code.');
+        return;
+    }
+    
+    // Show loading state
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+    verifyBtn.disabled = true;
+});
+
+// Resend verification code
+function resendVerification() {
+    resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    resendBtn.disabled = true;
+    
+    fetch('/resend-verification', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name=csrf-token]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear inputs
+            codeInputs.forEach(input => input.value = '');
+            updateVerificationCode();
+            checkCompletion();
+            
+            // Show success message
+            showNotification(data.message, 'success');
+            
+            // Reset button
+            setTimeout(() => {
+                resendBtn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+                resendBtn.disabled = false;
+            }, 2000);
+        } else {
+            showNotification(data.message, 'danger');
+            resendBtn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+            resendBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred. Please try again.', 'danger');
+        resendBtn.innerHTML = '<i class="fas fa-redo"></i> Resend Code';
+        resendBtn.disabled = false;
+    });
+}
+
+// Notification function
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Initialize
+checkCompletion();
+</script>
+{% endblock %}

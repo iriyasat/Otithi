@@ -158,6 +158,31 @@ class User(UserMixin):
         
         return None
     
+    @staticmethod
+    def create_with_verification(full_name, email, password, phone=None, bio=None, user_type='guest'):
+        """Create a new user with email verification"""
+        try:
+            # Check if email already exists
+            existing_user = User.get_by_email(email)
+            if existing_user:
+                return None, None
+            
+            # Create user
+            user = User.create(full_name, email, password, phone, bio, user_type)
+            if user:
+                # Create email verification record
+                from app.models import EmailVerification
+                verification = EmailVerification.create(user.id, email)
+                
+                if verification:
+                    return user, verification
+                else:
+                    return user, None
+        except Exception as e:
+            print(f"Error creating user: {e}")
+        
+        return None, None
+    
     def save(self):
         """Save user changes to database - Updated for new schema"""
         try:
@@ -308,6 +333,183 @@ class User(UserMixin):
             import traceback
             traceback.print_exc()
             return False
+
+
+class EmailVerification:
+    """Email verification model for user registration"""
+    
+    def __init__(self, id, user_id, verification_code, email, created_at=None, expires_at=None, used_at=None, is_used=False):
+        self.id = id
+        self.verification_id = id  # Alias for consistency
+        self.user_id = user_id
+        self.verification_code = verification_code
+        self.email = email
+        self.created_at = created_at or datetime.now()
+        self.expires_at = expires_at or (datetime.now() + timedelta(hours=24))
+        self.used_at = used_at
+        self.is_used = is_used
+    
+    @staticmethod
+    def create(user_id, email):
+        """Create a new email verification record"""
+        import random
+        import string
+        
+        # Generate a 6-digit verification code
+        verification_code = ''.join(random.choices(string.digits, k=6))
+        
+        # Set expiration to 24 hours from now
+        expires_at = datetime.now() + timedelta(hours=24)
+        
+        query = """
+            INSERT INTO email_verifications (user_id, verification_code, email, created_at, expires_at, is_used)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        
+        verification_id = db.execute_insert(query, (
+            user_id, verification_code, email, datetime.now(), expires_at, False
+        ))
+        
+        if verification_id:
+            return EmailVerification.get(verification_id)
+        return None
+    
+    @staticmethod
+    def get(verification_id):
+        """Get verification record by ID"""
+        query = "SELECT * FROM email_verifications WHERE verification_id = %s"
+        result = db.execute_query(query, (verification_id,))
+        if result:
+            verification_data = result[0]
+            return EmailVerification(
+                id=verification_data['verification_id'],
+                user_id=verification_data['user_id'],
+                verification_code=verification_data['verification_code'],
+                email=verification_data['email'],
+                created_at=verification_data['created_at'],
+                expires_at=verification_data['expires_at'],
+                used_at=verification_data.get('used_at'),
+                is_used=verification_data.get('is_used', False)
+            )
+        return None
+    
+    @staticmethod
+    def get_by_code(verification_code):
+        """Get verification record by verification code"""
+        query = "SELECT * FROM email_verifications WHERE verification_code = %s"
+        result = db.execute_query(query, (verification_code,))
+        if result:
+            verification_data = result[0]
+            return EmailVerification(
+                id=verification_data['verification_id'],
+                user_id=verification_data['user_id'],
+                verification_code=verification_data['verification_code'],
+                email=verification_data['email'],
+                created_at=verification_data['created_at'],
+                expires_at=verification_data['expires_at'],
+                used_at=verification_data.get('used_at'),
+                is_used=verification_data.get('is_used', False)
+            )
+        return None
+    
+    @staticmethod
+    def get_by_user(user_id):
+        """Get verification records for a user"""
+        query = "SELECT * FROM email_verifications WHERE user_id = %s ORDER BY created_at DESC"
+        results = db.execute_query(query, (user_id,))
+        verifications = []
+        for verification_data in results:
+            verification = EmailVerification(
+                id=verification_data['verification_id'],
+                user_id=verification_data['user_id'],
+                verification_code=verification_data['verification_code'],
+                email=verification_data['email'],
+                created_at=verification_data['created_at'],
+                expires_at=verification_data['expires_at'],
+                used_at=verification_data.get('used_at'),
+                is_used=verification_data.get('is_used', False)
+            )
+            verifications.append(verification)
+        return verifications
+    
+    def is_expired(self):
+        """Check if verification code has expired"""
+        return datetime.now() > self.expires_at
+    
+    def is_valid(self):
+        """Check if verification code is valid and not used"""
+        return not self.is_used and not self.is_expired()
+    
+    def mark_as_used(self):
+        """Mark verification code as used"""
+        query = """
+            UPDATE email_verifications 
+            SET is_used = %s, used_at = %s 
+            WHERE verification_id = %s
+        """
+        if db.execute_update(query, (True, datetime.now(), self.id)):
+            self.is_used = True
+            self.used_at = datetime.now()
+            return True
+        return False
+    
+    def resend_verification(self):
+        """Resend verification code (create new one)"""
+        import random
+        import string
+        
+        # Generate new 6-digit code
+        new_code = ''.join(random.choices(string.digits, k=6))
+        
+        # Update expiration to 24 hours from now
+        new_expires_at = datetime.now() + timedelta(hours=24)
+        
+        query = """
+            UPDATE email_verifications 
+            SET verification_code = %s, expires_at = %s, is_used = %s, used_at = %s
+            WHERE verification_id = %s
+        """
+        
+        if db.execute_update(query, (new_code, new_expires_at, False, None, self.id)):
+            self.verification_code = new_code
+            self.expires_at = new_expires_at
+            self.is_used = False
+            self.used_at = None
+            return True
+        return False
+    
+    @staticmethod
+    def verify_code(verification_code):
+        """Verify a verification code and mark user as verified"""
+        verification = EmailVerification.get_by_code(verification_code)
+        
+        if not verification:
+            return False, "Invalid verification code"
+        
+        if verification.is_expired():
+            return False, "Verification code has expired"
+        
+        if verification.is_used:
+            return False, "Verification code already used"
+        
+        try:
+            # Mark verification as used
+            verification.mark_as_used()
+            
+            # Update user as verified
+            from app.models import User
+            user = User.get(verification.user_id)
+            if user:
+                # Update user_details table to mark as verified
+                query = "UPDATE user_details SET verified = %s, updated_at = %s WHERE user_id = %s"
+                db.execute_update(query, (True, datetime.now(), verification.user_id))
+                
+                return True, "Email verified successfully"
+            else:
+                return False, "User not found"
+                
+        except Exception as e:
+            return False, f"Error during verification: {str(e)}"
 
 
 class Location:
