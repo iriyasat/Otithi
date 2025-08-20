@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 16, 2025 at 09:36 PM
+-- Generation Time: Aug 20, 2025 at 03:16 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -81,20 +81,24 @@ CREATE TABLE `favorites` (
 CREATE TABLE `listings` (
   `listing_id` int(11) NOT NULL,
   `host_id` int(11) NOT NULL,
+  `location_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
-  `address` text DEFAULT NULL,
-  `city` varchar(100) DEFAULT NULL,
-  `country` varchar(100) DEFAULT NULL,
   `room_type` enum('entire_place','private_room','shared_room') DEFAULT 'entire_place',
   `price_per_night` decimal(10,2) NOT NULL,
   `max_guests` int(11) NOT NULL DEFAULT 1,
   `amenities` text DEFAULT NULL,
-  `location_id` int(11) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_active` tinyint(1) DEFAULT 1
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `listings`
+--
+
+INSERT INTO `listings` (`listing_id`, `host_id`, `location_id`, `title`, `description`, `room_type`, `price_per_night`, `max_guests`, `amenities`, `is_active`, `created_at`, `updated_at`) VALUES
+(3, 2, 3, 'small room', 'small room', 'private_room', 1205.00, 2, 'wifi, parking, etc', 1, '2025-08-20 05:10:15', '2025-08-20 05:10:15');
 
 -- --------------------------------------------------------
 
@@ -111,6 +115,13 @@ CREATE TABLE `listing_images` (
   `uploaded_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `listing_images`
+--
+
+INSERT INTO `listing_images` (`image_id`, `listing_id`, `image_filename`, `image_order`, `is_primary`, `uploaded_at`) VALUES
+(3, 3, 'listing_3_fe8cdff0.webp', 1, 0, '2025-08-20 05:10:15');
+
 -- --------------------------------------------------------
 
 --
@@ -124,8 +135,16 @@ CREATE TABLE `locations` (
   `country` varchar(100) NOT NULL,
   `latitude` decimal(10,8) DEFAULT NULL,
   `longitude` decimal(11,8) DEFAULT NULL,
+  `listing_id` int(11) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `locations`
+--
+
+INSERT INTO `locations` (`location_id`, `address`, `city`, `country`, `latitude`, `longitude`, `listing_id`, `created_at`) VALUES
+(3, '331, 1 Sonargaon Road, Dhaka 1205, Bangladesh', 'Dhaka', 'Bangladesh', 23.74480787, 90.39131981, 3, '2025-08-20 05:10:15');
 
 -- --------------------------------------------------------
 
@@ -199,7 +218,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `name`, `email`, `password_hash`) VALUES
-(1, 'System Administrator', 'admin@otithi.com', 'pbkdf2:sha256:600000$BMlfFUDFo6o5PCbL$83629fe92704f02e2fedbd014ee8ec31da52f2e9f15d14ce79f470ee2c4dcf38');
+(1, 'System Administrator', 'admin@otithi.com', 'pbkdf2:sha256:600000$BMlfFUDFo6o5PCbL$83629fe92704f02e2fedbd014ee8ec31da52f2e9f15d14ce79f470ee2c4dcf38'),
+(2, 'Ibrahim Hasan', 'host@otithi.com', 'scrypt:32768:8:1$9cavVKXlZzpTo1Cl$6a55cf3bc0aa7b5a2c5968effa10ef1744a2da75246016234dd286bddb969749c3c559b406893b4b6e4f1f1bd9c21a9c81140df57687629cd7565a8a37b0d58f'),
+(3, 'Marzia Hossain', 'guest@otithi.com', 'scrypt:32768:8:1$K1bOkBXfgRbLto3N$08e6bf23d768773c72ed2ba0954467d85aae080258a37dae60859dd9f78e1a449f80f91cb352ad577430dceeac8ede6de62186094036d1591a2a0de4ecffd0f2');
 
 -- --------------------------------------------------------
 
@@ -225,7 +246,9 @@ CREATE TABLE `user_details` (
 --
 
 INSERT INTO `user_details` (`user_id`, `profile_photo`, `phone`, `bio`, `user_type`, `join_date`, `verified`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, NULL, '+8801700000000', 'System Administrator Account', 'admin', '2025-08-17 00:21:36', 1, 1, '2025-08-17 00:21:36', '2025-08-17 00:21:36');
+(1, 'administrator_1_profile.jpg', '+8801700000000', 'System Administrator Account', 'admin', '2025-08-17 00:21:36', 1, 1, '2025-08-17 00:21:36', '2025-08-19 23:33:24'),
+(2, 'ibrahim_hasan_7_profile.jpg', '+8801712345678', 'Experienced host with multiple properties. Passionate about providing excellent guest experiences.', 'host', '2025-08-17 01:53:50', 1, 1, '2025-08-17 01:53:50', '2025-08-19 23:33:24'),
+(3, 'marzia_hossain_8_profile.jpeg', '+8801798765432', 'Travel enthusiast and frequent guest. Love exploring new places and meeting new people.', 'guest', '2025-08-17 01:53:50', 1, 1, '2025-08-17 01:53:50', '2025-08-19 23:33:24');
 
 --
 -- Indexes for dumped tables
@@ -264,21 +287,28 @@ ALTER TABLE `favorites`
 --
 ALTER TABLE `listings`
   ADD PRIMARY KEY (`listing_id`),
-  ADD KEY `host_id` (`host_id`),
-  ADD KEY `location_id` (`location_id`);
+  ADD KEY `idx_host_id` (`host_id`),
+  ADD KEY `idx_location_id` (`location_id`),
+  ADD KEY `idx_active` (`is_active`),
+  ADD KEY `idx_created` (`created_at`);
 
 --
 -- Indexes for table `listing_images`
 --
 ALTER TABLE `listing_images`
   ADD PRIMARY KEY (`image_id`),
-  ADD KEY `listing_id` (`listing_id`);
+  ADD KEY `idx_listing_id` (`listing_id`),
+  ADD KEY `idx_order` (`listing_id`,`image_order`),
+  ADD KEY `idx_primary` (`listing_id`,`is_primary`);
 
 --
 -- Indexes for table `locations`
 --
 ALTER TABLE `locations`
-  ADD PRIMARY KEY (`location_id`);
+  ADD PRIMARY KEY (`location_id`),
+  ADD KEY `idx_city_country` (`city`,`country`),
+  ADD KEY `idx_coordinates` (`latitude`,`longitude`),
+  ADD KEY `idx_listing_id` (`listing_id`);
 
 --
 -- Indexes for table `messages`
@@ -348,19 +378,19 @@ ALTER TABLE `favorites`
 -- AUTO_INCREMENT for table `listings`
 --
 ALTER TABLE `listings`
-  MODIFY `listing_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `listing_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `listing_images`
 --
 ALTER TABLE `listing_images`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
-  MODIFY `location_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `location_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -384,7 +414,7 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
@@ -416,13 +446,19 @@ ALTER TABLE `favorites`
 --
 ALTER TABLE `listings`
   ADD CONSTRAINT `listings_ibfk_1` FOREIGN KEY (`host_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `listings_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `listings_ibfk_2` FOREIGN KEY (`location_id`) REFERENCES `locations` (`location_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `listing_images`
 --
 ALTER TABLE `listing_images`
   ADD CONSTRAINT `listing_images_ibfk_1` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`listing_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `locations`
+--
+ALTER TABLE `locations`
+  ADD CONSTRAINT `locations_ibfk_1` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`listing_id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `messages`

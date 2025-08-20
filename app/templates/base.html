@@ -15,6 +15,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Base CSS (variables, components, navigation) -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <!-- Chatbox CSS -->
+    <link href="{{ url_for('static', filename='css/chatbox.css') }}" rel="stylesheet">
     <!-- Additional CSS block for page-specific styles -->
     {% block extra_css %}{% endblock %}
 </head>
@@ -40,8 +42,6 @@
                         <a href="{{ url_for('admin.listings') }}" class="nav-link{% if request.endpoint == 'admin.listings' %} active{% endif %}">Manage Listings</a>
                         <a href="{{ url_for('admin.bookings') }}" class="nav-link{% if request.endpoint == 'admin.bookings' %} active{% endif %}">Manage Bookings</a>
                     {% elif current_user.user_type == 'guest' %}
-                        <a href="{{ url_for('main.index') }}" class="nav-link{% if request.endpoint == 'main.index' %} active{% endif %}">Dashboard</a>
-                        <a href="{{ url_for('main.explore') }}" class="nav-link{% if request.endpoint == 'main.explore' %} active{% endif %}">Explore</a>
                         <a href="{{ url_for('main.my_bookings') }}" class="nav-link{% if request.endpoint == 'main.my_bookings' %} active{% endif %}">My Bookings</a>
                         <a href="{{ url_for('main.favorites') }}" class="nav-link{% if request.endpoint == 'main.favorites' %} active{% endif %}">Favorites</a>
                     {% elif current_user.user_type == 'host' %}
@@ -51,7 +51,6 @@
                     {% endif %}
                     <a href="{{ url_for('profile.profile') }}" class="nav-link{% if request.endpoint == 'profile.profile' %} active{% endif %}">Profile</a>
                 {% else %}
-                    <a href="{{ url_for('main.explore') }}" class="nav-link{% if request.endpoint == 'main.explore' %} active{% endif %}">Explore</a>
                 {% endif %}
             </div>
             
@@ -172,6 +171,8 @@
     <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     <script src="{{ url_for('static', filename='js/loader.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Chatbox JavaScript -->
+    <script src="{{ url_for('static', filename='js/chatbox.js') }}"></script>
     
     <script>
     // Simple logout handling - no interference with normal logout flow

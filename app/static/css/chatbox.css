@@ -1,0 +1,277 @@
+/**
+ * Chatbox CSS - Floating Copilot Studio Integration
+ * Matches Otithi website UI styling
+ */
+
+/* Chatbox Container */
+.chatbox-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Toggle Button */
+.chatbox-toggle {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #006a4e, #008060);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 106, 78, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatbox-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 106, 78, 0.4);
+    background: linear-gradient(135deg, #007a5a, #009070);
+}
+
+.chatbox-toggle:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(0, 106, 78, 0.3);
+}
+
+/* Toggle button states */
+.chatbox-toggle.open {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+}
+
+.chatbox-toggle.open:hover {
+    background: linear-gradient(135deg, #e55a6a, #d73847);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+}
+
+/* Pulse animation for attention */
+.chatbox-toggle.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 4px 20px rgba(0, 106, 78, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(0, 106, 78, 0.6), 0 0 0 10px rgba(0, 106, 78, 0.1);
+    }
+    100% {
+        box-shadow: 0 4px 20px rgba(0, 106, 78, 0.3);
+    }
+}
+
+/* Chatbox Window */
+.chatbox-window {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 400px;
+    height: 600px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid #f0f0f0;
+}
+
+.chatbox-window.show {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Chatbox Header */
+.chatbox-header {
+    background: linear-gradient(135deg, #006a4e, #008060);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 14px 14px 0 0;
+}
+
+.chatbox-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chatbox-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.chatbox-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Chatbox Content */
+.chatbox-content {
+    height: calc(100% - 68px);
+    position: relative;
+    background: #ffffff;
+}
+
+.chatbox-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    background: #ffffff;
+}
+
+/* Loading State */
+.chatbox-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: #666;
+    z-index: 10;
+}
+
+.chatbox-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f0f0f0;
+    border-top: 3px solid #006a4e;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.chatbox-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    max-width: 300px;
+}
+
+.chatbox-error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.chatbox-retry {
+    background: #006a4e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 16px;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.chatbox-retry:hover {
+    background: #005a42;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .chatbox-container {
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+    }
+    
+    .chatbox-window {
+        width: 100%;
+        height: 70vh;
+        max-height: 500px;
+        right: 0;
+        left: 0;
+        bottom: 80px;
+    }
+    
+    .chatbox-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chatbox-window {
+        height: 60vh;
+        max-height: 400px;
+        border-radius: 12px;
+    }
+    
+    .chatbox-header {
+        padding: 12px 16px;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .chatbox-title {
+        font-size: 15px;
+    }
+}
+
+/* High DPI Support */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .chatbox-window {
+        border-width: 0.5px;
+    }
+}
+
+/* Dark mode support (if implemented) */
+@media (prefers-color-scheme: dark) {
+    .chatbox-window {
+        background: #1a1a1a;
+        border-color: #333;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+    
+    .chatbox-content {
+        background: #1a1a1a;
+    }
+    
+    .chatbox-iframe {
+        background: #1a1a1a;
+    }
+}

@@ -93,9 +93,7 @@ def logout():
     """Handle user logout"""
     logout_user()
     flash('You have been logged out successfully.', 'info')
-    return render_template('auth/logout_complete.html')
+    return redirect(url_for('main.index'))
 
-@auth_bp.route('/logout_complete')
-def logout_complete():
-    """Display logout completion page"""
-    return render_template('auth/logout_complete.html')
+# Password reset functionality (if needed)
+# @auth_bp.route('/reset_password')

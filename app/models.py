@@ -887,9 +887,10 @@ class Review:
     def get_by_listing(listing_id):
         """Get all reviews for a listing with user names and profile photos"""
         query = """
-            SELECT r.*, u.name as user_name, u.profile_photo 
+            SELECT r.*, u.name as user_name, ud.profile_photo 
             FROM reviews r 
             LEFT JOIN users u ON r.reviewer_id = u.user_id 
+            LEFT JOIN user_details ud ON u.user_id = ud.user_id
             WHERE r.listing_id = %s 
             ORDER BY r.review_date DESC
         """
